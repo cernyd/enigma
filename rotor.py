@@ -20,6 +20,13 @@ class Rotor:
             route_idx = self.__back_alphabet.index(input_letter)
             return self.rotor_routing[route_idx][0]
 
+    def __str__(self):
+        routing = []
+        for rotor_route in self.rotor_routing:
+            routing.append('{} > {}'.format(*rotor_route))
+
+        return "Rotor {} routing:\n{}".format(self.rotor_label, '\n'.join(routing))
+
 
 class HistoricalRotors:
     """Historically accurate rotors, UKW - Reflector, ETW - Stationary rotor"""
