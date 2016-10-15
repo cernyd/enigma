@@ -1,4 +1,29 @@
+class Rotor:
+    def __init__(self, rotor_label, back_alphabet):
+        self.__front_alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        self.__back_alphabet = back_alphabet
+
+        self.rotor_label = rotor_label
+
+        temp_routing = []
+        for input_letter, output_letter in zip(self.__front_alphabet,
+                                               self.__back_alphabet):
+            temp_routing.append((input_letter, output_letter))
+
+        self.rotor_routing = tuple(temp_routing)
+
+    def route_signal(self, input_letter, side='front'):
+        if side == 'front':
+            route_idx = self.__front_alphabet.index(input_letter)
+            return self.rotor_routing[route_idx][1]
+        elif side == 'back':  # Can be used as a reflector too
+            route_idx = self.__back_alphabet.index(input_letter)
+            return self.rotor_routing[route_idx][0]
+
+
 class HistoricalRotors:
+    """Historically accurate rotors, UKW - Reflector, ETW - Stationary rotor"""
+
     rotors = {'Commercial Enigma A,B': {
                   'IC': Rotor('IC', 'DMTWSILRUYQNKFEJCAZBPGXOHV'),
                   'IIC': Rotor('IIC', 'HQZGPJTMOBLNCIFDYAWVEUSRKX'),
@@ -29,36 +54,21 @@ class HistoricalRotors:
               }
 
 
-class Rotor:
-    def __init__(self, rotor_label, back_alphabet, rotor_position=1):
-        self.__front_alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-        self.__back_alphabet = back_alphabet
+class Enigma1:
+    """
+    Historically accurate Enigma 1 rotor wiring
+    UKW - Reflector
+    ETW - Stationary router
+    """
 
-        self.rotor_label = rotor_label
-        self.__rotor_position = rotor_position  # Default position
-
-        temp_routing = []
-        for input_letter, output_letter in zip(self.__front_alphabet,
-                                               self.__back_alphabet):
-            temp_routing.append((input_letter, output_letter))
-
-        self.rotor_routing = tuple(temp_routing)
-
-    def set_rotor_position(self, rotor_position):
-        self.__rotor_position = rotor_position
-
-    def rotate(self):
-        if self.__rotor_position == 26:
-            self.__rotor_position = 1
-            return True  # Rotate next rotor
-        else:
-            self.__rotor_position += 1
-            return False  # Do not rotate next rotor
-
-    def route_signal(self, input_letter, side='front'):
-        if side == 'front':
-            route_idx = self.__front_alphabet.index(input_letter)
-            return self.rotor_routing[route_idx][1]
-        elif side == 'back':
-            route_idx = self.__back_alphabet.index(input_letter)
-            return self.rotor_routing[route_idx][0]
+    rotors = {
+              'ETW': Rotor('ETW', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'),
+              'I': Rotor('I', 'EKMFLGDQVZNTOWYHXUSPAIBRCJ'),
+              'II': Rotor('II', 'AJDKSIRUXBLHWTMCQGZNPYFVOE'),
+              'III': Rotor('III', 'BDFHJLCPRTXVZNYEIWGAKMUSQO'),
+              'IV': Rotor('IV', 'ESOVPZJAYQUIRHXLNFTGKDCMWB'),
+              'V': Rotor('V', 'VZBRGITYUPSDNHLXAWMJQOFECK'),
+              'UKW-A': Rotor('UKW-A', 'EJMZALYXVBWFCRQUONTSPIKHGD'),
+              'UKW-B': Rotor('UKW-B', 'YRUHQSLDPXNGOKMIEBFZCWVJAT'),
+              'UKW-C': Rotor('UKW-C', 'FVPJIAOYEDRZXWGCTKUQSBNMHL')
+              }
