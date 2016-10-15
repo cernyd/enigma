@@ -2,8 +2,8 @@ class Rotor:
     def __init__(self, rotor_label, back_alphabet, rotor_offset=0):
         self.__front_alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
         self.__back_alphabet = back_alphabet
-        self.__rotor_label = rotor_label
-        self.__rotor_offset = rotor_offset
+        self.rotor_label = rotor_label
+        self.rotor_offset = rotor_offset
 
         self.set_offset(rotor_offset)
 
@@ -30,8 +30,8 @@ class Rotor:
         for rotor_route in self.rotor_routing:
             routing.append('{} > {}'.format(*rotor_route))
 
-        return "Rotor label: {}\noffset: {}\nrouting:\n{}".format(self.__rotor_label,
-                                                          self.__rotor_offset,
+        return "Rotor label: {}\noffset: {}\nrouting:\n{}".format(self.rotor_label,
+                                                                  self.rotor_offset,
                                                           '\n'.join(routing))
 
 

@@ -1,8 +1,12 @@
-from rotor import Enigma1, Rotor
+from rotor import Enigma1
 
 
 class Enigma:
     def __init__(self, etw, rotors, ukw, plugboard_settings=None):
+        """
+        UKW - Reflector
+        ETW - Stationary router
+        """
 
         if len(rotors) < 3:
             raise AssertionError('Not enough rotors!')
@@ -31,5 +35,18 @@ class Enigma:
     def plugboard(self):
         pass
 
+    def __str__(self):
+        rotor_settings = ["Rotor: %s | Offset: %s" %
+                          (rotor.rotor_label, rotor.rotor_offset)
+                          for rotor in self.rotors]
+        ukw = "UKW: %s" % (self.ukw.rotor_label)
+        etw = "ETW: %s" % (self.etw.rotor_label)
+        return "- Enigma -\n{}\n{}\n{}".format(ukw, '\n'.join(rotor_settings), etw)
 
-rotor_test = Rotor('I', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 1)
+
+rotors = Enigma1.rotors
+enigma = Enigma(rotors['ETW'], [rotors['I'],
+                                rotors['II'],
+                                rotors['III']],
+                                rotors['UKW-A'])
+print(enigma)
