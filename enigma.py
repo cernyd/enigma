@@ -28,22 +28,52 @@ class Enigma:
             self.etw = etw
 
         self.plugboard_settings = plugboard_settings
-        self.set_rotor_pos(starting_pos)
-
+        self.__rotor_pos = starting_pos
 
     def set_rotor_pos(self, pos_list):
         self.__rotor_pos = pos_list
 
+    def rotate_first(self):
+        index = 0
+        rot_next = False
+
+        for _ in self.__rotor_pos:
+            if index == 0 or rot_next:
+                if self.__rotor_pos[index] == 25:
+                    self.__rotor_pos[index] = 0
+                    rot_next = True
+                else:
+                    self.__rotor_pos[index] += 1
+                    if index != 0:
+                        rot_next = False
+            index += 1
+
+    def correct_position(self, letter, rotor_idx):
+        final_idx = alphabet.index(letter) + self.__rotor_pos[rotor_idx]
+
+        if final_idx >= len(alphabet):
+            return alphabet[final_idx - len(alphabet)]
+        else:
+            return alphabet[final_idx]
+
     def button_press(self, button):
         output_letter = self.etw.route_signal(button)  # Correct function
 
+        self.rotate_first()
+
+        rotor_idx = 0
         for rotor in self.rotors:
             output_letter = rotor.route_signal(output_letter)
+            output_letter = self.correct_position(output_letter, rotor_idx)
+            rotor_idx += 1
 
         output_letter = self.ukw.route_signal(output_letter)  # Works correctly
 
+        rotor_idx = 2
         for rotor in reversed(self.rotors):
             output_letter = rotor.route_signal(output_letter, 'back')
+            output_letter = self.correct_position(output_letter, rotor_idx)
+            rotor_idx -= 1
 
         output_letter = self.etw.route_signal(output_letter, 'back')  # Correct function
 
@@ -67,9 +97,16 @@ enigma = Enigma(rotors['ETW'], [rotors['I'],
                                 rotors['III']],
                                 rotors['UKW-A'])
 
-
 output = ''
-for letter in 'NBSISINBCSTNCTLCLAJNFJN':
+for letter in 'CORRECT':
     output += enigma.button_press(letter)
 
 print(output)
+
+enigma.set_rotor_pos([0,0,0])
+
+output2 = ''
+for letter in output:
+    output2 += enigma.button_press(letter)
+
+print(output2)
