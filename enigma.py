@@ -63,16 +63,16 @@ class Enigma:
 
         rotor_idx = 0
         for rotor in self.rotors:
+            #output_letter = self.correct_position(output_letter, rotor_idx)
             output_letter = rotor.route_signal(output_letter)
-            output_letter = self.correct_position(output_letter, rotor_idx)
             rotor_idx += 1
 
         output_letter = self.ukw.route_signal(output_letter)  # Works correctly
 
         rotor_idx = 2
         for rotor in reversed(self.rotors):
+            #output_letter = self.correct_position(output_letter, rotor_idx)
             output_letter = rotor.route_signal(output_letter, 'back')
-            output_letter = self.correct_position(output_letter, rotor_idx)
             rotor_idx -= 1
 
         output_letter = self.etw.route_signal(output_letter, 'back')  # Correct function
@@ -97,6 +97,7 @@ enigma = Enigma(rotors['ETW'], [rotors['I'],
                                 rotors['III']],
                                 rotors['UKW-A'])
 
+#"""
 output = ''
 for letter in 'CORRECT':
     output += enigma.button_press(letter)
@@ -110,3 +111,4 @@ for letter in output:
     output2 += enigma.button_press(letter)
 
 print(output2)
+#"""
