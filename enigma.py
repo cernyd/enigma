@@ -2,10 +2,11 @@ from rotor import Enigma1
 
 
 class Enigma:
-    def __init__(self, rotor_order, plugboard_settings=None):
-        self.__rotor_order = rotor_order
-        self.__plugboard_settings = plugboard_settings
-        print(self.__rotor_order)
+    def __init__(self, etw, rotors, ukw, plugboard_settings=None):
+        self.ukw = ukw
+        self.etw = etw
+        self.rotors = rotors
+        self.plugboard_settings = plugboard_settings
 
     def button_press(self, button):
         input_letter = button
@@ -16,4 +17,4 @@ class Enigma:
         pass
 
 
-my_enigma = Enigma([rotor for rotor in Enigma1.rotors.values()])
+my_enigma = Enigma()
