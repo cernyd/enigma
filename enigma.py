@@ -1,6 +1,8 @@
 from rotor import Enigma1
 
 
+alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
 class Enigma:
     def __init__(self, etw, rotors, ukw, starting_pos=[0, 0, 0], plugboard_settings=None):
         """
@@ -37,13 +39,13 @@ class Enigma:
         rot_next = False
         for _ in self.__rotor_pos:
             if index == 0:
-                if self.__rotor_pos[index] == 26:
+                if self.__rotor_pos[index] == 25:
                     self.__rotor_pos[index] = 0
                     rot_next = True
                 else:
                     self.__rotor_pos[index] += 1
             elif rot_next:
-                if self.__rotor_pos[index] == 26:
+                if self.__rotor_pos[index] == 25:
                     self.__rotor_pos[index] = 0
                     rot_next = True
                 else:
@@ -51,14 +53,40 @@ class Enigma:
                     rot_next = False
             index += 1
 
+    def final_letter(self, letter, offset):
+        final_index = alphabet.index(letter) + offset
+
+        if final_index > len(alphabet) - 1:
+            return alphabet[final_index - len(alphabet)]
+        else:
+            return alphabet[final_index]
+
     def button_press(self, button):
-        print(self.__rotor_pos)
-        output_letter = self.etw.route_signal(button)
+        output_letter = self.etw.route_signal(button)  # Correct function
+
+        index = 0
+        for rotor in self.rotors:
+            """
+            output_letter = self.final_letter(output_letter,
+                                              self.__rotor_pos[index])
+            """
+            output_letter = rotor.route_signal(output_letter)
+            index += 1
+
+        output_letter = self.ukw.route_signal(output_letter)  # Works correctly
+
+        index = -2
+        for rotor in reversed(self.rotors):
+            """
+            output_letter = self.final_letter(output_letter,
+                                              self.__rotor_pos[index])
+            """
+            output_letter = rotor.route_signal(output_letter, 'back')
+            index += 1
+
+        output_letter = self.etw.route_signal(output_letter, 'back')  # Correct function
+
         self.rotate_first()
-        output_letter = self.rotors[0].route_signal(output_letter)
-
-
-
         return output_letter
 
     def plugboard(self):
@@ -80,6 +108,8 @@ enigma = Enigma(rotors['ETW'], [rotors['I'],
                                 rotors['UKW-A'])
 
 
-for letter in '':
-    print(enigma.button_press(letter))
+output = ''
+for letter in 'OXKN':
+    output += enigma.button_press(letter)
 
+print(output)
