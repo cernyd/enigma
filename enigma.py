@@ -1,11 +1,26 @@
-from rotor import Enigma1
+from rotor import Enigma1, Rotor
 
 
 class Enigma:
     def __init__(self, etw, rotors, ukw, plugboard_settings=None):
-        self.ukw = ukw
-        self.etw = etw
-        self.rotors = rotors
+
+        if len(rotors) < 3:
+            raise AssertionError('Not enough rotors!')
+        elif len(rotors) > 3:
+            raise AssertionError('Too many rotors!')
+        else:
+            self.rotors = rotors
+
+        if not ukw:
+            raise AssertionError('No reflector!')
+        else:
+            self.ukw = ukw
+
+        if not etw:
+            raise AssertionError('No entry wheel!')
+        else:
+            self.etw = etw
+
         self.plugboard_settings = plugboard_settings
 
     def button_press(self, button):
@@ -17,4 +32,4 @@ class Enigma:
         pass
 
 
-my_enigma = Enigma()
+rotor_test = Rotor('I', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 1)

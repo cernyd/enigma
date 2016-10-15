@@ -1,13 +1,18 @@
 class Rotor:
-    def __init__(self, rotor_label, back_alphabet):
+    def __init__(self, rotor_label, back_alphabet, rotor_offset=0):
         self.__front_alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
         self.__back_alphabet = back_alphabet
+        self.__rotor_label = rotor_label
+        self.__rotor_offset = rotor_offset
 
-        self.rotor_label = rotor_label
+        self.set_offset(rotor_offset)
 
+    def set_offset(self, rotor_offset):
         temp_routing = []
+        back_alph_with_offset = self.__back_alphabet[rotor_offset:] + \
+                                self.__back_alphabet[:rotor_offset]
         for input_letter, output_letter in zip(self.__front_alphabet,
-                                               self.__back_alphabet):
+                                               back_alph_with_offset):
             temp_routing.append((input_letter, output_letter))
 
         self.rotor_routing = tuple(temp_routing)
@@ -25,7 +30,9 @@ class Rotor:
         for rotor_route in self.rotor_routing:
             routing.append('{} > {}'.format(*rotor_route))
 
-        return "Rotor {} routing:\n{}".format(self.rotor_label, '\n'.join(routing))
+        return "Rotor label: {}\noffset: {}\nrouting:\n{}".format(self.__rotor_label,
+                                                          self.__rotor_offset,
+                                                          '\n'.join(routing))
 
 
 class HistoricalRotors:
