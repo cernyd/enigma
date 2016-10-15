@@ -34,59 +34,19 @@ class Enigma:
     def set_rotor_pos(self, pos_list):
         self.__rotor_pos = pos_list
 
-    def rotate_first(self):
-        index = 0
-        rot_next = False
-        for _ in self.__rotor_pos:
-            if index == 0:
-                if self.__rotor_pos[index] == 25:
-                    self.__rotor_pos[index] = 0
-                    rot_next = True
-                else:
-                    self.__rotor_pos[index] += 1
-            elif rot_next:
-                if self.__rotor_pos[index] == 25:
-                    self.__rotor_pos[index] = 0
-                    rot_next = True
-                else:
-                    self.__rotor_pos[index] += 1
-                    rot_next = False
-            index += 1
-
-    def final_letter(self, letter, offset):
-        final_index = alphabet.index(letter) + offset
-
-        if final_index > len(alphabet) - 1:
-            return alphabet[final_index - len(alphabet)]
-        else:
-            return alphabet[final_index]
-
     def button_press(self, button):
         output_letter = self.etw.route_signal(button)  # Correct function
 
-        index = 0
         for rotor in self.rotors:
-            """
-            output_letter = self.final_letter(output_letter,
-                                              self.__rotor_pos[index])
-            """
             output_letter = rotor.route_signal(output_letter)
-            index += 1
 
         output_letter = self.ukw.route_signal(output_letter)  # Works correctly
 
-        index = -2
         for rotor in reversed(self.rotors):
-            """
-            output_letter = self.final_letter(output_letter,
-                                              self.__rotor_pos[index])
-            """
             output_letter = rotor.route_signal(output_letter, 'back')
-            index += 1
 
         output_letter = self.etw.route_signal(output_letter, 'back')  # Correct function
 
-        self.rotate_first()
         return output_letter
 
     def plugboard(self):
@@ -109,7 +69,7 @@ enigma = Enigma(rotors['ETW'], [rotors['I'],
 
 
 output = ''
-for letter in 'OXKN':
+for letter in 'NBSISINBCSTNCTLCLAJNFJN':
     output += enigma.button_press(letter)
 
 print(output)
