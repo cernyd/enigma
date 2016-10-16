@@ -72,6 +72,8 @@ class Enigma:
 
 
 rotors = Enigma1.rotors
+
+"""
 enigma = Enigma(rotors['ETW'], [rotors['III'], rotors['II'], rotors['I']], rotors['UKW-A'])
 
 
@@ -86,3 +88,4 @@ for letter in output:
     output2 += enigma.button_press(letter)
 
 print('\nOutput: ', output2)
+"""
