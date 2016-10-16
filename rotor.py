@@ -1,7 +1,7 @@
 class Rotor:
     def __init__(self, rotor_label, back_alphabet, rotor_offset=0):
-        self.__front_alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-        self.__back_alphabet = back_alphabet
+        self.front_alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        self.back_alphabet = back_alphabet
         self.rotor_label = rotor_label
         self.rotor_offset = rotor_offset
 
@@ -9,21 +9,26 @@ class Rotor:
 
     def set_offset(self, rotor_offset):
         temp_routing = []
-        back_alph_with_offset = self.__back_alphabet[rotor_offset:] + \
-                                self.__back_alphabet[:rotor_offset]
-        for input_letter, output_letter in zip(self.__front_alphabet,
+        back_alph_with_offset = self.back_alphabet[rotor_offset:] + \
+                                self.back_alphabet[:rotor_offset]
+        for input_letter, output_letter in zip(self.front_alphabet,
                                                back_alph_with_offset):
             temp_routing.append((input_letter, output_letter))
 
         self.rotor_routing = tuple(temp_routing)
 
     def route_signal(self, input_letter, side='front'):
+        print(input_letter, ' > \'', self.rotor_label, '\' > ', end='')
         if side == 'front':
-            route_idx = self.__front_alphabet.index(input_letter)
-            return self.rotor_routing[route_idx][1]
+            route_idx = self.front_alphabet.index(input_letter)
+            output_letter = self.rotor_routing[route_idx][1]
+            print(output_letter)
+            return output_letter
         elif side == 'back':  # Can be used as a reflector too
-            route_idx = self.__back_alphabet.index(input_letter)
-            return self.rotor_routing[route_idx][0]
+            route_idx = self.back_alphabet.index(input_letter)
+            output_letter = self.rotor_routing[route_idx][0]
+            print(output_letter)
+            return output_letter
 
     def __str__(self):
         routing = []
