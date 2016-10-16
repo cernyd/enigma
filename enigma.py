@@ -68,7 +68,6 @@ class Enigma:
             rotor_idx += 1
 
         output_letter = self.ukw.route_signal(output_letter)  # Works correctly
-
         rotor_idx = 2
         for rotor in reversed(self.rotors):
             #output_letter = self.correct_position(output_letter, rotor_idx)
@@ -102,7 +101,7 @@ output = ''
 for letter in 'CORRECT':
     output += enigma.button_press(letter)
 
-print(output)
+print('\nOutput: ', output, '\n')
 
 enigma.set_rotor_pos([0,0,0])
 
@@ -110,5 +109,5 @@ output2 = ''
 for letter in output:
     output2 += enigma.button_press(letter)
 
-print(output2)
+print('\nOutput: ', output2)
 #"""
