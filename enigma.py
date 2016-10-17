@@ -4,7 +4,7 @@ class Rotor:
         self.front_alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
         self.position = position
         self.rotate(self.position)
-        self.initial_pos = [self.back_alphabet, self.front_alphabet]
+        self.initial_pos = [self.back_alphabet[:], self.front_alphabet[:]]
 
     def reset_rotor(self):
         self.back_alphabet, self.front_alphabet = self.initial_pos
@@ -17,10 +17,8 @@ class Rotor:
 
     def rotate(self, places=1):
         if places:
-            print(self.back_alphabet)
             self.back_alphabet = self.back_alphabet[places:] + \
                                  self.back_alphabet[:places]
-            print(self.back_alphabet)
 
     def set_ring_offset(self, offset):
         self.front_alphabet = self.front_alphabet[:offset] + self.front_alphabet[offset:]
@@ -65,7 +63,7 @@ class Enigma:
         for rotor in self.rotors:
             self.rotor_positions.append(rotor.position)
 
-        self.initial_rotor_pos = self.rotor_positions
+        self.initial_rotor_pos = self.rotor_positions[:]
 
     def rotate_first(self):
 
@@ -75,13 +73,14 @@ class Enigma:
         for _ in self.rotors:
             if index == 0 or rot_next:
                 self.rotors[index].rotate()
+                self.rotor_positions[index] += 1
 
             if self.rotor_positions[index] == 26:
                 self.rotor_positions[index] = 0
                 rot_next = True
             else:
-                self.rotor_positions[index] += 1
                 rot_next = False
+
             index += 1
 
     def reset_positions(self):
@@ -90,48 +89,43 @@ class Enigma:
             rotor.reset_rotor()
 
     def button_press(self, letter):
-        self.rotate_first()
         print(self.rotor_positions)
-        print('Before etw > ', letter)
+        self.rotate_first()
+
         output = self.etw.route_forward(letter)
-        print('After etw > ', output)
 
         for rotor in self.rotors:
             output = rotor.route_forward(output)
-            print('Rotor > ', output)
 
-        print('Before reflection > ', output)
         output = self.ukw.reflect(output)
-        print('After reflection > ', output)
 
         for rotor in reversed(self.rotors):
             output = rotor.route_backward(output)
-            print('Rotor > ', output)
 
-        print('Before etw > ', output)
         output = self.etw.route_backward(output)
-        print('After etw > ', output)
 
         return output
 
 
 rotors = Enigma1.rotors
 
-
 #"""
-enigma = Enigma(rotors['ETW'], [rotors['I'], rotors['II'], rotors['III']], rotors['UKW-A'])
+enigma = Enigma(rotors['ETW'], [rotors['II'], rotors['I'], rotors['III']], rotors['UKW-A'])
 
 
 output = ''
-for letter in 'HELLO':
+for letter in 'THISMESSAGEWILLDECRYPT':
     output += enigma.button_press(letter)
 
-print('\nOutput: ', output, '\n')
+print('\nEncryption: ', output, '\n')
 enigma.reset_positions()
+enigma.rotor_positions = [0,0,0]
+for rotor, position in zip(enigma.rotors, enigma.rotor_positions):
+    rotor.rotate(position)
 
 output2 = ''
 for letter in output:
     output2 += enigma.button_press(letter)
 
-print('\nOutput: ', output2)
-
+print('\nDecryption: ', output2)
+#"""
