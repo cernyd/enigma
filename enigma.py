@@ -1,3 +1,5 @@
-class Rotor:
-    def __init__(self):
-        pass
+from rotor import Rotor
+
+
+class Enigma:
+    def __init__(self, reflector, rotors, ):
