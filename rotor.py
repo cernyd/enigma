@@ -20,17 +20,22 @@ class Rotor:  # 26 letters in alphabet!
         self.position = 0
         self.offset = 0
 
-    def set_offset(self, places):
-        self.back_board = self.back_board = self.back_board[places:] + self.back_board[:places]
+    def set_offset(self, offset):
+        offset = offset - self.offset
+        self.back_board = self.back_board = self.back_board[offset:] + self.back_board[:offset]
+        self.offset = offset
 
     def set_position(self, position):
-        self.rotate()
+        position = position - self.position
+        self.rotate(position)
+        self.position = position
 
     def rotate(self, places=1):
         if self.position == 25:
             self.position = 0
+            return True
         else:
             self.position += 1
+
         self.front_board = self.front_board[places:] + self.front_board[:places]
         self.back_board = self.back_board[places:] + self.back_board[:places]
-
