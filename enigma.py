@@ -25,32 +25,31 @@ class Enigma:
     def button_press(self, letter):
         self.rotate_primary()
         self.prt_positions()
-        output = letter
+        output = letter;print('Input > ', output)
 
         for rotor in self.rotors:
-            output = rotor.forward(output)
+            output = rotor.forward(output);print('Forward > ', output)
 
-        output = self.reflector.forward(output)
+        output = self.reflector.forward(output);print('Reflection > ', output)
 
         for rotor in reversed(self.rotors):
-            output = rotor.backward(output)
-
+            output = rotor.backward(output);print('Backward > ', output)
+        print('Output > ', output)
         return output
 
 
 rotors = Enigma1.rotors
+
 enigma = Enigma(Rotor(rotors['UKW-B']),[Rotor(rotors['III']),Rotor(rotors['II']),Rotor(rotors['I'])])
 
 output = ''
 for letter in 'A':
     output += enigma.button_press(letter)
 
-print(output)
-
+"""
 enigma.reset()
 
 output2 = ''
 for letter in output:
     output2 += enigma.button_press(letter)
-
-print(output2)
+"""
