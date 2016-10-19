@@ -15,13 +15,16 @@ class Enigma:
                 rotate_next = rotor.rotate()
             index += 1
 
+    def prt_positions(self):
+        print(self.rotors[0].position, self.rotors[1].position, self.rotors[2].position)
+
     def reset(self):
         for rotor in self.rotors:
             rotor.reset()
 
     def button_press(self, letter):
         self.rotate_primary()
-
+        self.prt_positions()
         output = letter
 
         for rotor in self.rotors:
@@ -36,10 +39,10 @@ class Enigma:
 
 
 rotors = Enigma1.rotors
-enigma = Enigma(Rotor(rotors['UKW-A']),[Rotor(rotors['III']),Rotor(rotors['II']),Rotor(rotors['I'])])
+enigma = Enigma(Rotor(rotors['UKW-B']),[Rotor(rotors['III']),Rotor(rotors['II']),Rotor(rotors['I'])])
 
 output = ''
-for letter in 'HELLOTHERE':
+for letter in 'A':
     output += enigma.button_press(letter)
 
 print(output)
