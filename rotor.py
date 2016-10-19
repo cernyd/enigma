@@ -31,7 +31,7 @@ class Rotor:  # 26 letters in alphabet!
         self.position = position
 
     def rotate(self, places=1):
-        if self.position == 25:
+        if self.position == 26:
             self.position = 0
             return True
         else:
