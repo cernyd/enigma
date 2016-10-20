@@ -31,11 +31,14 @@ class Rotor:  # 26 letters in alphabet!
         self.position = position
 
     def rotate(self, places=1):
-        if self.position == 25:
+        self.position += places
+
+        if self.position == 26:
             self.position = 0
-            return True
-        else:
-            self.position += 1
+            return 'forward'
+        elif self.position == -1:
+            self.position = 25
+            return 'backward'
 
         self.front_board = self.front_board[places:] + self.front_board[:places]
         self.back_board = self.back_board[places:] + self.back_board[:places]
