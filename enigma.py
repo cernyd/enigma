@@ -12,7 +12,12 @@ class Enigma:
         index = 0
         for rotor in self.rotors:
             if rotate_next or index == 0:
-                rotate_next = rotor.rotate()
+                if rotate_next == 'forward':
+                    rotate_next = rotor.rotate()
+                elif rotate_next == 'backward':
+                    rotate_next = rotor.rotate(-1)
+                else:
+                    break
             index += 1
 
     def prt_positions(self):
@@ -36,20 +41,3 @@ class Enigma:
             output = rotor.backward(output);print('Backward > ', output)
         print('Output > ', output)
         return output
-
-
-rotors = Enigma1.rotors
-
-enigma = Enigma(Rotor(rotors['UKW-B']),[Rotor(rotors['III']),Rotor(rotors['II']),Rotor(rotors['I'])])
-
-output = ''
-for letter in 'A':
-    output += enigma.button_press(letter)
-
-"""
-enigma.reset()
-
-output2 = ''
-for letter in output:
-    output2 += enigma.button_press(letter)
-"""
