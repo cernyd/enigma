@@ -35,7 +35,6 @@ class Root(Tk):
         self.rotor_container = Frame(self)
         self.io_container = Frame(self)
         self.plugboard = Frame(self)
-        self.lid = Frame(self)
 
         # Rotor widgets
         self.left_indicator = Label(self.rotor_container, text='01', bd=1, relief='sunken')
@@ -51,7 +50,7 @@ class Root(Tk):
         self.right_minus = Button(self.rotor_container, text='-', command= lambda: self.rotate_backward(0))
 
         # Lid
-        self.open_lid = Button(self.lid, text='\n'.join('Rotor settings'))
+        self.open_lid = Button(self.rotor_container, text='\n'.join('Rotors'))
 
         # IO init
         Label(self.io_container, text='Input: ').grid(row=0, column=0)
@@ -79,7 +78,8 @@ class Root(Tk):
         self.right_minus.grid(row=0, column=2)
 
         # Lid init
-        #self.open_lid.pack()
+        self.rowconfigure(index=0, weight=1)
+        self.open_lid.grid(column=3, row=0, rowspan=3)
 
         # IO init
         self.text_input.grid(row=0, column=1)
@@ -87,7 +87,6 @@ class Root(Tk):
 
         # Container init
         self.rotor_container.pack(fill='x', padx='5', pady='5')
-        self.lid.pack(side='right', fill='x')
         self.io_container.pack(side='bottom')
 
         # Enigma
