@@ -1,8 +1,9 @@
-from tkinter import Tk, Frame, Label, Button, Text, StringVar
+from tkinter import Tk, Frame, Label, Button, Text
 from os import path
 from enigma import Enigma
 from historical import Enigma1
 from rotor import Rotor
+from re import sub
 
 
 alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -106,7 +107,7 @@ class Root(Tk):
                         [Rotor(rotors['III']), Rotor(rotors['II']),
                          Rotor(rotors['I'])])
 
-        self.last_len = 0  # Last input lenght
+        self.last_len = 0  # Last input length
 
     def rotate_forward(self, index, event=None):
         self.enigma.rotors[index].rotate()
@@ -133,18 +134,15 @@ class Root(Tk):
         self.right_indicator.config(text=raw)
 
     def press_event(self, event):
-        try:
-            new_char = self.text_input.get('0.0', 'end')[-2]
-        except IndexError:
-            new_char = None
+        input_str = self.text_input.get('0.0', 'end')
+        input_len = len(input_str) - 1
 
-        print(new_char)
-        """
-        if new_char:
-            output = ''
-            self.text_output.insert('end', output)
-            self.update_rotor_pos()
-        """
+        self.last_len = input_len
+
+        output_str = sub(r"[^A-Za-z]", '', input_str).upper()
+        self.text_input.delete('0.0', 'end')
+        self.text_input.insert('0.0', output_str)
+
 
 
 test = Root()
