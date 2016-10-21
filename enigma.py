@@ -12,10 +12,8 @@ class Enigma:
         index = 0
         for rotor in self.rotors:
             if rotate_next or index == 0:
-                if rotate_next == 'forward':
+                if rotate_next:
                     rotate_next = rotor.rotate()
-                elif rotate_next == 'backward':
-                    rotate_next = rotor.rotate(-1)
                 else:
                     break
             index += 1
