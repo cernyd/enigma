@@ -55,6 +55,9 @@ class Root(Tk):
         # Lid
         self.open_lid = Button(self.rotor_container, text='\n'.join('Rotors'))
 
+        # Plugboard
+        self.open_plugboard = Button(self.plugboard, text='Plugboard')
+
         # IO init
         Label(self.io_container, text='Input').grid(row=0, column=0)
         self.text_input = Text(self.io_container, width=25, height=3)
@@ -62,9 +65,9 @@ class Root(Tk):
         self.text_output = Text(self.io_container, width=25, height=3)
 
         """
-        Input and output must always be the same lenght
+        Input and output must always be the same length
         Input only accepts uppercase letters
-        Rotor position corresponds to message lenght
+        Rotor position corresponds to message length
         """
 
         # Rotor
@@ -80,6 +83,9 @@ class Root(Tk):
         self.mid_minus.grid(row=0, column=1)
         self.right_minus.grid(row=0, column=2)
 
+        # Plugboard init
+        self.open_plugboard.pack(fill='x')
+
         # Lid init
         self.rowconfigure(index=0, weight=1)
         self.open_lid.grid(column=3, row=0, rowspan=3, pady=5)
@@ -90,7 +96,9 @@ class Root(Tk):
 
         # Container init
         self.rotor_container.pack(fill='both', padx='5', pady='5', side='top')
+        self.plugboard.pack(side='bottom', fill='both', padx=3, pady=3)
         self.io_container.pack(side='bottom')
+
 
         # Enigma
         rotors = Enigma1.rotors
