@@ -24,7 +24,7 @@ class Root(Tk):
 
 
         # Window config
-        #self.iconbitmap(get_icon('enigma.ico'))  # Git push and add new files ( including icons! )
+        self.iconbitmap(get_icon('enigma.ico'))  # Git push and add new files ( including icons! )
         self.resizable(False, False)
         self.wm_title("Enigma")
 
