@@ -35,10 +35,9 @@ class Rotor:  # 26 letters in alphabet!
 
         if self.position == 26:
             self.position = 0
-            return 'forward'
+            return True
         elif self.position == -1:
             self.position = 25
-            return 'backward'
 
         self.front_board = self.front_board[places:] + self.front_board[:places]
         self.back_board = self.back_board[places:] + self.back_board[:places]
