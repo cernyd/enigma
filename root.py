@@ -1,4 +1,4 @@
-from tkinter import Tk, Frame, Label, Button, Entry, Text
+from tkinter import Tk, Frame, Label, Button, Text, StringVar
 from os import path
 from enigma import Enigma
 from historical import Enigma1
@@ -71,9 +71,9 @@ class Root(Tk):
         """
 
         # Rotor
-        self.left_indicator.grid(row=1, column=0, sticky='we', padx='20', pady='3')
-        self.mid_indicator.grid(row=1, column=1, sticky='we', padx='20', pady='3')
-        self.right_indicator.grid(row=1, column=2, sticky='we', padx='20', pady='3')
+        self.left_indicator.grid(row=1, column=0, sticky='we', padx=20, pady=3)
+        self.mid_indicator.grid(row=1, column=1, sticky='we', padx=20, pady=3)
+        self.right_indicator.grid(row=1, column=2, sticky='we', padx=20, pady=3)
 
         self.left_plus.grid(row=2, column=0)
         self.mid_plus.grid(row=2, column=1)
@@ -88,17 +88,16 @@ class Root(Tk):
 
         # Lid init
         self.rowconfigure(index=0, weight=1)
-        self.open_lid.grid(column=3, row=0, rowspan=3, pady=5)
+        self.open_lid.grid(column=3, row=0, rowspan=3, pady=5, padx=(15, 4))
 
         # IO init
         self.text_input.grid(row=1, column=0, padx=3, pady=2)
         self.text_output.grid(row=3, column=0, padx=3, pady=2)
 
         # Container init
-        self.rotor_container.pack(fill='both', padx='5', pady='5', side='top')
+        self.rotor_container.pack(fill='both', padx=5, pady=5, side='top')
         self.plugboard.pack(side='bottom', fill='both', padx=3, pady=3)
         self.io_container.pack(side='bottom')
-
 
         # Enigma
         rotors = Enigma1.rotors
@@ -134,16 +133,18 @@ class Root(Tk):
         self.right_indicator.config(text=raw)
 
     def press_event(self, event):
-        char = event.char.replace("'", '')
-        if char in alphabet and char:
-            try:
-                output = self.text_input.get()[-1]
-            except IndexError:
-                output = None
-            if output != None:
-                output = self.enigma.button_press(output)
-                self.text_output.insert('end', output)
-                self.update_rotor_pos()
+        try:
+            new_char = self.text_input.get('0.0', 'end')[-2]
+        except IndexError:
+            new_char = None
+
+        print(new_char)
+        """
+        if new_char:
+            output = ''
+            self.text_output.insert('end', output)
+            self.update_rotor_pos()
+        """
 
 
 test = Root()
