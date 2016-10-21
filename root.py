@@ -6,6 +6,7 @@ from rotor import Rotor
 
 
 alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+font = ('Arial', 10)
 
 
 def get_icon(icon):
@@ -20,6 +21,8 @@ class Root(Tk):
         self.after(0, self.attributes, "-alpha", 1.0)
         # Load smoothness upgrade ^
 
+
+
         # Window config
         #self.iconbitmap(get_icon('enigma.ico'))  # Git push and add new files ( including icons! )
         self.resizable(False, False)
@@ -32,7 +35,7 @@ class Root(Tk):
         #self.bind('<Return>', None)
 
         # Frames
-        self.rotor_container = Frame(self)
+        self.rotor_container = Frame(self, bd=1, relief='raised', bg='gray85')
         self.io_container = Frame(self)
         self.plugboard = Frame(self)
 
@@ -41,22 +44,22 @@ class Root(Tk):
         self.mid_indicator = Label(self.rotor_container, text='01',  bd=1, relief='sunken')
         self.right_indicator = Label(self.rotor_container, text='01',  bd=1, relief='sunken')
 
-        self.left_plus = Button(self.rotor_container, text='+', command= lambda: self.rotate_forward(2))
-        self.mid_plus = Button(self.rotor_container, text='+', command= lambda: self.rotate_forward(1))
-        self.right_plus = Button(self.rotor_container, text='+', command= lambda: self.rotate_forward(0))
+        self.left_plus = Button(self.rotor_container, text='+', command= lambda: self.rotate_forward(2), font=font)
+        self.mid_plus = Button(self.rotor_container, text='+', command= lambda: self.rotate_forward(1), font=font)
+        self.right_plus = Button(self.rotor_container, text='+', command= lambda: self.rotate_forward(0), font=font)
 
-        self.left_minus = Button(self.rotor_container, text='-', command= lambda: self.rotate_backward(2))
-        self.mid_minus = Button(self.rotor_container, text='-', command= lambda: self.rotate_backward(1))
-        self.right_minus = Button(self.rotor_container, text='-', command= lambda: self.rotate_backward(0))
+        self.left_minus = Button(self.rotor_container, text='-', command= lambda: self.rotate_backward(2), font=font)
+        self.mid_minus = Button(self.rotor_container, text='-', command= lambda: self.rotate_backward(1), font=font)
+        self.right_minus = Button(self.rotor_container, text='-', command= lambda: self.rotate_backward(0), font=font)
 
         # Lid
         self.open_lid = Button(self.rotor_container, text='\n'.join('Rotors'))
 
         # IO init
-        Label(self.io_container, text='Input: ').grid(row=0, column=0)
-        self.text_input = Entry(self.io_container, width=25, validate='key')
-        Label(self.io_container, text='Output: ').grid(row=1, column=0)
-        self.text_output = Entry(self.io_container, width=25)
+        Label(self.io_container, text='Input').grid(row=0, column=0)
+        self.text_input = Text(self.io_container, width=25, height=3)
+        Label(self.io_container, text='Output').grid(row=2, column=0)
+        self.text_output = Text(self.io_container, width=25, height=3)
 
         """
         Input and output must always be the same lenght
@@ -79,14 +82,14 @@ class Root(Tk):
 
         # Lid init
         self.rowconfigure(index=0, weight=1)
-        self.open_lid.grid(column=3, row=0, rowspan=3)
+        self.open_lid.grid(column=3, row=0, rowspan=3, pady=5)
 
         # IO init
-        self.text_input.grid(row=0, column=1)
-        self.text_output.grid(row=1, column=1)
+        self.text_input.grid(row=1, column=0, padx=3, pady=2)
+        self.text_output.grid(row=3, column=0, padx=3, pady=2)
 
         # Container init
-        self.rotor_container.pack(fill='x', padx='5', pady='5')
+        self.rotor_container.pack(fill='both', padx='5', pady='5', side='top')
         self.io_container.pack(side='bottom')
 
         # Enigma
