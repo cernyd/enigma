@@ -12,10 +12,7 @@ class Enigma:
         index = 0
         for rotor in self.rotors:
             if rotate_next or index == 0:
-                if rotate_next:
-                    rotate_next = rotor.rotate()
-                else:
-                    break
+                rotate_next = rotor.rotate()
             index += 1
 
     def prt_positions(self):

@@ -1,4 +1,4 @@
-from tkinter import Tk, Frame, Label, Button, Entry
+from tkinter import Tk, Frame, Label, Button, Entry, Text
 from os import path
 from enigma import Enigma
 from historical import Enigma1
@@ -55,9 +55,15 @@ class Root(Tk):
 
         # IO init
         Label(self.io_container, text='Input: ').grid(row=0, column=0)
-        self.text_input = Entry(self.io_container, width=25)
+        self.text_input = Entry(self.io_container, width=25, validate='key')
         Label(self.io_container, text='Output: ').grid(row=1, column=0)
         self.text_output = Entry(self.io_container, width=25)
+
+        """
+        Input and output must always be the same lenght
+        Input only accepts uppercase letters
+        Rotor position corresponds to message lenght
+        """
 
         # Rotor
         self.left_indicator.grid(row=1, column=0, sticky='we', padx='20', pady='3')
@@ -124,10 +130,11 @@ class Root(Tk):
                 output = self.text_input.get()[-1]
             except IndexError:
                 output = None
-            if output:
+            if output != None:
                 output = self.enigma.button_press(output)
                 self.text_output.insert('end', output)
                 self.update_rotor_pos()
+
 
 test = Root()
 test.mainloop()
