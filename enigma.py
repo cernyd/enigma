@@ -25,14 +25,14 @@ class Enigma:
     def button_press(self, letter):
         self.rotate_primary()
         self.prt_positions()
-        output = letter;print('Input > ', output)
+        output = letter#;print('Input > ', output)
 
         for rotor in self.rotors:
-            output = rotor.forward(output);print('Forward > ', output)
+            output = rotor.forward(output)#;print('Forward > ', output)
 
-        output = self.reflector.forward(output);print('Reflection > ', output)
+        output = self.reflector.forward(output)#;print('Reflection > ', output)
 
         for rotor in reversed(self.rotors):
-            output = rotor.backward(output);print('Backward > ', output)
-        print('Output > ', output)
+            output = rotor.backward(output)#;print('Backward > ', output)
+        #print('Output > ', output)
         return output
