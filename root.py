@@ -60,9 +60,9 @@ class Root(Tk):
         self.open_plugboard = Button(self.plugboard, text='Plugboard')
 
         # IO init
-        Label(self.io_container, text='Input').grid(row=0, column=0)
+        Label(self.io_container, text='Input', font=('Arial', 12)).grid(row=0, column=0)
         self.text_input = Text(self.io_container, width=25, height=3)
-        Label(self.io_container, text='Output').grid(row=2, column=0)
+        Label(self.io_container, text='Output', font=('Arial', 12)).grid(row=2, column=0)
         self.text_output = Text(self.io_container, width=25, height=3)
 
         """
