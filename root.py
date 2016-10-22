@@ -41,9 +41,9 @@ class Root(Tk):
         self.plugboard = Frame(self)
 
         # Rotor widgets
-        self.left_indicator = Label(self.rotor_container, text='01', bd=1, relief='sunken')
-        self.mid_indicator = Label(self.rotor_container, text='01',  bd=1, relief='sunken')
-        self.right_indicator = Label(self.rotor_container, text='01',  bd=1, relief='sunken')
+        self.left_indicator = Label(self.rotor_container, text='01', bd=1, relief='sunken', width=2)
+        self.mid_indicator = Label(self.rotor_container, text='01',  bd=1, relief='sunken', width=2)
+        self.right_indicator = Label(self.rotor_container, text='01',  bd=1, relief='sunken', width=2)
 
         self.left_plus = Button(self.rotor_container, text='+', command= lambda: self.rotate_forward(2), font=font)
         self.mid_plus = Button(self.rotor_container, text='+', command= lambda: self.rotate_forward(1), font=font)
@@ -107,15 +107,27 @@ class Root(Tk):
                         [Rotor(rotors['III']), Rotor(rotors['II']),
                          Rotor(rotors['I'])])
 
-        self.last_len = 0  # Last input length
+        self.update_null_pos()
+
+
+    def update_null_pos(self):
+        self.null_pos = []
+        for rotor in self.enigma.rotors:
+            self.null_pos.append(rotor.position)
+
+    def to_null_pos(self):
+        for rotor, position in zip(self.enigma.rotors, self.null_pos):
+            rotor.set_position(position)
 
     def rotate_forward(self, index, event=None):
         self.enigma.rotors[index].rotate()
         self.update_rotor_pos()
+        self.update_null_pos()
 
     def rotate_backward(self, index, event=None):
         self.enigma.rotors[index].rotate(-1)
         self.update_rotor_pos()
+        self.update_null_pos()
 
     def update_rotor_pos(self):
         raw = str(self.enigma.rotors[2].position + 1)
@@ -135,14 +147,32 @@ class Root(Tk):
 
     def press_event(self, event):
         input_str = self.text_input.get('0.0', 'end')
-        input_len = len(input_str) - 1
-
-        self.last_len = input_len
 
         output_str = sub(r"[^A-Za-z]", '', input_str).upper()
         self.text_input.delete('0.0', 'end')
         self.text_input.insert('0.0', output_str)
 
+        self.enigma_output()
+
+    def enigma_output(self):
+        # The correct input
+        self.to_null_pos()
+
+        input_str = ''.join(self.text_input.get('0.0', 'end'))
+        input_str = input_str.replace('\n', '')
+
+        if not input_str: return
+
+        output = ''
+        for letter in input_str:
+            print('Letter > ', letter)
+            if letter:
+                output += self.enigma.button_press(letter)
+
+        self.text_output.delete('0.0', 'end')
+        self.text_output.insert('0.0', output)
+
+        self.update_rotor_pos()
 
 
 test = Root()
