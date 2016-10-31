@@ -16,7 +16,7 @@ class Enigma:
             index += 1
 
     def prt_positions(self):
-        print(self.rotors[0].position, self.rotors[1].position, self.rotors[2].position)
+        print('Rotor positions >', self.rotors[0].position, self.rotors[1].position, self.rotors[2].position)
 
     def reset(self):
         for rotor in self.rotors:
