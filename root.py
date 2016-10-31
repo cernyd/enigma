@@ -22,8 +22,6 @@ class Root(Tk):
         self.after(0, self.attributes, "-alpha", 1.0)
         # Load smoothness upgrade ^
 
-
-
         # Window config
         self.iconbitmap(get_icon('enigma.ico'))  # Git push and add new files ( including icons! )
         self.resizable(False, False)
@@ -116,6 +114,7 @@ class Root(Tk):
             self.null_pos.append(rotor.position)
 
     def to_null_pos(self):
+        self.enigma.reset()
         for rotor, position in zip(self.enigma.rotors, self.null_pos):
             rotor.set_position(position)
 
@@ -156,16 +155,19 @@ class Root(Tk):
 
     def enigma_output(self):
         # The correct input
+        print('NULL POS > ', self.null_pos)
         self.to_null_pos()
 
         input_str = ''.join(self.text_input.get('0.0', 'end'))
         input_str = input_str.replace('\n', '')
 
-        if not input_str: return
+        if not input_str:
+            self.to_null_pos()
+            self.text_output.delete('0.0', 'end')
 
         output = ''
         for letter in input_str:
-            print('Letter > ', letter)
+            #print('Letter > ', letter)
             if letter:
                 output += self.enigma.button_press(letter)
 
