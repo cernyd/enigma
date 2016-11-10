@@ -110,14 +110,17 @@ class Root(Tk):
                               Rotor(alphabet)])
 
     def rotate_forward(self, index, event=None):
+        """Rotate a rotor forward, on button press"""
         self.enigma.rotors[index].rotate()
         self.update_rotor_pos()
 
     def rotate_backward(self, index, event=None):
+        """Rotate a rotor backward, on button press"""
         self.enigma.rotors[index].rotate(-1)
         self.update_rotor_pos()
 
     def update_rotor_pos(self):
+        """Updates the rotor position indicators"""
         raw = str(self.enigma.rotors[2].position + 1)
         if len(raw) != 2:
             raw = '0' + raw
@@ -134,13 +137,15 @@ class Root(Tk):
         self.right_indicator.config(text=raw)
 
     def press_event(self, event):
+        """If any text is written"""
         input_str = self.text_input.get('0.0', 'end')
 
-        output_str = sub(r"[^A-Za-z]", '', input_str).upper()
+        # Deleting unvalid symbols
         self.text_input.delete('0.0', 'end')
-        self.text_input.insert('0.0', output_str)
+        self.text_input.insert('0.0', sub(r"[^A-Za-z]", '', input_str).upper())
 
-
+        input_text = self.text_input.get('0.0', 'end')
+        self.text_output.insert('end', self.enigma.button_press(input_text[-2]))
         self.update_rotor_pos()
 
 
