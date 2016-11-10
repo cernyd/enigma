@@ -140,12 +140,15 @@ class Root(Tk):
         """If any text is written"""
         input_str = self.text_input.get('0.0', 'end')
 
-        # Deleting unvalid symbols
+        # Deleting invalid symbols
+        sanitized_text = sub(r"[^A-Za-z]", '', input_str).upper()
         self.text_input.delete('0.0', 'end')
-        self.text_input.insert('0.0', sub(r"[^A-Za-z]", '', input_str).upper())
+        self.text_input.insert('0.0', sanitized_text)
 
-        input_text = self.text_input.get('0.0', 'end')
-        self.text_output.insert('end', self.enigma.button_press(input_text[-2]))
+        output_text = self.text_output.get('0.0', 'get')
+        #output_text += self.enigma.button_press(input_text[-2])
+
+        self.text_output.insert('end')
         self.update_rotor_pos()
 
 
