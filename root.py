@@ -100,33 +100,22 @@ class Root(Tk):
 
         # Enigma
         rotors = Enigma1.rotors
-
+        """
         self.enigma = Enigma(Rotor(rotors['UKW-B']),
                         [Rotor(rotors['III']), Rotor(rotors['II']),
                          Rotor(rotors['I'])])
-
-        self.update_null_pos()
-
-
-    def update_null_pos(self):
-        self.null_pos = []
-        for rotor in self.enigma.rotors:
-            self.null_pos.append(rotor.position)
-
-    def to_null_pos(self):
-        self.enigma.reset()
-        for rotor, position in zip(self.enigma.rotors, self.null_pos):
-            rotor.set_position(position)
+        """
+        self.enigma = Enigma(Rotor(rotors['UKW-B']),
+                             [Rotor(alphabet), Rotor(alphabet),
+                              Rotor(alphabet)])
 
     def rotate_forward(self, index, event=None):
         self.enigma.rotors[index].rotate()
         self.update_rotor_pos()
-        self.update_null_pos()
 
     def rotate_backward(self, index, event=None):
         self.enigma.rotors[index].rotate(-1)
         self.update_rotor_pos()
-        self.update_null_pos()
 
     def update_rotor_pos(self):
         raw = str(self.enigma.rotors[2].position + 1)
@@ -151,28 +140,6 @@ class Root(Tk):
         self.text_input.delete('0.0', 'end')
         self.text_input.insert('0.0', output_str)
 
-        self.enigma_output()
-
-    def enigma_output(self):
-        # The correct input
-        print('NULL POS > ', self.null_pos)
-        self.to_null_pos()
-
-        input_str = ''.join(self.text_input.get('0.0', 'end'))
-        input_str = input_str.replace('\n', '')
-
-        if not input_str:
-            self.to_null_pos()
-            self.text_output.delete('0.0', 'end')
-
-        output = ''
-        for letter in input_str:
-            #print('Letter > ', letter)
-            if letter:
-                output += self.enigma.button_press(letter)
-
-        self.text_output.delete('0.0', 'end')
-        self.text_output.insert('0.0', output)
 
         self.update_rotor_pos()
 

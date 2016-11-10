@@ -14,12 +14,6 @@ class Rotor:  # 26 letters in alphabet!
     def backward(self, letter):
         return alphabet[self.back_board.index(letter)]
 
-    def reset(self):
-        self.rotate(26 - self.position)
-        self.set_offset(26 - self.offset)
-        self.position = 0
-        self.offset = 0
-
     def set_offset(self, offset):
         offset = offset - self.offset
         self.back_board = self.back_board = self.back_board[offset:] + self.back_board[:offset]
