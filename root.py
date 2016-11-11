@@ -109,6 +109,16 @@ class Root(Tk):
                              [Rotor(alphabet), Rotor(alphabet),
                               Rotor(alphabet)])
 
+        self.last_len = 0
+
+    def length_changed(self):
+        input_lenght = len(self.text_input.get('0.0', 'end')) - 1
+        if self.last_len != input_lenght:
+            return True
+        else:
+            self.last_len = input_lenght
+            return False
+
     def rotate_forward(self, index, event=None):
         """Rotate a rotor forward, on button press"""
         self.enigma.rotors[index].rotate()
@@ -138,6 +148,8 @@ class Root(Tk):
 
     def press_event(self, event):
         """If any text is written"""
+        if not self.length_changed(): return
+
         input_str = self.text_input.get('0.0', 'end')
 
         # Deleting invalid symbols
@@ -145,10 +157,10 @@ class Root(Tk):
         self.text_input.delete('0.0', 'end')
         self.text_input.insert('0.0', sanitized_text)
 
-        output_text = self.text_output.get('0.0', 'get')
-        #output_text += self.enigma.button_press(input_text[-2])
+        output_text = self.text_output.get('0.0', 'end')
+        output_text += self.enigma.button_press(sanitized_text[-2])
 
-        self.text_output.insert('end')
+        self.text_output.insert('end', output_text)
         self.update_rotor_pos()
 
 
