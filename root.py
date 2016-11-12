@@ -111,13 +111,35 @@ class Root(Tk):
 
         self.last_len = 0
 
-    def length_changed(self):
-        input_lenght = len(self.text_input.get('0.0', 'end')) - 1
-        if self.last_len != input_lenght:
-            return True
+    def set_input(self, string):
+        self.text_input.delete('0.0', 'end')
+        self.text_input.insert('0.0', string)
+
+    def set_output(self, string):
+        self.text_output.delete('0.0', 'end')
+        self.text_output.insert('0.0', string)
+
+    def get_input(self):
+        return self.text_input.get('0.0', 'end').upper()
+
+    def get_output(self):
+        return self.text_output.get('0.0', 'end').upper()
+
+    def current_status(self):
+        input_length = len(self.get_input()) - 1
+        if self.last_len != input_length:
+            if self.last_len > input_length:
+                self.last_len = input_length
+                return 'shorter'
+            elif self.last_len < input_length:
+                self.last_len = input_length
+                return 'longer'
         else:
-            self.last_len = input_lenght
             return False
+
+    def format_entries(self):
+        sanitized_text = sub(r"[^A-Za-z]", '', self.get_input())
+        self.set_input(sanitized_text)
 
     def rotate_forward(self, index, event=None):
         """Rotate a rotor forward, on button press"""
@@ -132,36 +154,27 @@ class Root(Tk):
     def update_rotor_pos(self):
         """Updates the rotor position indicators"""
         raw = str(self.enigma.rotors[2].position + 1)
-        if len(raw) != 2:
-            raw = '0' + raw
-        self.left_indicator.config(text=raw)
+        self.left_indicator.config(text=self.format_digit(raw))
 
         raw = str(self.enigma.rotors[1].position + 1)
-        if len(raw) != 2:
-            raw = '0' + raw
-        self.mid_indicator.config(text=raw)
+        self.mid_indicator.config(text=self.format_digit(raw))
 
         raw = str(self.enigma.rotors[0].position + 1)
-        if len(raw) != 2:
-            raw = '0' + raw
-        self.right_indicator.config(text=raw)
+        self.right_indicator.config(text=self.format_digit(raw))
+
+    def format_digit(self, number):
+        if len(number) != 2:
+            number = '0' + number
+        return number
 
     def press_event(self, event):
         """If any text is written"""
-        if not self.length_changed(): return
-
-        input_str = self.text_input.get('0.0', 'end')
-
-        # Deleting invalid symbols
-        sanitized_text = sub(r"[^A-Za-z]", '', input_str).upper()
-        self.text_input.delete('0.0', 'end')
-        self.text_input.insert('0.0', sanitized_text)
-
-        output_text = self.text_output.get('0.0', 'end')
-        output_text += self.enigma.button_press(sanitized_text[-2])
-
-        self.text_output.insert('end', output_text)
-        self.update_rotor_pos()
+        self.format_entries()
+        length_status = self.current_status()
+        if length_status == 'longer':
+            print('Longer')
+        elif length_status == 'shorter':
+            print('Shorter')
 
 
 test = Root()
