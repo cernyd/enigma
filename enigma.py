@@ -20,7 +20,7 @@ class Enigma:
 
     def button_press(self, letter):
         self.rotate_primary()
-        self.prt_positions()
+        # self.prt_positions()
         output = letter
 
         for rotor in self.rotors:
