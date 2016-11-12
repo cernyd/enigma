@@ -14,6 +14,12 @@ def get_icon(icon):
     return path.join('icons', icon)
 
 
+def format_digit(number):
+    if len(number) != 2:
+        number = '0' + number
+    return number
+
+
 class Root(Tk):
     def __init__(self, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
@@ -23,15 +29,16 @@ class Root(Tk):
         # Load smoothness upgrade ^
 
         # Window config
-        self.iconbitmap(get_icon('enigma.ico'))  # Git push and add new files ( including icons! )
+        self.iconbitmap(get_icon(
+            'enigma.ico'))  # Git push and add new files ( including icons! )
         self.resizable(False, False)
         self.wm_title("Enigma")
 
         # Keybinds
-        #self.bind('<Control-h>', None)
-        #self.bind('<Control-l>', None)
+        # self.bind('<Control-h>', None)
+        # self.bind('<Control-l>', None)
         self.bind('<Key>', self.press_event)
-        #self.bind('<Return>', None)
+        # self.bind('<Return>', None)
 
         # Frames
         self.rotor_container = Frame(self, bd=1, relief='raised', bg='gray85')
@@ -39,17 +46,32 @@ class Root(Tk):
         self.plugboard = Frame(self)
 
         # Rotor widgets
-        self.left_indicator = Label(self.rotor_container, text='01', bd=1, relief='sunken', width=2)
-        self.mid_indicator = Label(self.rotor_container, text='01',  bd=1, relief='sunken', width=2)
-        self.right_indicator = Label(self.rotor_container, text='01',  bd=1, relief='sunken', width=2)
+        self.left_indicator = Label(self.rotor_container, text='01', bd=1,
+                                    relief='sunken', width=2)
+        self.mid_indicator = Label(self.rotor_container, text='01', bd=1,
+                                   relief='sunken', width=2)
+        self.right_indicator = Label(self.rotor_container, text='01', bd=1,
+                                     relief='sunken', width=2)
 
-        self.left_plus = Button(self.rotor_container, text='+', command= lambda: self.rotate_forward(2), font=font)
-        self.mid_plus = Button(self.rotor_container, text='+', command= lambda: self.rotate_forward(1), font=font)
-        self.right_plus = Button(self.rotor_container, text='+', command= lambda: self.rotate_forward(0), font=font)
+        self.left_plus = Button(self.rotor_container, text='+',
+                                command=lambda: self.rotate_forward(2),
+                                font=font)
+        self.mid_plus = Button(self.rotor_container, text='+',
+                               command=lambda: self.rotate_forward(1),
+                               font=font)
+        self.right_plus = Button(self.rotor_container, text='+',
+                                 command=lambda: self.rotate_forward(0),
+                                 font=font)
 
-        self.left_minus = Button(self.rotor_container, text='-', command= lambda: self.rotate_backward(2), font=font)
-        self.mid_minus = Button(self.rotor_container, text='-', command= lambda: self.rotate_backward(1), font=font)
-        self.right_minus = Button(self.rotor_container, text='-', command= lambda: self.rotate_backward(0), font=font)
+        self.left_minus = Button(self.rotor_container, text='-',
+                                 command=lambda: self.rotate_backward(2),
+                                 font=font)
+        self.mid_minus = Button(self.rotor_container, text='-',
+                                command=lambda: self.rotate_backward(1),
+                                font=font)
+        self.right_minus = Button(self.rotor_container, text='-',
+                                  command=lambda: self.rotate_backward(0),
+                                  font=font)
 
         # Lid
         self.open_lid = Button(self.rotor_container, text='\n'.join('Rotors'))
@@ -58,9 +80,11 @@ class Root(Tk):
         self.open_plugboard = Button(self.plugboard, text='Plugboard')
 
         # IO init
-        Label(self.io_container, text='Input', font=('Arial', 12)).grid(row=0, column=0)
+        Label(self.io_container, text='Input', font=('Arial', 12)).grid(row=0,
+                                                                        column=0)
         self.text_input = Text(self.io_container, width=25, height=3)
-        Label(self.io_container, text='Output', font=('Arial', 12)).grid(row=2, column=0)
+        Label(self.io_container, text='Output', font=('Arial', 12)).grid(row=2,
+                                                                         column=0)
         self.text_output = Text(self.io_container, width=25, height=3)
 
         """
@@ -129,7 +153,7 @@ class Root(Tk):
         return self.text_output.get('0.0', 'end').upper().replace('\n', '')
 
     def current_status(self):
-        input_length = len(self.get_input()) - 1
+        input_length = len(self.get_input())
         if self.last_len != input_length:
             if self.last_len > input_length:
                 self.last_len = input_length
@@ -159,18 +183,13 @@ class Root(Tk):
     def update_rotor_pos(self):
         """Updates the rotor position indicators"""
         raw = str(self.enigma.rotors[2].position + 1)
-        self.left_indicator.config(text=self.format_digit(raw))
+        self.left_indicator.config(text=format_digit(raw))
 
         raw = str(self.enigma.rotors[1].position + 1)
-        self.mid_indicator.config(text=self.format_digit(raw))
+        self.mid_indicator.config(text=format_digit(raw))
 
         raw = str(self.enigma.rotors[0].position + 1)
-        self.right_indicator.config(text=self.format_digit(raw))
-
-    def format_digit(self, number):
-        if len(number) != 2:
-            number = '0' + number
-        return number
+        self.right_indicator.config(text=format_digit(raw))
 
     def press_event(self, event):
         """If any text is written"""
@@ -184,6 +203,7 @@ class Root(Tk):
             pass
 
         self.update_rotor_pos()
+
 
 test = Root()
 test.mainloop()

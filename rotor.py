@@ -16,7 +16,8 @@ class Rotor:  # 26 letters in alphabet!
 
     def set_offset(self, offset):
         offset = offset - self.offset
-        self.back_board = self.back_board = self.back_board[offset:] + self.back_board[:offset]
+        self.back_board = self.back_board = self.back_board[
+                                            offset:] + self.back_board[:offset]
         self.offset = offset
 
     def set_position(self, position):

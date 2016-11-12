@@ -1,7 +1,3 @@
-from rotor import Rotor
-from historical import Enigma1
-
-
 class Enigma:
     def __init__(self, reflector, rotors):
         self.reflector = reflector
@@ -16,7 +12,8 @@ class Enigma:
             index += 1
 
     def prt_positions(self):
-        print('Rotor positions >', self.rotors[0].position, self.rotors[1].position, self.rotors[2].position)
+        print('Rotor positions >', self.rotors[0].position,
+              self.rotors[1].position, self.rotors[2].position)
 
     def button_press(self, letter):
         self.rotate_primary()
