@@ -1,10 +1,10 @@
-from tkinter import Tk, Frame, Label, Button, Text
 from os import path
+from re import sub
+from tkinter import Tk, Frame, Label, Button, Text
+
 from enigma import Enigma
 from historical import Enigma1
 from rotor import Rotor
-from re import sub
-
 
 alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 font = ('Arial', 10)
@@ -111,6 +111,9 @@ class Root(Tk):
 
         self.last_len = 0
 
+    def button_press(self, letter):
+        return self.enigma.button_press(letter)
+
     def set_input(self, string):
         self.text_input.delete('0.0', 'end')
         self.text_input.insert('0.0', string)
@@ -120,10 +123,10 @@ class Root(Tk):
         self.text_output.insert('0.0', string)
 
     def get_input(self):
-        return self.text_input.get('0.0', 'end').upper()
+        return self.text_input.get('0.0', 'end').upper().replace('\n', '')
 
     def get_output(self):
-        return self.text_output.get('0.0', 'end').upper()
+        return self.text_output.get('0.0', 'end').upper().replace('\n', '')
 
     def current_status(self):
         input_length = len(self.get_input()) - 1
@@ -140,6 +143,8 @@ class Root(Tk):
     def format_entries(self):
         sanitized_text = sub(r"[^A-Za-z]", '', self.get_input())
         self.set_input(sanitized_text)
+
+        self.set_output(self.get_output()[:len(sanitized_text)])
 
     def rotate_forward(self, index, event=None):
         """Rotate a rotor forward, on button press"""
@@ -172,10 +177,13 @@ class Root(Tk):
         self.format_entries()
         length_status = self.current_status()
         if length_status == 'longer':
-            print('Longer')
+            output_text = self.get_output() + self.button_press(
+                self.get_input()[-1])
+            self.set_output(output_text)
         elif length_status == 'shorter':
-            print('Shorter')
+            pass
 
+        self.update_rotor_pos()
 
 test = Root()
 test.mainloop()
