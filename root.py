@@ -191,6 +191,7 @@ class Root(Tk):
         raw = str(self.enigma.rotors[0].position + 1)
         self.right_indicator.config(text=format_digit(raw))
 
+        self.enigma.prt_positions()
     def press_event(self, event):
         """If any text is written"""
         self.format_entries()
