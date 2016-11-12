@@ -12,12 +12,14 @@ class Enigma:
             index += 1
 
     def prt_positions(self):
-        print('Rotor positions >', self.rotors[0].position,
+        """print('Rotor positions >', self.rotors[0].position,
               self.rotors[1].position, self.rotors[2].position)
+        """
+        print('Rotor wiring >', self.rotors[0].back_board,
+              self.rotors[1].back_board, self.rotors[2].back_board)
 
     def button_press(self, letter):
         self.rotate_primary()
-        # self.prt_positions()
         output = letter
 
         for rotor in self.rotors:
