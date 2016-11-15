@@ -27,12 +27,13 @@ class Rotor:  # 26 letters in alphabet!
 
     def rotate(self, places=1):
         self.position += places
-
+        return_val = False
         if self.position == 26:
             self.position = 0
-            return True
+            return_val = True # Used to indicate if the next rotor should be moved
         elif self.position == -1:
             self.position = 25
 
         self.front_board = self.front_board[places:] + self.front_board[:places]
         self.back_board = self.back_board[places:] + self.back_board[:places]
+        return return_val
