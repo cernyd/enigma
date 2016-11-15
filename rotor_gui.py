@@ -14,10 +14,13 @@ class RotorMenu(Toplevel):
         # Load smoothness upgrade ^
 
         # Window config
-        self.iconbitmap(get_icon(
-            'rotor.ico'))  # Git push and add new files ( including icons! )
+        self.grab_set()
+        self.iconbitmap(get_icon('rotor.ico'))
         self.resizable(False, False)
         self.wm_title("Rotor order")
 
         # Frames
         self.rotor_stash = Frame(self)
+
+
+        # Rotor stash
