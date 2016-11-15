@@ -1,4 +1,6 @@
-from tkinter import Toplevel
+from os import path
+from tkinter import Toplevel, Frame
+
 
 def get_icon(icon):
     return path.join('icons', icon)
@@ -16,3 +18,6 @@ class RotorMenu(Toplevel):
             'rotor.ico'))  # Git push and add new files ( including icons! )
         self.resizable(False, False)
         self.wm_title("Rotor order")
+
+        # Frames
+        self.rotor_stash = Frame(self)

@@ -3,10 +3,8 @@ from re import sub
 from tkinter import Tk, Frame, Label, Button, Text
 
 from enigma import Enigma
-from historical import Enigma1
-from rotor import Rotor
+from rotor_gui import RotorMenu
 
-alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 font = ('Arial', 10)
 
 
@@ -74,7 +72,8 @@ class Root(Tk):
                                   font=font)
 
         # Lid
-        self.open_lid = Button(self.rotor_container, text='\n'.join('Rotors'))
+        self.open_lid = Button(self.rotor_container, text='\n'.join('Rotors'),
+                               command=self.rotor_menu)
 
         # Plugboard
         self.open_plugboard = Button(self.plugboard, text='Plugboard')
@@ -122,18 +121,13 @@ class Root(Tk):
         self.plugboard.pack(side='bottom', fill='both', padx=3, pady=3)
         self.io_container.pack(side='bottom')
 
-        # Enigma
-        rotors = Enigma1.rotors
-        """
-        self.enigma = Enigma(Rotor(rotors['UKW-B']),
-                        [Rotor(rotors['III']), Rotor(rotors['II']),
-                         Rotor(rotors['I'])])
-        """
-        self.enigma = Enigma(Rotor(rotors['UKW-B']),
-                             [Rotor(alphabet), Rotor(alphabet),
-                              Rotor(alphabet)])
+        # Enigma defaults
+        self.enigma = Enigma('UKW-B', ['III', 'II', 'I'])
 
-        self.last_len = 0
+        self.last_len = 0  # Last input string lenght
+
+    def rotor_menu(self):
+        self.myRotorMenu = RotorMenu()
 
     def button_press(self, letter):
         return self.enigma.button_press(letter)
@@ -195,16 +189,18 @@ class Root(Tk):
 
     def press_event(self, event):
         """If any text is written"""
-        self.format_entries()
         length_status = self.current_status()
-        if length_status == 'longer':
-            output_text = self.get_output() + self.button_press(
-                self.get_input()[-1])
-            self.set_output(output_text)
-        elif length_status == 'shorter':
-            pass
 
-        self.update_rotor_pos()
+        if length_status:
+            self.format_entries()
+            if length_status == 'longer':
+                output_text = self.get_output() + self.button_press(
+                    self.get_input()[-1])
+                self.set_output(output_text)
+            elif length_status == 'shorter':
+                pass
+
+            self.update_rotor_pos()
 
 
 test = Root()

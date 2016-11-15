@@ -1,7 +1,28 @@
+from tkinter import messagebox
+
+from historical import Enigma1
+from rotor import Rotor
+
+
 class Enigma:
     def __init__(self, reflector, rotors):
-        self.reflector = reflector
-        self.rotors = rotors
+        self.use_reflector(reflector)
+        self.use_rotors(rotors)
+
+    def use_rotors(self, rotors):
+        if all([rotor in Enigma1.rotors for rotor in rotors]):
+            self.rotors = [Rotor(Enigma1.rotors[rotor]) for rotor in rotors]
+        else:
+            messagebox.showwarning('Invalid rotor', 'Some of rotors are not \n'
+                                                    'valid, please try again...')
+
+    def use_reflector(self, reflector):
+        if reflector in Enigma1.rotors:
+            self.reflector = Rotor(Enigma1.rotors[reflector])
+        else:
+            messagebox.showwarning('Invalid reflector', 'Invalid reflector,'
+                                                        ' please try '
+                                                        'again...')
 
     def rotate_primary(self):
         rotate_next = False
