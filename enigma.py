@@ -8,6 +8,7 @@ class Enigma:
     def __init__(self, reflector, rotors):
         self.use_reflector(reflector)
         self.use_rotors(rotors)
+        self.last_output = ''
 
     def use_rotors(self, rotors):
         if all([rotor in Enigma1.rotors for rotor in rotors]):
@@ -36,8 +37,14 @@ class Enigma:
         """print('Rotor positions >', self.rotors[0].position,
               self.rotors[1].position, self.rotors[2].position)
         """
-        print('Rotor wiring >', self.rotors[0].back_board,
-              self.rotors[1].back_board, self.rotors[2].back_board)
+        output = 'Rotor wiring > %s %s %s' % (self.rotors[2].back_board,
+                                              self.rotors[1].back_board,
+                                              self.rotors[0].back_board)
+
+        if self.last_output != output:
+            print(output)
+
+        self.last_output = output
 
     def button_press(self, letter):
         self.rotate_primary()
