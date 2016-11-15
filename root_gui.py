@@ -1,3 +1,4 @@
+import winsound
 from os import path
 from re import sub
 from tkinter import Tk, Frame, Label, Button, Text
@@ -130,6 +131,8 @@ class Root(Tk):
         self.myRotorMenu = RotorMenu()
 
     def button_press(self, letter):
+        winsound.PlaySound(path.join('sounds', 'button_press.wav'),
+                           winsound.SND_ASYNC)
         return self.enigma.button_press(letter)
 
     def set_input(self, string):
@@ -166,11 +169,13 @@ class Root(Tk):
 
     def rotate_forward(self, index, event=None):
         """Rotate a rotor forward, on button press"""
+        winsound.PlaySound(path.join('sounds', 'click.wav'), winsound.SND_ASYNC)
         self.enigma.rotors[index].rotate()
         self.update_rotor_pos()
 
     def rotate_backward(self, index, event=None):
         """Rotate a rotor backward, on button press"""
+        winsound.PlaySound(path.join('sounds', 'click.wav'), winsound.SND_ASYNC)
         self.enigma.rotors[index].rotate(-1)
         self.update_rotor_pos()
 
