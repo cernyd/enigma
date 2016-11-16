@@ -1,5 +1,4 @@
 from tkinter import messagebox
-
 from historical import Enigma1
 from rotor import Rotor
 

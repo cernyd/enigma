@@ -1,10 +1,10 @@
-import winsound
 from os import path
 from re import sub
-from tkinter import Tk, Frame, Label, Button, Text
-
+from tkinter import Tk, Frame, Label, Button, Text, IntVar, Checkbutton
 from enigma import Enigma
 from rotor_gui import RotorMenu
+from sound_ctl import Playback
+
 
 font = ('Arial', 10)
 
@@ -77,6 +77,10 @@ class Root(Tk):
                                command=self.rotor_menu)
 
         # Plugboard
+        self.sound_enabled = IntVar()
+        self.sound_checkbox = Checkbutton(self.plugboard, var=self.sound_enabled)
+        self.sound_checkbox.select()
+
         self.open_plugboard = Button(self.plugboard, text='Plugboard')
 
         # IO init
@@ -86,12 +90,6 @@ class Root(Tk):
         Label(self.io_container, text='Output', font=('Arial', 12)).grid(row=2,
                                                                          column=0)
         self.text_output = Text(self.io_container, width=25, height=3)
-
-        """
-        Input and output must always be the same length
-        Input only accepts uppercase letters
-        Rotor position corresponds to message length
-        """
 
         # Rotor
         self.left_indicator.grid(row=1, column=0, sticky='we', padx=20, pady=3)
@@ -108,6 +106,8 @@ class Root(Tk):
 
         # Plugboard init
         self.open_plugboard.pack(fill='x')
+        Label(self.plugboard, text='Enable sound: ', justify='right').pack(fill='x', side='left')
+        self.sound_checkbox.pack(side='left')
 
         # Lid init
         self.rowconfigure(index=0, weight=1)
@@ -125,14 +125,15 @@ class Root(Tk):
         # Enigma defaults
         self.enigma = Enigma('UKW-B', ['III', 'II', 'I'])
 
-        self.last_len = 0  # Last input string lenght
+        self.last_len = 0  # Last input string length
 
     def rotor_menu(self):
         self.myRotorMenu = RotorMenu()
 
     def button_press(self, letter):
-        winsound.PlaySound(path.join('sounds', 'button_press.wav'),
-                           winsound.SND_ASYNC)
+        if self.sound_enabled.get():
+            Playback.sound_enabled = self.sound_enabled.get()
+            Playback.play('button_press')
         return self.enigma.button_press(letter)
 
     def set_input(self, string):
@@ -164,18 +165,20 @@ class Root(Tk):
     def format_entries(self):
         sanitized_text = sub(r"[^A-Za-z]", '', self.get_input())
         self.set_input(sanitized_text)
-
+        # Input trimming
         self.set_output(self.get_output()[:len(sanitized_text)])
 
     def rotate_forward(self, index, event=None):
         """Rotate a rotor forward, on button press"""
-        winsound.PlaySound(path.join('sounds', 'click.wav'), winsound.SND_ASYNC)
+        Playback.sound_enabled = self.sound_enabled.get()
+        Playback.play('click')
         self.enigma.rotors[index].rotate()
         self.update_rotor_pos()
 
     def rotate_backward(self, index, event=None):
         """Rotate a rotor backward, on button press"""
-        winsound.PlaySound(path.join('sounds', 'click.wav'), winsound.SND_ASYNC)
+        Playback.sound_enabled = self.sound_enabled.get()
+        Playback.play('click')
         self.enigma.rotors[index].rotate(-1)
         self.update_rotor_pos()
 
