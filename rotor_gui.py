@@ -6,15 +6,6 @@ def get_icon(icon):
     return path.join('icons', icon)
 
 
-def to_roman(num):
-    if num == 1:
-        return 'I'
-    elif num == 2:
-        return 'II'
-    elif num == 3:
-        return 'III'
-
-
 class RotorMenu(Toplevel):
     def __init__(self, curr_rotors, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
@@ -43,7 +34,7 @@ class RotorMenu(Toplevel):
                            StringVar()]  # UKW, I, II, III
 
         # Rotor nums
-        self.radio_groups = {'UKW': [], 'I': [], 'II': [], 'III': []}
+        self.radio_groups = [[], [], [], []]
 
         # Rotors
         rotors = ['I', 'II', 'III', 'IV', 'V', 'UKW-A', 'UKW-B', 'UKW-C']
@@ -56,7 +47,7 @@ class RotorMenu(Toplevel):
             radio = Radiobutton(self.rotor_frames[0], text=rotor,
                                 variable=self.rotor_vars[0], value=val,
                                 bg='gray85')
-            self.radio_groups['UKW'].append(radio)
+            self.radio_groups[0].append(radio)
 
         # Rotors
         index = 1
@@ -70,18 +61,23 @@ class RotorMenu(Toplevel):
                 radio = Radiobutton(self.rotor_frames[index], text=rotor,
                                     variable=self.rotor_vars[index], value=val,
                                     bg='gray85')
-                self.radio_groups[to_roman(index)].append(radio)
+                self.radio_groups[index].append(radio)
             index += 1
 
-        radios = []
-        [radios.extend(rotor) for rotor in self.radio_groups.values()]
-        [rotor.pack(side='top') for rotor in radios]
+        index = 0
+        for values in self.radio_groups:
+            for radio in values:
+                radio.pack(side='top')
+                text = radio.config()['text'][4]
+                if text == curr_rotors[index]:
+                    radio.select()
+            index += 1
+
+        # [rotor.pack(side='top') for rotor in radios]
 
         # Init
         [frame.pack(side='left', fill='both', padx=2) for frame in
          self.rotor_frames]
-
-        print(self.radio_groups)
 
         self.root_frame.pack(padx=10, pady=10)
 

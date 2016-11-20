@@ -11,8 +11,8 @@ class Enigma:
         self.last_output = ''
 
     def get_rotors(self):
-        return_list = [self.reflector]
-        return_list.extend(self.rotors)
+        return_list = [self.reflector.label]
+        return_list.extend([rotor.label for rotor in self.rotors])
         return return_list
 
     def use_rotors(self, rotors):
