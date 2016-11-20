@@ -1,4 +1,5 @@
 from tkinter import messagebox
+
 from historical import Enigma1
 from rotor import Rotor
 
@@ -8,6 +9,11 @@ class Enigma:
         self.use_reflector(reflector)
         self.use_rotors(rotors)
         self.last_output = ''
+
+    def get_rotors(self):
+        return_list = [self.reflector]
+        return_list.extend(self.rotors)
+        return return_list
 
     def use_rotors(self, rotors):
         if all([rotor in Enigma1.rotors for rotor in rotors]):
