@@ -6,7 +6,6 @@ class Enigma1:
     """
 
     rotors = {
-              'ETW': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
               'I': 'EKMFLGDQVZNTOWYHXUSPAIBRCJ',
               'II': 'AJDKSIRUXBLHWTMCQGZNPYFVOE',
               'III': 'BDFHJLCPRTXVZNYEIWGAKMUSQO',
