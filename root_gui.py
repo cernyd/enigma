@@ -129,7 +129,7 @@ class Root(Tk):
 
     def rotor_menu(self):
         self.myRotorMenu = RotorMenu(self.enigma.get_rotors())
-        print(self.MyRotorMenu.get_values())
+        new_values = self.myRotorMenu.get_values()
 
     def button_press(self, letter):
         if self.sound_enabled.get():

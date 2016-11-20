@@ -1,5 +1,5 @@
 from os import path
-from tkinter import Toplevel, Frame, Radiobutton, Label, StringVar
+from tkinter import Toplevel, Frame, Radiobutton, Label, StringVar, Button
 
 
 def get_icon(icon):
@@ -22,12 +22,16 @@ class RotorMenu(Toplevel):
 
         # Frames
         self.root_frame = Frame(self)
-
+        button_frame = Frame(self)
         self.rotor_frames = \
             [Frame(self.root_frame, bd=1, relief='raised', bg='gray85'),
              Frame(self.root_frame, bd=1, relief='raised', bg='gray85'),
              Frame(self.root_frame, bd=1, relief='raised', bg='gray85'),
              Frame(self.root_frame, bd=1, relief='raised', bg='gray85')]
+
+        # Button
+        Button(button_frame, text='Apply', command=self.get_values,
+               width=12, bg='gray85').pack(side='right', padx=5, pady=5)
 
         # Rotor stash
         self.rotor_vars = [StringVar(), StringVar(), StringVar(),
@@ -78,8 +82,8 @@ class RotorMenu(Toplevel):
         # Init
         [frame.pack(side='left', fill='both', padx=2) for frame in
          self.rotor_frames]
-
-        self.root_frame.pack(padx=10, pady=10)
+        button_frame.pack(side='bottom', fill='both')
+        self.root_frame.pack(padx=10, pady=5)
 
     def get_values(self, event=None):
         return [test.get() for test in self.rotor_vars]
