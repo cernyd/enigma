@@ -1,10 +1,10 @@
 from os import path
 from re import sub
 from tkinter import Tk, Frame, Label, Button, Text, IntVar, Checkbutton
+
 from enigma import Enigma
 from rotor_gui import RotorMenu
 from sound_ctl import Playback
-
 
 font = ('Arial', 10)
 
@@ -128,7 +128,7 @@ class Root(Tk):
         self.last_len = 0  # Last input string length
 
     def rotor_menu(self):
-        self.myRotorMenu = RotorMenu()
+        self.myRotorMenu = RotorMenu(self.enigma.get_rotors())
 
     def button_press(self, letter):
         if self.sound_enabled.get():
