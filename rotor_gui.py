@@ -1,6 +1,5 @@
 from os import path
-from tkinter import Toplevel, Frame, OptionMenu, StringVar
-from historical import Enigma1
+from tkinter import Toplevel, Frame, IntVar, Radiobutton, Label
 
 
 def get_icon(icon):
@@ -21,29 +20,46 @@ class RotorMenu(Toplevel):
         self.wm_title("Rotor order")
 
         # Frames
-        self.rotor_stash = Frame(self)
-
-        # Rotors
-        self.rotors = Enigma1.rotors.keys()
+        self.rotor_frames = \
+            [Frame(self, bd=1, relief='raised', bg='gray85'),
+             Frame(self, bd=1, relief='raised', bg='gray85'),
+             Frame(self, bd=1, relief='raised', bg='gray85'),
+             Frame(self, bd=1, relief='raised', bg='gray85')]
 
         # Rotor stash
-        var = StringVar(self.rotor_stash)
-        var.set("I")
+        self.rotor_vars = [IntVar(), IntVar(), IntVar(),
+                           IntVar()]  # UKW, I, II, III
 
-        self.first_rotor = OptionMenu(self.rotor_stash, var, "I")
-        self.second_rotor = OptionMenu(self.rotor_stash, var, "II")
-        self.third_rotor = OptionMenu(self.rotor_stash, var, "III")
+        # Rotors
+        rotors = ['I', 'II', 'III', 'IV', 'V', 'UKW-A', 'UKW-B', 'UKW-C']
+        rotors = [[val] * 2 for val in rotors]
+
+        # Reflectors
+        Label(self.rotor_frames[0], text='REFLECTOR', bg='gray85', bd=1,
+              relief='sunken').pack(side='top', pady=5, padx=5)
+        for rotor, val in rotors[5:]:
+            Radiobutton(self.rotor_frames[0], text=rotor,
+                        variable=self.rotor_vars[0], value=val,
+                        bg='gray85').pack(side='top')
+
+        # Rotors
+        index = 1
+        labels = [txt + ' ROTOR' for txt in ['FIRST', 'SECOND', 'THIRD']]
+        for _ in self.rotor_frames[1:]:
+            Label(self.rotor_frames[index], text=labels[index - 1], bg='gray85',
+                  bd=1,
+                  relief='sunken').pack(side='top', pady=5, padx=5)
+
+            for rotor, val in rotors[:5]:
+                Radiobutton(self.rotor_frames[index], text=rotor,
+                            variable=self.rotor_vars[index], value=val,
+                            bg='gray85').pack(side='top')
+            index += 1
 
         # Init
-        self.first_rotor.pack(side='left')
-        self.second_rotor.pack(side='left')
-        self.third_rotor.pack(side='left')
-
-        self.rotor_stash.pack()
+        [frame.pack(side='left') for frame in self.rotor_frames]
 
         self.update_menus()
 
     def update_menus(self):
         pass
-        x = self.first_rotor['menu']
-        print(x.entrycget(0, 'label'))
