@@ -34,7 +34,7 @@ class Enigma:
         rotate_next = False
         index = 0
         for rotor in self.rotors:
-            if rotate_next == 'forward' or index == 0:
+            if rotate_next or index == 0:
                 rotate_next = rotor.rotate(places)
             index += 1
 
@@ -42,7 +42,7 @@ class Enigma:
         """print('Rotor positions >', self.rotors[0].position,
               self.rotors[1].position, self.rotors[2].position)
         """
-        output = 'Rotor wiring > %s %s %s' % (self.rotors[2].back_board,
+        output = '%s %s %s' % (self.rotors[2].back_board,
                                               self.rotors[1].back_board,
                                               self.rotors[0].back_board)
 
