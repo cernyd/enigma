@@ -18,7 +18,7 @@ class RotorMenu(Toplevel):
         # Load smoothness upgrade ^
 
         # Bindings
-        self.bind('<Button>', self.checkup)
+        self.bind('<Button-1>', self.checkup)
 
         # Window config
         self.grab_set()
@@ -96,7 +96,9 @@ class RotorMenu(Toplevel):
                     radio.select()
             index += 1
 
-        self.update_selected()
+        self.checkup()
+
+        [var.trace('w', self.checkup) for var in self.rotor_vars]
 
         # Init
         [frame.pack(side='left', fill='both', padx=2) for frame in
@@ -130,7 +132,6 @@ class RotorMenu(Toplevel):
             index += 1
 
     def get_values(self):
-        print([radio.get() for radio in self.rotor_vars])
         return [radio.get() for radio in self.rotor_vars]
 
     def can_apply(self, event=None):
