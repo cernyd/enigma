@@ -1,10 +1,12 @@
 from os import path
 from re import sub
-from tkinter import Tk, Frame, Label, Button, Text, IntVar, Checkbutton
+from tkinter import Tk, Frame, Label, Button, Text, IntVar, Menu
 
 from enigma import Enigma
 from rotor_gui import RotorMenu
 from sound_ctl import Playback
+
+from webbrowser import open as open_browser
 
 font = ('Arial', 10)
 
@@ -77,13 +79,6 @@ class Root(Tk):
                                command=self.rotor_menu)
 
         # Plugboard
-        self.sound_enabled = IntVar()
-        self.autorotate = IntVar()
-        self.sound_checkbox = Checkbutton(self.plugboard, var=self.sound_enabled)
-        self.sound_checkbox.select()
-        self.autorotate_checkbox = Checkbutton(self.plugboard, var=self.autorotate)
-        self.autorotate_checkbox.select()
-
         self.open_plugboard = Button(self.plugboard, text='Plugboard')
 
         # IO init
@@ -107,12 +102,29 @@ class Root(Tk):
         self.mid_minus.grid(row=0, column=1)
         self.right_minus.grid(row=0, column=2)
 
+        # Menu
+        self.sound_enabled = IntVar()
+        self.sound_enabled.set(1)
+        self.autorotate = IntVar()
+        self.autorotate.set(1)
+
+        self.root_menu = Menu(self)
+        self.settings_menu = Menu(self.root_menu, tearoff=0)
+        self.root_menu.add_cascade(label='Settings', menu=self.settings_menu)
+        self.root_menu.add_command(label='About', command=lambda: open_browser('https://github.com/cernyd/enigma'))
+        self.root_menu.add_command(label='Help')
+
+
+        self.settings_menu.add_checkbutton(label='Enable sound', onvalue=1, offvalue=0, variable=self.sound_enabled)
+        self.settings_menu.add_checkbutton(label='Autorotate', variable=self.autorotate)
+        self.settings_menu.add_checkbutton(label='Rotor lock')
+        self.settings_menu.add_separator()
+        self.settings_menu.add_command(label='Reset all', command=self.reset_all)
+
+        self.config(menu=self.root_menu)
+
         # Plugboard init
         self.open_plugboard.pack(fill='x')
-        Label(self.plugboard, text='Enable sound: ', justify='right').pack(fill='x', side='left')
-        self.sound_checkbox.pack(side='left')
-        Label(self.plugboard, text='Autorotate: ', justify='right').pack(fill='x', side='left')
-        self.autorotate_checkbox.pack(side='left')
 
         # Lid init
         self.rowconfigure(index=0, weight=1)
@@ -131,6 +143,13 @@ class Root(Tk):
         self.enigma = Enigma('UKW-B', ['III', 'II', 'I'])
 
         self.last_len = 0  # Last input string length
+
+    def reset_all(self):
+        self.enigma.use_reflector('UKW-B')
+        self.enigma.use_rotors(['III', 'II', 'I'])
+        self.text_input.delete('0.0', 'end')
+        self.update_rotor_pos()
+        self.format_entries()
 
     def rotor_menu(self):
         myRotorMenu = RotorMenu(self.enigma.get_rotors())
