@@ -30,6 +30,10 @@ class Enigma:
                                                         ' please try '
                                                         'again...')
 
+    def set_offsets(self, offsets):
+        for rotor, offset in zip(self.rotors, offsets):
+            rotor.set_offset(offset)
+
     def rotate_primary(self, places=1):
         rotate_next = False
         index = 0
