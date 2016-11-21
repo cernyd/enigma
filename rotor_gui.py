@@ -16,6 +16,9 @@ class RotorMenu(Toplevel):
         self.after(0, self.attributes, "-alpha", 1.0)
         # Load smoothness upgrade ^
 
+        # Bindings
+        self.bind('<Button>')
+
         # Window config
         self.grab_set()
         self.iconbitmap(get_icon('rotor.ico'))
@@ -86,6 +89,9 @@ class RotorMenu(Toplevel):
         button_frame.pack(side='bottom', fill='both')
         self.root_frame.pack(padx=10, pady=5)
 
+    def update_current(self):
+        self.curr_rotors = self.get_values()
+
     def storno(self):
         self.rotor_vars = []
         self.destroy()
@@ -97,14 +103,19 @@ class RotorMenu(Toplevel):
                 text = radio.config()['text'][4]
                 if text == self.curr_rotors[index]:
                     radio.select()
-                elif text in self.curr_rotors:
-                    radio.config(state='disabled')
-                else:
-                    radio.config(state='active', bg='gray85')
             index += 1
 
     def update_selected(self, event=None):
-        pass
+        index = 0
+        for values in self.radio_groups:
+            for radio in values:
+                text = radio.config()['text'][4]
+                if not text == self.curr_rotors[index]:
+                    if text in self.curr_rotors:
+                        radio.config(state='disabled')
+                    else:
+                        radio.config(state='active')
+            index += 1
 
     def get_values(self, event=None):
         return [test.get() for test in self.rotor_vars]
