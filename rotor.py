@@ -39,9 +39,10 @@ class Rotor:  # 26 letters in alphabet!
         return_val = False
         if self.position == 26:
             self.position = 0
-            return_val = True # Used to indicate if the next rotor should be moved
+            return_val = 'forward' # Used to indicate if the next rotor should be moved
         elif self.position == -1:
             self.position = 25
+            return_val = 'backward'
 
         self.front_board = self.front_board[places:] + self.front_board[:places]
         self.back_board = self.back_board[places:] + self.back_board[:places]

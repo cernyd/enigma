@@ -78,8 +78,11 @@ class Root(Tk):
 
         # Plugboard
         self.sound_enabled = IntVar()
+        self.autorotate = IntVar()
         self.sound_checkbox = Checkbutton(self.plugboard, var=self.sound_enabled)
         self.sound_checkbox.select()
+        self.autorotate_checkbox = Checkbutton(self.plugboard, var=self.autorotate)
+        self.autorotate_checkbox.select()
 
         self.open_plugboard = Button(self.plugboard, text='Plugboard')
 
@@ -108,6 +111,8 @@ class Root(Tk):
         self.open_plugboard.pack(fill='x')
         Label(self.plugboard, text='Enable sound: ', justify='right').pack(fill='x', side='left')
         self.sound_checkbox.pack(side='left')
+        Label(self.plugboard, text='Autorotate: ', justify='right').pack(fill='x', side='left')
+        self.autorotate_checkbox.pack(side='left')
 
         # Lid init
         self.rowconfigure(index=0, weight=1)
@@ -128,8 +133,15 @@ class Root(Tk):
         self.last_len = 0  # Last input string length
 
     def rotor_menu(self):
-        self.myRotorMenu = RotorMenu(self.enigma.get_rotors())
-        new_values = self.myRotorMenu.get_values()
+        myRotorMenu = RotorMenu(self.enigma.get_rotors())
+        self.wait_window(myRotorMenu)
+        new_values = myRotorMenu.get_values()
+        if new_values:
+            self.enigma.use_reflector(new_values[0])
+            self.enigma.use_rotors(new_values[1:])
+            self.text_input.delete('0.0', 'end')
+            self.format_entries()
+            self.update_rotor_pos()
 
     def button_press(self, letter):
         if self.sound_enabled.get():
@@ -206,8 +218,8 @@ class Root(Tk):
                 output_text = self.get_output() + self.button_press(
                     self.get_input()[-1])
                 self.set_output(output_text)
-            elif length_status == 'shorter':
-                pass
+            elif length_status == 'shorter' and self.autorotate.get():
+                self.enigma.rotate_primary(-1)
 
             self.update_rotor_pos()
 

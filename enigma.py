@@ -30,12 +30,12 @@ class Enigma:
                                                         ' please try '
                                                         'again...')
 
-    def rotate_primary(self):
+    def rotate_primary(self, places=1):
         rotate_next = False
         index = 0
         for rotor in self.rotors:
-            if rotate_next or index == 0:
-                rotate_next = rotor.rotate()
+            if rotate_next == 'forward' or index == 0:
+                rotate_next = rotor.rotate(places)
             index += 1
 
     def prt_positions(self):
