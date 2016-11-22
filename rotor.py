@@ -10,12 +10,12 @@ def get_label(wiring):
 
 
 class Rotor:  # 26 letters in alphabet!
-    def __init__(self, wiring, position=0, offset=0):
+    def __init__(self, wiring, position=0, setting=0):
         self.label = get_label(wiring)
         self.front_board = alphabet
         self.back_board = wiring
         self.position = position
-        self.offset = offset
+        self.ring_setting = setting
 
     def forward(self, letter):
         return self.back_board[alphabet.index(letter)]
@@ -23,11 +23,11 @@ class Rotor:  # 26 letters in alphabet!
     def backward(self, letter):
         return alphabet[self.back_board.index(letter)]
 
-    def set_offset(self, offset):
-        offset = offset - self.offset
+    def set_ring_setting(self, setting):
+        setting = setting - self.ring_setting
         self.back_board = self.back_board = self.back_board[
-                                            offset:] + self.back_board[:offset]
-        self.offset = offset
+                                            setting:] + self.back_board[:setting]
+        self.ring_setting = setting
 
     def set_position(self, position):
         position = position - self.position

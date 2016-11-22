@@ -10,6 +10,9 @@ class Enigma:
         self.use_rotors(rotors)
         self.last_output = ''
 
+    def get_ring_settings(self):
+        return [rotor.ring_setting for rotor in self.rotors]
+
     def get_rotors(self):
         return_list = [self.reflector.label]
         return_list.extend([rotor.label for rotor in self.rotors])
@@ -30,9 +33,9 @@ class Enigma:
                                                         ' please try '
                                                         'again...')
 
-    def set_offsets(self, offsets):
-        for rotor, offset in zip(self.rotors, offsets):
-            rotor.set_offset(offset)
+    def set_ring_settings(self, offsets):
+        for rotor, setting in zip(self.rotors, offsets):
+            rotor.set_ring_setting(setting)
 
     def rotate_primary(self, places=1):
         rotate_next = False
