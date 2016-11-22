@@ -2,6 +2,7 @@ from os import path
 from re import sub
 from tkinter import Tk, Frame, Label, Button, Text, IntVar, Menu
 
+from plugboard_gui import PlugboardMenu
 from enigma import Enigma
 from rotor_gui import RotorMenu
 from sound_ctl import Playback
@@ -79,7 +80,7 @@ class Root(Tk):
                                command=self.rotor_menu)
 
         # Plugboard
-        self.open_plugboard = Button(self.plugboard, text='Plugboard')
+        self.open_plugboard = Button(self.plugboard, text='Plugboard', command=self.plugboard_menu)
 
         # IO init
         Label(self.io_container, text='Input', font=('Arial', 12)).grid(row=0,
@@ -151,16 +152,21 @@ class Root(Tk):
         self.update_rotor_pos()
         self.format_entries()
 
+    def plugboard_menu(self):
+        myPlugboardMenu = PlugboardMenu()
+
     def rotor_menu(self):
         myRotorMenu = RotorMenu(self.enigma.get_rotors())
         self.wait_window(myRotorMenu)
-        new_values = myRotorMenu.get_values()
+        new_values = myRotorMenu.get_rotors()
         if new_values:
             self.enigma.use_reflector(new_values[0])
             self.enigma.use_rotors(new_values[1:])
             self.text_input.delete('0.0', 'end')
             self.format_entries()
             self.update_rotor_pos()
+
+        self.enigma.set_ring_settings(myRotorMenu.get_ring_settings())
 
     def button_press(self, letter):
         if self.sound_enabled.get():
