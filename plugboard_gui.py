@@ -27,6 +27,6 @@ class PlugboardMenu(Toplevel):
 
         # Window config
         self.grab_set()
-        self.iconbitmap(get_icon('rotor.ico'))
+        self.iconbitmap(get_icon('plugboard.ico'))
         self.resizable(False, False)
         self.wm_title("Plugboard")

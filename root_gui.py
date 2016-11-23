@@ -156,7 +156,7 @@ class Root(Tk):
         myPlugboardMenu = PlugboardMenu()
 
     def rotor_menu(self):
-        myRotorMenu = RotorMenu(self.enigma.get_rotors())
+        myRotorMenu = RotorMenu(self.enigma.get_rotors(), self.enigma.get_ring_settings())
         self.wait_window(myRotorMenu)
         new_values = myRotorMenu.get_rotors()
         if new_values:
