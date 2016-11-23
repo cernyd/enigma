@@ -7,7 +7,7 @@ def get_icon(icon):
 
 
 class RotorMenu(Toplevel):
-    def __init__(self, curr_rotors, *args, **kwargs):
+    def __init__(self, curr_rotors, ring_settings, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
 
         self.curr_rotors = curr_rotors
@@ -86,7 +86,9 @@ class RotorMenu(Toplevel):
 
         self.ring_setting_vars = [StringVar(), StringVar(), StringVar()]
 
-        [var.set('A-01') for var in self.ring_setting_vars]
+        ring_settings = [self.ring_setting_labels[setting] for setting in ring_settings]
+
+        [var.set(setting) for var, setting in zip(self.ring_setting_vars, ring_settings)]
 
         for _ in self.rotor_frames[1:]:
             Label(self.rotor_frames[index], text=labels[index - 1], bd=1,
@@ -142,6 +144,7 @@ class RotorMenu(Toplevel):
 
     def storno(self):
         self.rotor_vars = []
+        self.ring_setting_vars = []
         self.destroy()
 
     def update_selected(self):
@@ -161,7 +164,7 @@ class RotorMenu(Toplevel):
         return [radio.get() for radio in self.rotor_vars]
 
     def get_ring_settings(self):
-        return [self.ring_setting_labels.index(setting.get()) for setting in self.ring_setting_vars]
+        return [self.ring_setting_labels.index(setting.get()) for setting in self.ring_setting_vars[::-1]]
 
     def can_apply(self, event=None):
         if all(self.get_rotors()):

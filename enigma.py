@@ -8,10 +8,32 @@ class Enigma:
     def __init__(self, reflector, rotors):
         self.use_reflector(reflector)
         self.use_rotors(rotors)
+        self.plugboard_pairs = []
         self.last_output = ''
 
+    def plugboard_route(self, letter):
+        neighbour = []
+        for pair in self.plugboard_pairs:
+            if letter in pair:
+                neighbour.extend(pair)
+                neighbour.remove(letter)
+                return neighbour[0]
+        return letter # If no connection found
+
+    def set_plugboard(self, pairs):
+        assert(len(pairs) <= 13), "Invalid number of pairs!"
+        used = []
+        plugboard_pairs = []
+        for pair in pairs:
+            for letter in pair:
+                assert(letter not in used), "A letter can only be wired once!"
+                used.append(letter)
+            plugboard_pairs.append(pair)
+
+        self.plugboard_pairs = plugboard_pairs
+
     def get_ring_settings(self):
-        return [rotor.ring_setting for rotor in self.rotors]
+        return [rotor.ring_setting for rotor in self.rotors[::-1]]
 
     def get_rotors(self):
         return_list = [self.reflector.label]
@@ -53,7 +75,7 @@ class Enigma:
                                               self.rotors[1].back_board,
                                               self.rotors[0].back_board)
 
-        if self.last_output != output:
+        if self.last_output != output:  # Wiring only printed if anything changed
             print(output)
 
         self.last_output = output
@@ -62,6 +84,8 @@ class Enigma:
         self.rotate_primary()
         output = letter
 
+        output = self.plugboard_route(output)
+
         for rotor in self.rotors:
             output = rotor.forward(output)
 
@@ -69,5 +93,7 @@ class Enigma:
 
         for rotor in reversed(self.rotors):
             output = rotor.backward(output)
+
+        output = self.plugboard_route(output)
 
         return output

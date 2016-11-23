@@ -34,7 +34,7 @@ class Rotor:  # 26 letters in alphabet!
         self.rotate(position)
         self.position = position
 
-    def rotate(self, places=1):
+    def rotate(self, places=1):  # Adjust for notch/turnover positions!
         self.position += places
         return_val = False
         if self.position == 26:
