@@ -18,6 +18,7 @@ class Rotor:  # 26 letters in alphabet!
         self.back_board = wiring
         self.position = position
         self.ring_setting = setting
+        self.turnover=turnover
 
     def forward(self, letter):
         return self.back_board[alphabet.index(letter)]
@@ -38,13 +39,14 @@ class Rotor:  # 26 letters in alphabet!
 
     def rotate(self, places=1):  # Adjust for notch/turnover positions!
         self.position += places
+
         return_val = False
         if self.position == 26:
             self.position = 0
-            return_val = 'forward' # Used to indicate if the next rotor should be moved
+            return_val = True # Used to indicate if the next rotor should be moved
         elif self.position == -1:
             self.position = 25
-            return_val = 'backward'
+            return_val = True
 
         self.front_board = self.front_board[places:] + self.front_board[:places]
         self.back_board = self.back_board[places:] + self.back_board[:places]
