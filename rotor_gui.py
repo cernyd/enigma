@@ -1,6 +1,8 @@
 from os import path
 from tkinter import Toplevel, Frame, Radiobutton, Label, StringVar, Button, OptionMenu
+from historical import Enigma1
 
+ring_labels = Enigma1.labels
 
 def get_icon(icon):
     return path.join('icons', icon)
@@ -78,15 +80,10 @@ class RotorMenu(Toplevel):
         # Rotors
         index = 1
         labels = [txt + ' ROTOR' for txt in ['THIRD', 'SECOND', 'FIRST']]
-        self.ring_setting_labels = ['A-01', 'B-02', 'C-03', 'D-04', 'E-05', 'F-06',
-                               'G-07', 'H-08', 'I-09', 'J-10','K-11', 'L-12',
-                               'M-13', 'N-14', 'O-15', 'P-16', 'Q-17', 'R-18',
-                               'S-19', 'T-20', 'U-21', 'V-22', 'W-23', 'X-24',
-                               'Y-25','Z-26']
 
         self.ring_setting_vars = [StringVar(), StringVar(), StringVar()]
 
-        ring_settings = [self.ring_setting_labels[setting] for setting in ring_settings]
+        ring_settings = [ring_labels[setting] for setting in ring_settings]
 
         [var.set(setting) for var, setting in zip(self.ring_setting_vars, ring_settings)]
 
@@ -94,7 +91,7 @@ class RotorMenu(Toplevel):
             Label(self.rotor_frames[index], text=labels[index - 1], bd=1,
                   relief='sunken').pack(side='top', pady=5, padx=5)
 
-            self.ring_setting_indicators.append(OptionMenu(self.rotor_frames[index], self.ring_setting_vars[index-1], *self.ring_setting_labels))
+            self.ring_setting_indicators.append(OptionMenu(self.rotor_frames[index], self.ring_setting_vars[index-1], *ring_labels))
 
             for rotor in rotors:
                 radio = Radiobutton(self.rotor_frames[index], text=rotor,
@@ -148,7 +145,7 @@ class RotorMenu(Toplevel):
         self.destroy()
 
     def update_selected(self):
-
+        print(self.curr_rotors)
         index = 0
         for values in self.radio_groups:
             for radio in values:
@@ -164,7 +161,7 @@ class RotorMenu(Toplevel):
         return [radio.get() for radio in self.rotor_vars]
 
     def get_ring_settings(self):
-        return [self.ring_setting_labels.index(setting.get()) for setting in self.ring_setting_vars[::-1]]
+        return [ring_labels.index(setting.get()) for setting in self.ring_setting_vars[::-1]]
 
     def can_apply(self, event=None):
         if all(self.get_rotors()):

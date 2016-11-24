@@ -42,7 +42,7 @@ class Enigma:
 
     def use_rotors(self, rotors):
         if all([rotor in Enigma1.rotors for rotor in rotors]):
-            self.rotors = [Rotor(Enigma1.rotors[rotor]) for rotor in rotors]
+            self.rotors = [Rotor(Enigma1.rotors[rotor][0]) for rotor in rotors]
         else:
             messagebox.showwarning('Invalid rotor', 'Some of rotors are not \n'
                                                     'valid, please try again...')
