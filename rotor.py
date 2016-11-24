@@ -5,12 +5,14 @@ alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 def get_label(wiring):
     for key, value in Enigma1.rotors.items():
-        if value == wiring:
+        if value[0] == wiring:
+            return key
+        elif value == wiring:
             return key
 
 
 class Rotor:  # 26 letters in alphabet!
-    def __init__(self, wiring, position=0, setting=0):
+    def __init__(self, wiring, turnover=0, position=0, setting=0):
         self.label = get_label(wiring)
         self.front_board = alphabet
         self.back_board = wiring

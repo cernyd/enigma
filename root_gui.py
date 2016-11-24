@@ -203,7 +203,6 @@ class Root(Tk):
     def format_entries(self):
         sanitized_text = sub(r"[^A-Za-z]", '', self.get_input())
         self.set_input(sanitized_text)
-        # Input trimming
         self.set_output(self.get_output()[:len(sanitized_text)])
 
     def rotate_forward(self, index, event=None):
