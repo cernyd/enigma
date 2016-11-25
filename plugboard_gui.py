@@ -1,18 +1,21 @@
 from tkinter import Toplevel, Entry, Label, Frame, StringVar, Button
 from misc import get_icon, Enigma1
 from re import sub
-from string import ascii_uppercase
 
 
 layout = [[16,22,4,17,19,25,20,8,14],
           [0,18,3,5,6,7,9,10],
           [15,24,23,2,21,1,13,12,11]]
 
+
 labels = Enigma1.labels
 
 
 class PlugboardMenu(Toplevel):
     """GUI for visual plugboard pairing setup"""
+
+    return_data = None
+
     def __init__(self, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
 
@@ -20,8 +23,7 @@ class PlugboardMenu(Toplevel):
         self.after(0, self.attributes, "-alpha", 1.0)
         # Load smoothness upgrade ^
 
-        # Bindings
-        self.bind('<Button-1>', None)
+        self.bind('<Key>', self.update_pairs)
 
         # Window config
         self.grab_set()
@@ -47,7 +49,7 @@ class PlugboardMenu(Toplevel):
         button_frame = Frame(self)
 
         self.apply_button = Button(button_frame, text='Apply',
-                                   command=self.destroy,
+                                   command=self.safe_destroy,
                                    width=12)
 
         self.storno_button = Button(button_frame, text='Storno',
@@ -59,6 +61,22 @@ class PlugboardMenu(Toplevel):
 
         button_frame.pack(side='bottom', fill='x')
 
+    def update_pairs(self, event=None):
+        used = []
+        index = 0
+        for pair in self.get_pairs():
+            if pair[0] == pair[1]:
+                print('MATCHES')
+                self.plug_sockets[index].update_socket('')
+            index += 1
+
+    def get_pairs(self):
+        return [socket.get_socket() for socket in self.plug_sockets]
+
+    def safe_destroy(self):
+        PlugboardMenu.return_data = self.get_pairs()
+        self.destroy()
+
     def storno(self):
         self.plug_sockets = []
         self.destroy()
@@ -66,8 +84,8 @@ class PlugboardMenu(Toplevel):
 
 class PlugSocket(Frame):
     """Custom made socket class"""
-    def __init__(self, parent, label):
-        Frame.__init__(self, parent)
+    def __init__(self, parent, label, *args, **kwargs):
+        Frame.__init__(self, parent, *args, **kwargs)
 
         self.label = label
 
@@ -84,13 +102,13 @@ class PlugSocket(Frame):
 
     def get_socket(self):
         """Gets string value of the socket"""
-        return self.plug_socket.get()
+        return self.label[0], self.plug_socket.get()
 
     def update_socket(self, *args, character=''):
         """Ensures only a single, uppercase letter is entered"""
         raw = character if character else self.plug_socket.get()
+        self.plug_socket.delete('0', 'end')
         if raw:
-            self.plug_socket.delete('0', 'end')
             string = sub(r"[^A-Za-z]", '', raw)[0].upper()
             if string:
                 self.plug_socket.insert('0', string)
