@@ -65,9 +65,6 @@ class PlugboardMenu(Toplevel):
         used = []
         index = 0
         for pair in self.get_pairs():
-            if pair[0] == pair[1]:
-                print('MATCHES')
-                self.plug_sockets[index].update_socket('')
             index += 1
 
     def get_pairs(self):
@@ -109,6 +106,9 @@ class PlugSocket(Frame):
         raw = character if character else self.plug_socket.get()
         self.plug_socket.delete('0', 'end')
         if raw:
-            string = sub(r"[^A-Za-z]", '', raw)[0].upper()
+            string = sub(r"[^A-Za-z]|[%s]" % (self.label[0]), '', raw.upper())[0].upper()
             if string:
                 self.plug_socket.insert('0', string)
+
+    def clear(self):
+        self.plug_socket.delete('0', 'end')
