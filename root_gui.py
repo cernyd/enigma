@@ -1,7 +1,6 @@
-from os import path
 from re import sub
 from tkinter import Tk, Frame, Label, Button, Text, IntVar, Menu
-
+from misc import get_icon
 from plugboard_gui import PlugboardMenu
 from enigma import Enigma
 from rotor_gui import RotorMenu
@@ -12,17 +11,15 @@ from webbrowser import open as open_browser
 font = ('Arial', 10)
 
 
-def get_icon(icon):
-    return path.join('icons', icon)
-
-
 def format_digit(number):
+    """Adds returns 01 when 1 entered etc."""
     if len(number) != 2:
         number = '0' + number
     return number
 
 
 class Root(Tk):
+    """Root GUI class with enigma entry field, plugboard button, rotor button"""
     def __init__(self, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
 
@@ -146,6 +143,7 @@ class Root(Tk):
         self.last_len = 0  # Last input string length
 
     def reset_all(self):
+        """Sets all settings to default"""
         self.enigma.use_reflector('UKW-B')
         self.enigma.use_rotors(['III', 'II', 'I'])
         self.text_input.delete('0.0', 'end')
@@ -153,9 +151,11 @@ class Root(Tk):
         self.format_entries()
 
     def plugboard_menu(self):
+        """Opens the plugboard GUI"""
         myPlugboardMenu = PlugboardMenu()
 
     def rotor_menu(self):
+        """Opens the rotor gui and applies new values after closing"""
         myRotorMenu = RotorMenu(self.enigma.get_rotors(), self.enigma.get_ring_settings())
         self.wait_window(myRotorMenu)
         new_values = myRotorMenu.get_rotors()
@@ -169,26 +169,32 @@ class Root(Tk):
         self.enigma.set_ring_settings(myRotorMenu.get_ring_settings())
 
     def button_press(self, letter):
+        """Returns the encrypted letter, plays sound if sound enabled"""
         if self.sound_enabled.get():
             Playback.sound_enabled = self.sound_enabled.get()
             Playback.play('button_press')
         return self.enigma.button_press(letter)
 
     def set_input(self, string):
+        """Sets input field to the value of string"""
         self.text_input.delete('0.0', 'end')
         self.text_input.insert('0.0', string)
 
     def set_output(self, string):
+        """Sets output field to the value of string"""
         self.text_output.delete('0.0', 'end')
         self.text_output.insert('0.0', string)
 
     def get_input(self):
+        """Gets the value of the input field"""
         return self.text_input.get('0.0', 'end').upper().replace('\n', '')
 
     def get_output(self):
+        """Gets the value of the output field"""
         return self.text_output.get('0.0', 'end').upper().replace('\n', '')
 
     def current_status(self):
+        """Checks for any changes in the entered text length"""
         input_length = len(self.get_input())
         if self.last_len != input_length:
             if self.last_len > input_length:
@@ -201,11 +207,13 @@ class Root(Tk):
             return False
 
     def format_entries(self):
+        """Ensures input/output fields have the same length"""
         sanitized_text = sub(r"[^A-Za-z]", '', self.get_input())
         self.set_input(sanitized_text)
         self.set_output(self.get_output()[:len(sanitized_text)])
 
     def rotate_forward(self, index, event=None):
+        """Rotates the rotor with the selected index forward"""
         """Rotate a rotor forward, on button press"""
         Playback.sound_enabled = self.sound_enabled.get()
         Playback.play('click')
@@ -213,7 +221,7 @@ class Root(Tk):
         self.update_rotor_pos()
 
     def rotate_backward(self, index, event=None):
-        """Rotate a rotor backward, on button press"""
+        """Rotates the rotor with the selected index backward"""
         Playback.sound_enabled = self.sound_enabled.get()
         Playback.play('click')
         self.enigma.rotors[index].rotate(-1)
@@ -233,7 +241,7 @@ class Root(Tk):
         self.enigma.prt_positions()
 
     def press_event(self, event):
-        """If any text is written"""
+        """Activates if any key is pressed"""
         length_status = self.current_status()
 
         if length_status:
