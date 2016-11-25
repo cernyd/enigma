@@ -1,14 +1,13 @@
 from os import path
 from tkinter import Toplevel, Frame, Radiobutton, Label, StringVar, Button, OptionMenu
-from historical import Enigma1
+from misc import Enigma1, get_icon
+
 
 ring_labels = Enigma1.labels
 
-def get_icon(icon):
-    return path.join('icons', icon)
-
 
 class RotorMenu(Toplevel):
+    """GUI for setting rotor order, reflectors and ring settings"""
     def __init__(self, curr_rotors, ring_settings, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
 
@@ -132,20 +131,23 @@ class RotorMenu(Toplevel):
         self.root_frame.pack(padx=10, pady=5)
 
     def checkup(self, *args):
+        """Checks if all settings are valid ( determines if the apply button should be enabled )"""
         self.update_current()
         self.update_selected()
         self.can_apply()
 
     def update_current(self):
+        """Updates current selected rotors"""
         self.curr_rotors = self.get_rotors()
 
     def storno(self):
+        """Resets all values and destroys the window"""
         self.rotor_vars = []
         self.ring_setting_vars = []
         self.destroy()
 
     def update_selected(self):
-        print(self.curr_rotors)
+        """Updates what radiobuttons are active based on selected buttons"""
         index = 0
         for values in self.radio_groups:
             for radio in values:
@@ -158,12 +160,15 @@ class RotorMenu(Toplevel):
             index += 1
 
     def get_rotors(self):
+        """Gets all rotor values"""
         return [radio.get() for radio in self.rotor_vars]
 
     def get_ring_settings(self):
+        """Gets all ring settings"""
         return [ring_labels.index(setting.get()) for setting in self.ring_setting_vars[::-1]]
 
     def can_apply(self, event=None):
+        """Sets the apply button to active or disabled based on criteria"""
         if all(self.get_rotors()):
             self.apply_button.config(state='active')
         else:

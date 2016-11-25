@@ -1,16 +1,9 @@
 from tkinter import Toplevel, Entry, Label
-from os import path
-from historical import Enigma1
-
-
-def get_icon(icon):
-    return path.join('icons', icon)
-
-
-labels = Enigma1.labels
+from misc import Enigma1, get_icon
 
 
 class PlugboardMenu(Toplevel):
+    """GUI for visual plugboard pairing setup"""
     def __init__(self, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
 
