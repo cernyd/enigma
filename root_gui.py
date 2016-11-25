@@ -153,6 +153,7 @@ class Root(Tk):
     def plugboard_menu(self):
         """Opens the plugboard GUI"""
         myPlugboardMenu = PlugboardMenu()
+        self.wait_window(myPlugboardMenu)
 
     def rotor_menu(self):
         """Opens the rotor gui and applies new values after closing"""
