@@ -5,8 +5,8 @@ from plugboard_gui import PlugboardMenu
 from enigma import Enigma
 from rotor_gui import RotorMenu
 from sound_ctl import Playback
-
 from webbrowser import open as open_browser
+
 
 font = ('Arial', 10)
 
@@ -34,10 +34,7 @@ class Root(Tk):
         self.wm_title("Enigma")
 
         # Keybinds
-        # self.bind('<Control-h>', None)
-        # self.bind('<Control-l>', None)
         self.bind('<Key>', self.press_event)
-        # self.bind('<Return>', None)
 
         # Frames
         self.rotor_container = Frame(self, bd=1, relief='raised', bg='gray85')
@@ -154,6 +151,7 @@ class Root(Tk):
         """Opens the plugboard GUI"""
         myPlugboardMenu = PlugboardMenu()
         self.wait_window(myPlugboardMenu)
+        self.enigma.set_plugboard(PlugboardMenu.return_data)
 
     def rotor_menu(self):
         """Opens the rotor gui and applies new values after closing"""
