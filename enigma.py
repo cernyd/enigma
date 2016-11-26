@@ -34,6 +34,9 @@ class Enigma:
 
         self.plugboard_pairs = plugboard_pairs
 
+    def get_plugboard_pairs(self):
+        return self.plugboard_pairs
+
     def get_ring_settings(self):
         """Returns ring settings of all the rotors"""
         return [rotor.ring_setting for rotor in self.rotors[::-1]]

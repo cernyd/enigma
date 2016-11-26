@@ -149,7 +149,7 @@ class Root(Tk):
 
     def plugboard_menu(self):
         """Opens the plugboard GUI"""
-        myPlugboardMenu = PlugboardMenu()
+        myPlugboardMenu = PlugboardMenu(self.enigma.get_plugboard_pairs())
         self.wait_window(myPlugboardMenu)
         self.enigma.set_plugboard(PlugboardMenu.return_data)
 
