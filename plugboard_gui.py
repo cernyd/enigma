@@ -70,11 +70,23 @@ class PlugboardMenu(Toplevel):
 
     def update_pairs(self, event=None, pairs=None,):
         pairs = pairs if pairs else self.get_pairs()
-        global used_letters
-        used_letters = []
-        for pair in pairs:
-            if pair[1] and pair[1] not in used_letters:
-                used_letters.append(pair[1])
+        print(pairs)
+        # global used_letters
+        # used_letters = []
+        # for pair in pairs:
+        #     if pair[1] and pair[1] not in used_letters:
+        #         used_letters.append(pair[1])
+        #
+        # for plug in self.plug_sockets:
+        #     for pair in pairs:
+        #         label = plug.get_label()
+        #         if label in pair and all(pair):
+        #             plug.update_socket(character=pair[pair[0]==label])
+        #         else:
+        #             plug.update_socket()
+
+        for plug in self.plug_sockets:
+            pass
 
     def get_pairs(self):
         return [socket.get_socket() for socket in self.plug_sockets]
@@ -108,7 +120,7 @@ class PlugSocket(Frame):
 
     def get_socket(self):
         """Gets string value of the socket"""
-        return self.get_label(), self.plug_socket.get()
+        return [self.get_label(), self.plug_socket.get()]
 
     def get_label(self):
         return self.label[0]
@@ -118,7 +130,7 @@ class PlugSocket(Frame):
         raw = character if character else self.plug_socket.get()
         self.plug_socket.delete('0', 'end')
         if raw:
-            pattern = r"[^A-Za-z]|[%s%s]" % (self.get_label(), ''.join(used_letters))
+            pattern = r"[^A-Za-z]|[%s]" % (self.get_label())
             string = sub(pattern, '', raw.upper())[0].upper()
             if string:
                 self.plug_socket.insert('0', string)
