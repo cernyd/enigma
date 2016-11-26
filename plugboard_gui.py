@@ -1,5 +1,5 @@
 from tkinter import Toplevel, Entry, Label, Frame, StringVar, Button
-from misc import get_icon, Enigma1
+from misc import get_icon, Enigma1, unique_pairs
 from re import sub
 
 
@@ -11,13 +11,18 @@ layout = [[16,22,4,17,19,25,20,8,14],
 labels = Enigma1.labels
 
 
+used_letters = []
+
+
 class PlugboardMenu(Toplevel):
     """GUI for visual plugboard pairing setup"""
 
-    return_data = None
+    return_data = [[] for _ in range(25)]
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, pairs, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
+
+        PlugboardMenu.return_data = pairs
 
         self.attributes("-alpha", 0.0)
         self.after(0, self.attributes, "-alpha", 1.0)
@@ -61,17 +66,21 @@ class PlugboardMenu(Toplevel):
 
         button_frame.pack(side='bottom', fill='x')
 
-    def update_pairs(self, event=None):
-        used = []
-        index = 0
-        for pair in self.get_pairs():
-            index += 1
+        self.update_pairs(pairs=PlugboardMenu.return_data)
+
+    def update_pairs(self, event=None, pairs=None,):
+        pairs = pairs if pairs else self.get_pairs()
+        global used_letters
+        used_letters = []
+        for pair in pairs:
+            if pair[1] and pair[1] not in used_letters:
+                used_letters.append(pair[1])
 
     def get_pairs(self):
         return [socket.get_socket() for socket in self.plug_sockets]
 
     def safe_destroy(self):
-        PlugboardMenu.return_data = self.get_pairs()
+        PlugboardMenu.return_data = unique_pairs(self.get_pairs())
         self.destroy()
 
     def storno(self):
@@ -99,14 +108,18 @@ class PlugSocket(Frame):
 
     def get_socket(self):
         """Gets string value of the socket"""
-        return self.label[0], self.plug_socket.get()
+        return self.get_label(), self.plug_socket.get()
+
+    def get_label(self):
+        return self.label[0]
 
     def update_socket(self, *args, character=''):
         """Ensures only a single, uppercase letter is entered"""
         raw = character if character else self.plug_socket.get()
         self.plug_socket.delete('0', 'end')
         if raw:
-            string = sub(r"[^A-Za-z]|[%s]" % (self.label[0]), '', raw.upper())[0].upper()
+            pattern = r"[^A-Za-z]|[%s%s]" % (self.get_label(), ''.join(used_letters))
+            string = sub(pattern, '', raw.upper())[0].upper()
             if string:
                 self.plug_socket.insert('0', string)
 

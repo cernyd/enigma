@@ -12,6 +12,13 @@ def get_label(wiring):
             return key
 
 
+def unique_pairs(pairs):
+    return_pairs = []
+    for pair in pairs:
+        if pair not in return_pairs or reversed(pair) not in return_pairs:
+            return_pairs.append(pair)
+
+
 def get_icon(icon):
     """Gets icon path from the icon folder"""
     return path.join('icons', icon)
