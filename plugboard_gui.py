@@ -24,6 +24,8 @@ class PlugboardMenu(Toplevel):
 
         PlugboardMenu.return_data = pairs
 
+        self.old_pairs = pairs
+
         self.attributes("-alpha", 0.0)
         self.after(0, self.attributes, "-alpha", 1.0)
         # Load smoothness upgrade ^
@@ -68,25 +70,14 @@ class PlugboardMenu(Toplevel):
 
         self.update_pairs(pairs=PlugboardMenu.return_data)
 
-    def update_pairs(self, event=None, pairs=None,):
+    def update_pairs(self, event=None, pairs=None):
         pairs = pairs if pairs else self.get_pairs()
-        print(pairs)
-        # global used_letters
-        # used_letters = []
-        # for pair in pairs:
-        #     if pair[1] and pair[1] not in used_letters:
-        #         used_letters.append(pair[1])
-        #
-        # for plug in self.plug_sockets:
-        #     for pair in pairs:
-        #         label = plug.get_label()
-        #         if label in pair and all(pair):
-        #             plug.update_socket(character=pair[pair[0]==label])
-        #         else:
-        #             plug.update_socket()
+        pair_check = []
+        for old_pair, new_pair in zip(self.old_pairs, pairs):
+            if old_pair != new_pair:
+                print('Pairs not equal!')
 
-        for plug in self.plug_sockets:
-            pass
+        self.old_pairs = pairs
 
     def get_pairs(self):
         return [socket.get_socket() for socket in self.plug_sockets]
