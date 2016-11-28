@@ -80,7 +80,7 @@ class PlugboardMenu(Toplevel):
         self.old_pairs = pairs
 
     def get_pairs(self):
-        return [socket.get_socket() for socket in self.plug_sockets]
+        return [socket.socket for socket in self.plug_sockets]
 
     def safe_destroy(self):
         PlugboardMenu.return_data = unique_pairs(self.get_pairs())
@@ -96,7 +96,7 @@ class PlugSocket(Frame):
     def __init__(self, parent, label, *args, **kwargs):
         Frame.__init__(self, parent, *args, **kwargs)
 
-        self.label = label
+        self._label = label
 
         input_trace = StringVar()
         input_trace.set('')
@@ -109,19 +109,21 @@ class PlugSocket(Frame):
 
         self.plug_socket.pack(side='bottom', pady=5)
 
-    def get_socket(self):
-        """Gets string value of the socket"""
-        return [self.get_label(), self.plug_socket.get()]
+    @property
+    def label(self):
+        return self._label[0]
 
-    def get_label(self):
-        return self.label[0]
+    @property
+    def socket(self):
+        """Gets string value of the socket"""
+        return [self.label, self.plug_socket.get()]
 
     def update_socket(self, *args, character=''):
         """Ensures only a single, uppercase letter is entered"""
-        raw = character if character else self.plug_socket.get()
+        raw = character if character else self.socket[1]
         self.plug_socket.delete('0', 'end')
         if raw:
-            pattern = r"[^A-Za-z]|[%s]" % (self.get_label())
+            pattern = r"[^A-Za-z]|[%s]" % (self.label)
             string = sub(pattern, '', raw.upper())[0].upper()
             if string:
                 self.plug_socket.insert('0', string)

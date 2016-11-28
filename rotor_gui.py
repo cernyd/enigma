@@ -1,4 +1,3 @@
-from os import path
 from tkinter import Toplevel, Frame, Radiobutton, Label, StringVar, Button, OptionMenu
 from misc import Enigma1, get_icon
 
