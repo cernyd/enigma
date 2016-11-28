@@ -13,8 +13,8 @@ class Rotor:
         self.label = get_label(wiring)
         self.front_board = alphabet
         self.back_board = wiring
-        self.position = position
-        self.ring_setting = setting
+        self._position = position
+        self._ring_setting = setting
         self.turnover=turnover
 
     def forward(self, letter):
@@ -25,29 +25,39 @@ class Rotor:
         """Routes a letter from the back side to the front side"""
         return alphabet[self.back_board.index(letter)]
 
-    def set_ring_setting(self, setting):
+    @property
+    def ring_setting(self):
+        return self._ring_setting
+
+    @ring_setting.setter
+    def ring_setting(self, setting):
         """Sets ring setting ( wiring offset relative to the position indicator numbers )"""
-        setting = setting - self.ring_setting
+        setting = setting - self._ring_setting
         self.back_board = self.back_board = self.back_board[
                                             setting:] + self.back_board[:setting]
-        self.ring_setting = setting
+        self._ring_setting = setting
 
-    def set_position(self, position):
+    @property
+    def position(self):
+        return self._position
+
+    @position.setter
+    def position(self, position):
         """Way of instantly setting the rotor to any position"""
-        position = position - self.position
+        position = position - self._position
         self.rotate(position)
-        self.position = position
+        self._position = position
 
     def rotate(self, places=1):  # Adjust for notch/turnover positions!
         """Rotates rotor by n places ( in any direction )"""
-        self.position += places
+        self._position += places
 
         return_val = False
-        if self.position == 26:
-            self.position = 0
+        if self._position == 26:
+            self._position = 0
             return_val = True # Used to indicate if the next rotor should be moved
-        elif self.position == -1:
-            self.position = 25
+        elif self._position == -1:
+            self._position = 25
             return_val = True
 
         self.front_board = self.front_board[places:] + self.front_board[:places]
