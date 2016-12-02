@@ -22,6 +22,9 @@ class PlugboardMenu(Toplevel):
     def __init__(self, pairs, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
 
+        pairs = {}
+        for pair in pairs:
+            pairs[pair[0]] = pair[1]
         PlugboardMenu.return_data = pairs
 
         self.old_pairs = pairs
@@ -72,15 +75,18 @@ class PlugboardMenu(Toplevel):
 
     def update_pairs(self, event=None, pairs=None):
         pairs = pairs if pairs else self.get_pairs()
-        pair_check = []
         for old_pair, new_pair in zip(self.old_pairs, pairs):
             if old_pair != new_pair:
-                print('Pairs not equal!')
+                if old_pair[1] and not new_pair[1]:
+                    print('Deleted!')
+                if not old_pair[1] and new_pair[1]:
+                    print('Added!')
 
         self.old_pairs = pairs
 
     def get_pairs(self):
-        return [socket.socket for socket in self.plug_sockets]
+        pairs = {}
+        return [pairs.update(socket.socket) for socket in self.plug_sockets]
 
     def safe_destroy(self):
         PlugboardMenu.return_data = unique_pairs(self.get_pairs())
@@ -116,10 +122,11 @@ class PlugSocket(Frame):
     @property
     def socket(self):
         """Gets string value of the socket"""
-        return [self.label, self.plug_socket.get()]
+        return {self.label:self.plug_socket.get()}
 
     def update_socket(self, *args, character=''):
         """Ensures only a single, uppercase letter is entered"""
+        print(self.socket)
         raw = character if character else self.socket[1]
         self.plug_socket.delete('0', 'end')
         if raw:
