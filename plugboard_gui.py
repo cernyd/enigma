@@ -2,11 +2,9 @@ from tkinter import Toplevel, Entry, Label, Frame, StringVar, Button
 from misc import get_icon, Enigma1, unique_pairs
 from re import sub
 
-
-layout = [[16,22,4,17,19,25,20,8,14],
-          [0,18,3,5,6,7,9,10],
-          [15,24,23,2,21,1,13,12,11]]
-
+layout = [[16, 22, 4, 17, 19, 25, 20, 8, 14],
+          [0, 18, 3, 5, 6, 7, 9, 10],
+          [15, 24, 23, 2, 21, 1, 13, 12, 11]]
 
 labels = Enigma1.labels
 
@@ -21,7 +19,7 @@ class PlugboardMenu(Toplevel):
 
         PlugboardMenu.return_data = {}
         for pair in pairs:
-                PlugboardMenu.return_data[pair[0]] = pair[1]
+            PlugboardMenu.return_data[pair[0]] = pair[1]
 
         self.old_pairs = PlugboardMenu.return_data
 
@@ -34,7 +32,7 @@ class PlugboardMenu(Toplevel):
         # Window config
         self.grab_set()
         self.iconbitmap(get_icon('plugboard.ico'))
-        #self.resizable(False, False)
+        # self.resizable(False, False)
         self.wm_title("Plugboard")
 
         self.rows = []
@@ -74,10 +72,10 @@ class PlugboardMenu(Toplevel):
         for old_pair, new_pair in zip(self.old_pairs, pairs):
             if old_pair != new_pair:
 
-                if old_pair[1] and not new_pair[1]: # Deleted
+                if old_pair[1] and not new_pair[1]:  # Deleted
                     self.update_socket(old_pair[1], '')
                     self.update_socket(old_pair[0], '')
-                elif not old_pair[1] and new_pair[1]: # Added
+                elif not old_pair[1] and new_pair[1]:  # Added
                     self.update_socket(new_pair[1], new_pair[0])
                     self.update_socket(new_pair[0], new_pair[1])
 
@@ -106,6 +104,7 @@ class PlugboardMenu(Toplevel):
 
 class PlugSocket(Frame):
     """Custom made socket class"""
+
     def __init__(self, parent, label, *args, **kwargs):
         Frame.__init__(self, parent, *args, **kwargs)
 
@@ -116,7 +115,8 @@ class PlugSocket(Frame):
 
         Label(self, text=label).pack(side='top')
 
-        self.plug_socket = Entry(self, width=2, justify='center', textvariable=input_trace)
+        self.plug_socket = Entry(self, width=2, justify='center',
+                                 textvariable=input_trace)
 
         input_trace.trace('w', self.update_entry)
 
