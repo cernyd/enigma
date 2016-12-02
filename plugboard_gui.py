@@ -11,23 +11,19 @@ layout = [[16,22,4,17,19,25,20,8,14],
 labels = Enigma1.labels
 
 
-used_letters = []
-
-
 class PlugboardMenu(Toplevel):
     """GUI for visual plugboard pairing setup"""
 
-    return_data = [[] for _ in range(25)]
+    return_data = {}
 
     def __init__(self, pairs, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
 
-        pairs = {}
+        PlugboardMenu.return_data = {}
         for pair in pairs:
-            pairs[pair[0]] = pair[1]
-        PlugboardMenu.return_data = pairs
+                PlugboardMenu.return_data[pair[0]] = pair[1]
 
-        self.old_pairs = pairs
+        self.old_pairs = PlugboardMenu.return_data
 
         self.attributes("-alpha", 0.0)
         self.after(0, self.attributes, "-alpha", 1.0)
@@ -77,16 +73,27 @@ class PlugboardMenu(Toplevel):
         pairs = pairs if pairs else self.get_pairs()
         for old_pair, new_pair in zip(self.old_pairs, pairs):
             if old_pair != new_pair:
-                if old_pair[1] and not new_pair[1]:
-                    print('Deleted!')
-                if not old_pair[1] and new_pair[1]:
-                    print('Added!')
+
+                if old_pair[1] and not new_pair[1]: # Deleted
+                    self.update_socket(old_pair[1], '')
+                    self.update_socket(old_pair[0], '')
+                elif not old_pair[1] and new_pair[1]: # Added
+                    self.update_socket(new_pair[1], new_pair[0])
+                    self.update_socket(new_pair[0], new_pair[1])
 
         self.old_pairs = pairs
 
+    def update_socket(self, label, new_val):
+        for socket in self.plug_sockets:
+            if socket.label == label:
+                if new_val:
+                    socket.update_entry(character=new_val)
+                else:
+                    socket.clear()
+                return
+
     def get_pairs(self):
-        pairs = {}
-        return [pairs.update(socket.socket) for socket in self.plug_sockets]
+        return [socket.socket for socket in self.plug_sockets]
 
     def safe_destroy(self):
         PlugboardMenu.return_data = unique_pairs(self.get_pairs())
@@ -111,7 +118,7 @@ class PlugSocket(Frame):
 
         self.plug_socket = Entry(self, width=2, justify='center', textvariable=input_trace)
 
-        input_trace.trace('w', self.update_socket)
+        input_trace.trace('w', self.update_entry)
 
         self.plug_socket.pack(side='bottom', pady=5)
 
@@ -122,15 +129,14 @@ class PlugSocket(Frame):
     @property
     def socket(self):
         """Gets string value of the socket"""
-        return {self.label:self.plug_socket.get()}
+        return self.label, self.plug_socket.get()
 
-    def update_socket(self, *args, character=''):
+    def update_entry(self, *args, character=''):
         """Ensures only a single, uppercase letter is entered"""
-        print(self.socket)
         raw = character if character else self.socket[1]
         self.plug_socket.delete('0', 'end')
         if raw:
-            pattern = r"[^A-Za-z]|[%s]" % (self.label)
+            pattern = r"[^A-Za-z]|[%s]" % self.label
             string = sub(pattern, '', raw.upper())[0].upper()
             if string:
                 self.plug_socket.insert('0', string)
