@@ -235,7 +235,7 @@ class Root(Tk):
         """Rotates the rotor with the selected index backward"""
         Playback.sound_enabled = self.sound_enabled
         Playback.play('click')
-        self.enigma.rotors[index].rotate(-1)
+        self.enigma.rotors[index].rotate(places)
         self.update_rotor_pos()
 
     def update_rotor_pos(self):
