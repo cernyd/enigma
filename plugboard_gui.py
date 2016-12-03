@@ -2,12 +2,13 @@ from tkinter import Toplevel, Entry, Label, Frame, StringVar, Button
 from misc import get_icon, Enigma1, unique_pairs
 from re import sub
 
-layout = [[16, 22, 4, 17, 19, 25, 20, 8, 14],
+layout = [[16, 22, 4, 17, 19, 25, 20, 8, 14],  # Plugboard is layed out like a keyboard
           [0, 18, 3, 5, 6, 7, 9, 10],
           [15, 24, 23, 2, 21, 1, 13, 12, 11]]
 
+
 labels = Enigma1.labels
-used_letters = set()
+used_letters = []
 
 
 class PlugboardMenu(Toplevel):
@@ -72,7 +73,6 @@ class PlugboardMenu(Toplevel):
         self.set_pairs(PlugboardMenu.return_data)
 
     def set_pairs(self, pairs):
-        print(pairs)
         for pair in pairs:
             self.update_socket(*pair)
             self.update_socket(*reversed(pair))
@@ -92,11 +92,6 @@ class PlugboardMenu(Toplevel):
                                 pairs[index][1] = ''
                             index += 1
 
-                        if old_pair[1] in used_letters:
-                            used_letters.remove(old_pair[1])
-                        if old_pair[0] in used_letters:
-                            used_letters.remove(old_pair[0])
-
                     elif not old_pair[1] and new_pair[1]:  # Added
                         self.update_socket(new_pair[1], new_pair[0])
                         self.update_socket(new_pair[0], new_pair[1])
@@ -107,12 +102,12 @@ class PlugboardMenu(Toplevel):
                                 pairs[index][1] = old_pair[0]
                             index += 1
 
-                        if old_pair[0]:
-                            used_letters.add(old_pair[0])
-                        if old_pair[1]:
-                            used_letters.add(old_pair[1])
-
+        self.update_used()
         self.old_pairs = pairs
+
+    def update_used(self):
+        global  used_letters
+        used_letters = list([pair[1] for pair in self.get_pairs() if pair[1]])
 
     def update_socket(self, label, new_val):
         for socket in self.plug_sockets:
@@ -172,7 +167,7 @@ class PlugSocket(Frame):
             pattern = r"[^A-Za-z]|[%s]" % self.label
             string = sub(pattern, '', raw.upper())[0].upper()
 
-            if string:
+            if string and string not in used_letters:
                 self.plug_socket.insert('0', string)
 
     def clear(self):

@@ -157,15 +157,15 @@ class Root(Tk):
 
     def plugboard_menu(self):
         """Opens the plugboard GUI"""
-        myPlugboardMenu = PlugboardMenu(self.enigma.plugboard)
-        self.wait_window(myPlugboardMenu)
+        my_plugboard_menu = PlugboardMenu(self.enigma.plugboard)
+        self.wait_window(my_plugboard_menu)
         self.enigma.plugboard = PlugboardMenu.return_data
 
     def rotor_menu(self):
         """Opens the rotor gui and applies new values after closing"""
-        myRotorMenu = RotorMenu(self.enigma.rotor_labels, self.enigma.ring_settings)
-        self.wait_window(myRotorMenu)
-        new_values = myRotorMenu.get_rotors()
+        my_rotor_menu = RotorMenu(self.enigma.rotor_labels, self.enigma.ring_settings)
+        self.wait_window(my_rotor_menu)
+        new_values = my_rotor_menu.get_rotors()
         if new_values:
             self.enigma.reflector = new_values[0]
             self.enigma.rotors = new_values[1:]
@@ -173,7 +173,7 @@ class Root(Tk):
             self.format_entries()
             self.update_rotor_pos()
 
-        self.enigma.ring_settings = myRotorMenu.get_ring_settings()
+        self.enigma.ring_settings = my_rotor_menu.get_ring_settings()
 
     def button_press(self, letter):
         """Returns the encrypted letter, plays sound if sound enabled"""
