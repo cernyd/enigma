@@ -15,8 +15,10 @@ def get_label(wiring):
 def unique_pairs(pairs):
     return_pairs = []
     for pair in pairs:
-        if pair not in return_pairs or reversed(pair) not in return_pairs:
-            return_pairs.append(pair)
+        if pair not in return_pairs and list(reversed(pair)) not in return_pairs:
+            if all(pair):
+                return_pairs.append(pair)
+    return return_pairs
 
 
 def get_icon(icon):
