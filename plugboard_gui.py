@@ -161,14 +161,19 @@ class PlugSocket(Frame):
 
     def update_entry(self, *args, character=''):
         """Ensures only a single, uppercase letter is entered"""
-        raw = character if character else self.socket[1]
+        print()
+        socket_data = self.socket[1]  # Data from the entry
+        raw = character[0].upper() if character else self.socket[1][0].upper()
+        print('Raw > ', raw)
+        print('Socket data > ', socket_data)
         self.plug_socket.delete('0', 'end')
         if raw:
             pattern = r"[^A-Za-z]|[%s]" % self.label
-            string = sub(pattern, '', raw.upper())[0].upper()
-
+            string = sub(pattern, '', raw.upper())[0]
+            print('String > ', string)
             if string and string not in used_letters:
                 self.plug_socket.insert('0', string)
+        print()
 
     def clear(self):
         self.plug_socket.delete('0', 'end')
