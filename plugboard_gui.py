@@ -37,6 +37,7 @@ class PlugboardMenu(Toplevel):
 
         self.rows = []
         self.plug_sockets = []
+        self.processed = []
 
         for row in layout:
             new_row = Frame(self)
@@ -68,16 +69,31 @@ class PlugboardMenu(Toplevel):
         self.update_pairs(pairs=PlugboardMenu.return_data)
 
     def update_pairs(self, event=None, pairs=None):
+        if not self.old_pairs:
+            self.old_pairs = [['', '']]*26
         pairs = pairs if pairs else self.get_pairs()
-        for old_pair, new_pair in zip(self.old_pairs, pairs):
-            if old_pair != new_pair:
+        if ['', ''] not in self.old_pairs:
+            for old_pair, new_pair in zip(self.old_pairs, pairs):
+                if old_pair != new_pair:
+                    if old_pair[1] and not new_pair[1]:  # Deleted
+                        self.update_socket(old_pair[1], '')
+                        self.update_socket(old_pair[0], '')
 
-                if old_pair[1] and not new_pair[1]:  # Deleted
-                    self.update_socket(old_pair[1], '')
-                    self.update_socket(old_pair[0], '')
-                elif not old_pair[1] and new_pair[1]:  # Added
-                    self.update_socket(new_pair[1], new_pair[0])
-                    self.update_socket(new_pair[0], new_pair[1])
+                        index = 0
+                        for label, val in pairs:
+                            if label == old_pair[1]:
+                                pairs[index][1] = ''
+                            index += 1
+
+                    elif not old_pair[1] and new_pair[1]:  # Added
+                        self.update_socket(new_pair[1], new_pair[0])
+                        self.update_socket(new_pair[0], new_pair[1])
+
+                        index = 0
+                        for label, val in pairs:
+                            if label == new_pair[1]:
+                                pairs[index][1] = old_pair[0]
+                            index += 1
 
         self.old_pairs = pairs
 
@@ -129,7 +145,7 @@ class PlugSocket(Frame):
     @property
     def socket(self):
         """Gets string value of the socket"""
-        return self.label, self.plug_socket.get()
+        return [self.label, self.plug_socket.get()]
 
     def update_entry(self, *args, character=''):
         """Ensures only a single, uppercase letter is entered"""
