@@ -7,19 +7,18 @@ layout = [[16, 22, 4, 17, 19, 25, 20, 8, 14],
           [15, 24, 23, 2, 21, 1, 13, 12, 11]]
 
 labels = Enigma1.labels
+used_letters = set()
 
 
 class PlugboardMenu(Toplevel):
     """GUI for visual plugboard pairing setup"""
 
-    return_data = {}
+    return_data = []
 
     def __init__(self, pairs, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
 
-        PlugboardMenu.return_data = {}
-        for pair in pairs:
-            PlugboardMenu.return_data[pair[0]] = pair[1]
+        PlugboardMenu.return_data = pairs
 
         self.old_pairs = PlugboardMenu.return_data
 
@@ -66,12 +65,20 @@ class PlugboardMenu(Toplevel):
 
         button_frame.pack(side='bottom', fill='x')
 
-        self.update_pairs(pairs=PlugboardMenu.return_data)
+        self.old_pairs = [['', '']] * 26
 
-    def update_pairs(self, event=None, pairs=None):
-        if not self.old_pairs:
-            self.old_pairs = [['', '']]*26
-        pairs = pairs if pairs else self.get_pairs()
+        self.update_pairs(PlugboardMenu.return_data)
+
+        self.set_pairs(PlugboardMenu.return_data)
+
+    def set_pairs(self, pairs):
+        print(pairs)
+        for pair in pairs:
+            self.update_socket(*pair)
+            self.update_socket(*reversed(pair))
+
+    def update_pairs(self, event=None):
+        pairs = self.get_pairs()
         if ['', ''] not in self.old_pairs:
             for old_pair, new_pair in zip(self.old_pairs, pairs):
                 if old_pair != new_pair:
@@ -85,6 +92,11 @@ class PlugboardMenu(Toplevel):
                                 pairs[index][1] = ''
                             index += 1
 
+                        if old_pair[1] in used_letters:
+                            used_letters.remove(old_pair[1])
+                        if old_pair[0] in used_letters:
+                            used_letters.remove(old_pair[0])
+
                     elif not old_pair[1] and new_pair[1]:  # Added
                         self.update_socket(new_pair[1], new_pair[0])
                         self.update_socket(new_pair[0], new_pair[1])
@@ -94,6 +106,11 @@ class PlugboardMenu(Toplevel):
                             if label == new_pair[1]:
                                 pairs[index][1] = old_pair[0]
                             index += 1
+
+                        if old_pair[0]:
+                            used_letters.add(old_pair[0])
+                        if old_pair[1]:
+                            used_letters.add(old_pair[1])
 
         self.old_pairs = pairs
 
@@ -154,6 +171,7 @@ class PlugSocket(Frame):
         if raw:
             pattern = r"[^A-Za-z]|[%s]" % self.label
             string = sub(pattern, '', raw.upper())[0].upper()
+
             if string:
                 self.plug_socket.insert('0', string)
 
