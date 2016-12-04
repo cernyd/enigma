@@ -3,7 +3,7 @@ from tkinter import Tk, Frame, Label, Button, Text, IntVar, Menu
 from webbrowser import open as open_browser
 
 from enigma import Enigma
-from misc import get_icon
+from misc import get_icon, check_type
 from plugboard_gui import PlugboardMenu
 from rotor_gui import RotorMenu
 from sound_ctl import Playback
@@ -283,14 +283,16 @@ class RotorIndicator(Frame):
         self.plus.pack(side='top')
 
     def get(self):
-        pass
+        self.__format_digit(1)
 
-    def update(self):
-        pass
+    def set(self, number: int):
+        self.indicator.config(text=self.__format_digit(number))
 
     @staticmethod
-    def __format_digit(number):
+    @check_type(int)
+    def __format_digit(number: int) -> str:
         """Adds returns 01 when 1 entered etc."""
+        number = str(number)
         if len(number) != 2:
             number = '0' + number
         return number
