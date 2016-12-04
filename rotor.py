@@ -2,7 +2,7 @@ from misc import get_label, alphabet, check_type
 
 class Rotor:
     """Class simulating (fairly) accurate enigma machine rotor behavior"""
-    def __init__(self, wiring, turnover=0, position=0, setting=0):
+    def __init__(self, wiring: str, turnover: int = 0, position: int = 0, setting: int = 0):
         """
         :param wiring: Defines how letters are wired back and forth
         :param turnover: Sets on which indicator letter the next rotor is turned
@@ -24,13 +24,13 @@ class Rotor:
 
     # Label for the rotor menu
 
-    def label(self):
+    def label(self) -> str:
         return get_label(self.__back_board)
 
     # Routing functions
 
     @check_type(str)
-    def forward(self, letter):
+    def forward(self, letter: str) -> str:
         """
         Routes a letter from front side to the back side
         :param letter: Input letter
@@ -39,7 +39,7 @@ class Rotor:
         return self.__back_board[alphabet.index(letter)]
 
     @check_type(str)
-    def backward(self, letter):
+    def backward(self, letter: str) -> str:
         """
         Routes a letter from the back side to the front side
         :param letter: Input letter
@@ -47,7 +47,7 @@ class Rotor:
         """
         return alphabet[self.__back_board.index(letter)]
 
-    def rotate(self, places=1):
+    def rotate(self, places: int = 1) -> bool:
         """
         Rotates rotor by n places ( in any direction )
         :param places: By how many places to rotate ( negative rotates back )
@@ -73,7 +73,7 @@ class Rotor:
     # Ring setting property
 
     @property
-    def ring_setting(self):
+    def ring_setting(self) -> int:
         """
         Property returning the private ring setting
         :return: Ring offset setting
@@ -81,7 +81,7 @@ class Rotor:
         return self.__ring_setting
 
     @ring_setting.setter
-    def ring_setting(self, setting):
+    def ring_setting(self, setting: int):
         """
         Sets ring setting ( wiring offset relative to the position indicator numbers )
         :param setting: Wiring offset relative to the indicator letters
@@ -95,7 +95,7 @@ class Rotor:
     # Position property
 
     @property
-    def position(self):
+    def position(self) -> int:
         """
         Property returning the private rotor position
         :return: Current position
@@ -104,7 +104,7 @@ class Rotor:
 
     @position.setter
     #@check_type(int)
-    def position(self, position):
+    def position(self, position: int):
         """
         Sets rotor to the selected position instantly
         :param position: Target position
