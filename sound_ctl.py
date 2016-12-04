@@ -8,6 +8,12 @@ class Playback:
     sound_enabled = True
     sounds = list(map(lambda snd: snd[7:], glob(path.join('sounds', '*.wav'))))
 
+    def __init__(self):
+        raise NotImplementedError("This class was not designed for instantiation!")
+
+    def __new__(self):
+        raise NotImplementedError("This class was not designed for instantiation!")
+
     @classmethod
     def play(cls, sound_name):
         """Plays a sound based on the entered sound name"""
