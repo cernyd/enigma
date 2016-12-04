@@ -1,65 +1,116 @@
-from misc import get_label, alphabet
-
+from misc import get_label, alphabet, check_type
 
 class Rotor:
-    """Class simulating (fairly) accurate enigma rotor behavior"""
+    """Class simulating (fairly) accurate enigma machine rotor behavior"""
     def __init__(self, wiring, turnover=0, position=0, setting=0):
         """
-        wiring - determines how front side is wired to the back side
-        turnover - number that will be shown on the indicator on next rotor advance
-        position - position offset ( changes after each rotation )
-        setting - ring setting ( wiring offset relative to the position indicator numbers )
+        :param wiring: Defines how letters are wired back and forth
+        :param turnover: Sets on which indicator letter the next rotor is turned
+        :param position: Rotor position relative to input
+        :param setting: Label indicator relative to internal wiring
         """
-        self.label = get_label(wiring)
-        self.front_board = alphabet
-        self.back_board = wiring
-        self._position = position
-        self._ring_setting = setting
-        self.turnover=turnover
+        assert(len(wiring) == 26 and type(wiring) == str), 'Invalid wiring "%s"' % wiring
 
+        self.__front_board = alphabet
+        self.__back_board = wiring
+
+        self.__position = position
+        self.position = position
+
+        self.__ring_setting = setting
+        self.ring_setting = setting
+
+        self.__turnover = turnover
+
+    # Label for the rotor menu
+
+    def label(self):
+        return get_label(self.__back_board)
+
+    # Routing functions
+
+    @check_type(str)
     def forward(self, letter):
-        """Routes a letter from front side to the back side"""
-        return self.back_board[alphabet.index(letter)]
+        """
+        Routes a letter from front side to the back side
+        :param letter: Input letter
+        :return: Letter routed to the front
+        """
+        return self.__back_board[alphabet.index(letter)]
 
+    @check_type(str)
     def backward(self, letter):
-        """Routes a letter from the back side to the front side"""
-        return alphabet[self.back_board.index(letter)]
+        """
+        Routes a letter from the back side to the front side
+        :param letter: Input letter
+        :return:  Letter routed to the front
+        """
+        return alphabet[self.__back_board.index(letter)]
+
+    def rotate(self, places=1):
+        """
+        Rotates rotor by n places ( in any direction )
+        :param places: By how many places to rotate ( negative rotates back )
+        :return: Info if the next position should be turned over
+        """
+        assert (places in range(-25, 26)), 'Can\'t rotate by "%d" places...' % places
+
+        self.__position += places
+
+        return_val = False
+        if self.__position == 26:
+            self.__position = 0
+            return_val = True # Used to indicate if the next rotor should be moved
+        elif self.__position == -1:
+            self.__position = 25
+            return_val = True
+
+        self.__front_board = self.__front_board[places:] + self.__front_board[:places]
+        self.__back_board = self.__back_board[places:] + self.__back_board[:places]
+
+        return return_val
+
+    # Ring setting property
 
     @property
     def ring_setting(self):
-        return self._ring_setting
+        """
+        Property returning the private ring setting
+        :return: Ring offset setting
+        """
+        return self.__ring_setting
 
     @ring_setting.setter
     def ring_setting(self, setting):
-        """Sets ring setting ( wiring offset relative to the position indicator numbers )"""
-        setting = setting - self._ring_setting
-        self.back_board = self.back_board = self.back_board[
-                                            setting:] + self.back_board[:setting]
-        self._ring_setting = setting
+        """
+        Sets ring setting ( wiring offset relative to the position indicator numbers )
+        :param setting: Wiring offset relative to the indicator letters
+        """
+        assert (setting in range(0, 25)), 'Invalid ring setting "%d"...' % setting
+
+        setting = setting - self.__ring_setting
+        self.__back_board = self.__back_board = self.__back_board[setting:] + self.__back_board[:setting]
+        self.__ring_setting = setting
+
+    # Position property
 
     @property
     def position(self):
-        return self._position
+        """
+        Property returning the private rotor position
+        :return: Current position
+        """
+        return self.__position
 
     @position.setter
+    #@check_type(int)
     def position(self, position):
-        """Way of instantly setting the rotor to any position"""
-        position = position - self._position
+        """
+        Sets rotor to the selected position instantly
+        :param position: Target position
+        """
+        assert(position in range(0, 26)), 'Invalid position "%d"...' % position
+
+        position = position - self.__position
         self.rotate(position)
-        self._position = position
-
-    def rotate(self, places=1):  # Adjust for notch/turnover positions!
-        """Rotates rotor by n places ( in any direction )"""
-        self._position += places
-
-        return_val = False
-        if self._position == 26:
-            self._position = 0
-            return_val = True # Used to indicate if the next rotor should be moved
-        elif self._position == -1:
-            self._position = 25
-            return_val = True
-
-        self.front_board = self.front_board[places:] + self.front_board[:places]
-        self.back_board = self.back_board[places:] + self.back_board[:places]
-        return return_val
+        self.__position = position

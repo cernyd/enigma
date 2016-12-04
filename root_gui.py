@@ -11,11 +11,7 @@ from sound_ctl import Playback
 font = ('Arial', 10)
 
 
-def format_digit(number):
-    """Adds returns 01 when 1 entered etc."""
-    if len(number) != 2:
-        number = '0' + number
-    return number
+
 
 
 class Root(Tk):
@@ -249,17 +245,16 @@ class Root(Tk):
         raw = str(self.enigma.rotors[0].position + 1)
         self.right_indicator.config(text=format_digit(raw))
 
-        print(self.enigma.positions)
+        # print(self.enigma.positions)
 
-    def press_event(self, event):
+    def press_event(self, event=None):
         """Activates if any key is pressed"""
         length_status = self.current_status()
 
         if length_status:
             self.format_entries()
             if length_status == 'longer':
-                output_text = self.output_box + self.button_press(
-                    self.input_box[-1])
+                output_text = self.output_box + self.button_press(self.input_box[-1])
                 self.output_box = output_text
             elif length_status == 'shorter' and self.autorotate:
                 self.enigma.rotate_primary(-1)
@@ -267,5 +262,35 @@ class Root(Tk):
             self.update_rotor_pos()
 
 
-test = Root()
-test.mainloop()
+
+
+
+class RotorIndicator(Frame):
+    def __init__(self, *args, **kwargs):
+        Frame.__init__(self, *args, **kwargs)
+
+        self.indicator = Label(self, text='01', bd=1,
+                               relief='sunken', width=2)
+
+        self.plus = Button(self, text='+', command=lambda: self.rotate(2, 1),
+                           font=font)
+
+        self.minus = Button(self, text='-', command=lambda: self.rotate(2, -1),
+                            font=font)
+
+        self.minus.pack(side='top')
+        self.indicator.pack(side='top')
+        self.plus.pack(side='top')
+
+    def get(self):
+        pass
+
+    def update(self):
+        pass
+
+    @staticmethod
+    def __format_digit(number):
+        """Adds returns 01 when 1 entered etc."""
+        if len(number) != 2:
+            number = '0' + number
+        return number
