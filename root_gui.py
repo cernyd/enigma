@@ -11,14 +11,6 @@ from sound_ctl import Playback
 font = ('Arial', 10)
 
 
-def format_digit(number):
-    """Adds returns 01 when 1 entered etc."""
-    number = str(number)
-    if len(number) != 2:
-        number = '0' + number
-    return number
-
-
 class Root(Tk):
     """Root GUI class with enigma entry field, plugboard button, rotor button"""
     def __init__(self, *args, **kwargs):
@@ -29,8 +21,7 @@ class Root(Tk):
         # Load smoothness upgrade ^
 
         # Window config
-        self.iconbitmap(get_icon(
-            'enigma.ico'))  # Git push and add new files ( including icons! )
+        self.iconbitmap(get_icon('enigma.ico'))
         self.resizable(False, False)
         self.wm_title("Enigma")
 
@@ -100,7 +91,7 @@ class Root(Tk):
 
         # Menu
         self._sound_enabled = IntVar()
-        self.sound_enabled = 1
+        self._sound_enabled.set(1)
         self._autorotate = IntVar()
         self.autorotate = 1
 
@@ -135,55 +126,42 @@ class Root(Tk):
         self.plugboard.pack(side='bottom', fill='both', padx=3, pady=3)
         self.io_container.pack(side='bottom')
 
-        # Enigma defaults
-        self.enigma = Enigma('UKW-B', ['III', 'II', 'I'])
-
         self.last_len = 0  # Last input string length
-
-    @property
-    def sound_enabled(self):
-        return self._sound_enabled.get()
-
-    @sound_enabled.setter
-    def sound_enabled(self, num):
-        self._sound_enabled.set(num)
 
     def reset_all(self):
         """Sets all settings to default"""
-        self.enigma.reflector = 'UKW-B'
-        self.enigma.rotors = ['III', 'II', 'I']
+        enigma.reflector = 'UKW-B'
+        enigma.rotors = ['III', 'II', 'I']
         self.text_input.delete('0.0', 'end')
         self.update_rotor_pos()
         self.format_entries()
 
     def plugboard_menu(self):
         """Opens the plugboard GUI"""
-        my_plugboard_menu = PlugboardMenu(self.enigma.plugboard)
+        my_plugboard_menu = PlugboardMenu(enigma.plugboard)
         self.wait_window(my_plugboard_menu)
-        self.enigma.plugboard = PlugboardMenu.return_data
+        enigma.plugboard = PlugboardMenu.return_data
 
     def rotor_menu(self):
         """Opens the rotor gui and applies new values after closing"""
-        print(self.enigma.rotor_labels)
-        print(self.enigma.ring_settings)
-        my_rotor_menu = RotorMenu(self.enigma.rotor_labels, self.enigma.ring_settings)
+        my_rotor_menu = RotorMenu(enigma.rotor_labels, enigma.ring_settings)
         self.wait_window(my_rotor_menu)
         new_values = my_rotor_menu.get_rotors()
         if new_values:
-            self.enigma.reflector = new_values[0]
-            self.enigma.rotors = new_values[1:]
+            enigma.reflector = new_values[0]
+            enigma.rotors = new_values[1:]
             self.text_input.delete('0.0', 'end')
             self.format_entries()
             self.update_rotor_pos()
 
-        self.enigma.ring_settings = my_rotor_menu.get_ring_settings()
+        enigma.ring_settings = my_rotor_menu.get_ring_settings()
 
     def button_press(self, letter):
         """Returns the encrypted letter, plays sound if sound enabled"""
-        if self.sound_enabled:
-            Playback.sound_enabled = self.sound_enabled
+        if self._sound_enabled:
+            Playback.sound_enabled = self._sound_enabled
             Playback.play('button_press')
-        return self.enigma.button_press(letter)
+        return enigma.button_press(letter)
 
     @property
     def input_box(self):
@@ -234,26 +212,6 @@ class Root(Tk):
         self.input_box = sanitized_text
         self.output_box = self.output_box[:len(sanitized_text)]
 
-    def rotate(self, index, places=0):
-        """Rotates the rotor with the selected index backward"""
-        Playback.sound_enabled = self.sound_enabled
-        Playback.play('click')
-        self.enigma.rotors[index].rotate(places)
-        self.update_rotor_pos()
-
-    def update_rotor_pos(self):
-        """Updates the rotor position indicators"""
-        raw = str(self.enigma.rotors[2].position + 1)
-        self.left_indicator.config(text=format_digit(raw))
-
-        raw = str(self.enigma.rotors[1].position + 1)
-        self.mid_indicator.config(text=format_digit(raw))
-
-        raw = str(self.enigma.rotors[0].position + 1)
-        self.right_indicator.config(text=format_digit(raw))
-
-        # print(self.enigma.positions)
-
     def press_event(self, event=None):
         """Activates if any key is pressed"""
         length_status = self.current_status()
@@ -264,17 +222,25 @@ class Root(Tk):
                 output_text = self.output_box + self.button_press(self.input_box[-1])
                 self.output_box = output_text
             elif length_status == 'shorter' and self.autorotate:
-                self.enigma.rotate_primary(-1)
+                enigma.rotate_primary(-1)
 
             self.update_rotor_pos()
 
 
 
+def format_digit(number: int) -> str:
+    """Adds returns 01 when 1 entered etc."""
+    number = str(number)
+    if len(number) != 2:
+        number = '0' + number
+    return number
 
 
 class RotorIndicator(Frame):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, index, *args, **kwargs):
         Frame.__init__(self, *args, **kwargs)
+
+        self.index = index
 
         self.indicator = Label(self, text='01', bd=1,
                                relief='sunken', width=2)
@@ -289,16 +255,14 @@ class RotorIndicator(Frame):
         self.indicator.pack(side='top')
         self.plus.pack(side='top')
 
-    def get(self):
-        self.__format_digit(1)
+    def rotate(self, index, places=0):
+        """Rotates the rotor with the selected index backward"""
+        Playback.sound_enabled = sound_enabled
+        Playback.play('click')
+        enigma.rotors[self.index].rotate(places)
+        self.update_indicator()
 
-    def set(self, number: int):
-        self.indicator.config(text=self.__format_digit(number))
-
-    @staticmethod
-    def __format_digit(number: int) -> str:
-        """Adds returns 01 when 1 entered etc."""
-        number = str(number)
-        if len(number) != 2:
-            number = '0' + number
-        return number
+    def update_indicator(self):
+        raw = enigma.rotors[2].position + 1
+        text = format_digit(raw)
+        self.indicator.config(text=text)
