@@ -3,7 +3,7 @@ from tkinter import Tk, Frame, Label, Button, Text, IntVar, Menu
 from webbrowser import open as open_browser
 
 from enigma import Enigma
-from misc import get_icon, check_type
+from misc import get_icon
 from plugboard_gui import PlugboardMenu
 from rotor_gui import RotorMenu
 from sound_ctl import Playback
@@ -11,7 +11,12 @@ from sound_ctl import Playback
 font = ('Arial', 10)
 
 
-
+def format_digit(number):
+    """Adds returns 01 when 1 entered etc."""
+    number = str(number)
+    if len(number) != 2:
+        number = '0' + number
+    return number
 
 
 class Root(Tk):
@@ -159,6 +164,8 @@ class Root(Tk):
 
     def rotor_menu(self):
         """Opens the rotor gui and applies new values after closing"""
+        print(self.enigma.rotor_labels)
+        print(self.enigma.ring_settings)
         my_rotor_menu = RotorMenu(self.enigma.rotor_labels, self.enigma.ring_settings)
         self.wait_window(my_rotor_menu)
         new_values = my_rotor_menu.get_rotors()
@@ -289,7 +296,6 @@ class RotorIndicator(Frame):
         self.indicator.config(text=self.__format_digit(number))
 
     @staticmethod
-    @check_type(int)
     def __format_digit(number: int) -> str:
         """Adds returns 01 when 1 entered etc."""
         number = str(number)
