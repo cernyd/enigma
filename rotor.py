@@ -1,4 +1,4 @@
-from misc import get_label, alphabet, check_type
+from misc import get_label, alphabet
 
 class Rotor:
     """Class simulating (fairly) accurate enigma machine rotor behavior"""
@@ -29,7 +29,6 @@ class Rotor:
 
     # Routing functions
 
-    @check_type(str)
     def forward(self, letter: str) -> str:
         """
         Routes a letter from front side to the back side
@@ -38,7 +37,6 @@ class Rotor:
         """
         return self.__back_board[alphabet.index(letter)]
 
-    @check_type(str)
     def backward(self, letter: str) -> str:
         """
         Routes a letter from the back side to the front side
@@ -88,7 +86,7 @@ class Rotor:
         """
         assert (setting in range(0, 25)), 'Invalid ring setting "%d"...' % setting
 
-        setting = setting - self.__ring_setting
+        setting -= self.__ring_setting
         self.__back_board = self.__back_board = self.__back_board[setting:] + self.__back_board[:setting]
         self.__ring_setting = setting
 
@@ -103,7 +101,6 @@ class Rotor:
         return self.__position
 
     @position.setter
-    #@check_type(int)
     def position(self, position: int):
         """
         Sets rotor to the selected position instantly
@@ -111,6 +108,6 @@ class Rotor:
         """
         assert(position in range(0, 26)), 'Invalid position "%d"...' % position
 
-        position = position - self.__position
+        position -= self.__position
         self.rotate(position)
         self.__position = position

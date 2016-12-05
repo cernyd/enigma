@@ -1,5 +1,4 @@
 from os import path
-from functools import wraps
 
 
 alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -26,18 +25,6 @@ def unique_pairs(pairs):
 def get_icon(icon):
     """Gets icon path from the icon folder"""
     return path.join('icons', icon)
-
-
-def check_type(data_type):
-    def decorator(func):
-        @wraps(func)
-        def wrapper(self, arg):
-            if type(arg) != data_type:
-                raise TypeError("Invalid argument type for this function! "
-                                "Expected %s but got %s." % (str(data_type), str(type(arg))))
-            return func(self, arg)
-        return wrapper
-    return decorator
 
 
 class Enigma1:
