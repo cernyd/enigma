@@ -1,5 +1,5 @@
 from tkinter import messagebox
-from misc import Enigma1, check_type
+from misc import Enigma1
 from rotor import Rotor
 
 
@@ -26,7 +26,6 @@ class Enigma:
         return self.__plugboard
 
     @plugboard.setter
-    @check_type(list)
     def plugboard(self, pairs):
         """
         Sets up plugboard pairs for the plugboard routing
@@ -62,7 +61,6 @@ class Enigma:
         return self._rotors
 
     @rotors.setter
-    @check_type(list)
     def rotors(self, rotors):
         """
         Takes rotor labels and gets the rotors from historical rotors if possible,
@@ -104,7 +102,6 @@ class Enigma:
         return self._reflector
 
     @reflector.setter
-    @check_type(str)
     def reflector(self, reflector):
         """
         Takes a reflector label and gets the reflector from historical reflectors,
@@ -129,7 +126,6 @@ class Enigma:
         return [rotor.ring_setting for rotor in self.rotors[::-1]]
 
     @ring_settings.setter
-    @check_type(list)
     def ring_settings(self, offsets):
         """
         Takes three numbers as ring settings and applies them to the rotors
@@ -140,7 +136,6 @@ class Enigma:
 
     # Letter routing process
 
-    @check_type(str)
     def plugboard_route(self, letter):
         """
         Routes a letter trough the plugboard
@@ -167,7 +162,6 @@ class Enigma:
                 rotate_next = rotor.rotate(places)
             index += 1
 
-    @check_type(str)
     def button_press(self, letter):
         """
         Takes a letter and simulates enigma encryption, returns a letter that would
