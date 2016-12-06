@@ -2,7 +2,7 @@ from misc import get_label, alphabet
 
 class Rotor:
     """Class simulating (fairly) accurate enigma machine rotor behavior"""
-    def __init__(self, wiring: str, turnover: int = 0, position: int = 0, setting: int = 0):
+    def __init__(self, wiring=str, turnover=0, position=0, setting=0):
         """
         :param wiring: Defines how letters are wired back and forth
         :param turnover: Sets on which indicator letter the next rotor is turned

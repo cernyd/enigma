@@ -49,6 +49,3 @@ class Enigma1:
                                'M-13', 'N-14', 'O-15', 'P-16', 'Q-17', 'R-18',
                                'S-19', 'T-20', 'U-21', 'V-22', 'W-23', 'X-24',
                                'Y-25','Z-26']
-
-    rotors = ['I', 'II', 'III', 'IV', 'V']
-    reflectors = ['UKW-A', 'UKW-B', 'UKW-C']
