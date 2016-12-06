@@ -16,6 +16,9 @@ class Root(Tk):
     def __init__(self, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
 
+        self.enigma = Enigma(self, 'UKW-B', ['III', 'II', 'I'])
+        self.playback = Playback(self)
+
         self.attributes("-alpha", 0.0)
         self.after(0, self.attributes, "-alpha", 1.0)
         # Load smoothness upgrade ^
@@ -33,34 +36,6 @@ class Root(Tk):
         self.io_container = Frame(self)
         self.plugboard = Frame(self)
 
-        # Rotor widgets
-        self.left_indicator = Label(self.rotor_container, text='01', bd=1,
-                                    relief='sunken', width=2)
-        self.mid_indicator = Label(self.rotor_container, text='01', bd=1,
-                                   relief='sunken', width=2)
-        self.right_indicator = Label(self.rotor_container, text='01', bd=1,
-                                     relief='sunken', width=2)
-
-        self.left_plus = Button(self.rotor_container, text='+',
-                                command=lambda: self.rotate(2, 1),
-                                font=font)
-        self.mid_plus = Button(self.rotor_container, text='+',
-                               command=lambda: self.rotate(1, 1),
-                               font=font)
-        self.right_plus = Button(self.rotor_container, text='+',
-                                 command=lambda: self.rotate(0, 1),
-                                 font=font)
-
-        self.left_minus = Button(self.rotor_container, text='-',
-                                 command=lambda: self.rotate(2, -1),
-                                 font=font)
-        self.mid_minus = Button(self.rotor_container, text='-',
-                                command=lambda: self.rotate(1, -1),
-                                font=font)
-        self.right_minus = Button(self.rotor_container, text='-',
-                                  command=lambda: self.rotate(0, -1),
-                                  font=font)
-
         # Lid
         self.open_lid = Button(self.rotor_container, text='\n'.join('Rotors'),
                                command=self.rotor_menu)
@@ -77,23 +52,21 @@ class Root(Tk):
         self.text_output = Text(self.io_container, width=25, height=3)
 
         # Rotor
-        self.left_indicator.grid(row=1, column=0, sticky='we', padx=20, pady=3)
-        self.mid_indicator.grid(row=1, column=1, sticky='we', padx=20, pady=3)
-        self.right_indicator.grid(row=1, column=2, sticky='we', padx=20, pady=3)
+        self.left_indicator = RotorIndicator(self.rotor_container, self.enigma, self.playback, 2)
+        self.mid_indicator = RotorIndicator(self.rotor_container, self.enigma, self.playback, 1)
+        self.right_indicator = RotorIndicator(self.rotor_container, self.enigma, self.playback, 0)
 
-        self.left_plus.grid(row=2, column=0)
-        self.mid_plus.grid(row=2, column=1)
-        self.right_plus.grid(row=2, column=2)
+        self.left_indicator.pack(side='left')
+        self.mid_indicator.pack(side='left')
+        self.right_indicator.pack(side='left')
 
-        self.left_minus.grid(row=0, column=0)
-        self.mid_minus.grid(row=0, column=1)
-        self.right_minus.grid(row=0, column=2)
-
-        # Menu
+        # Settings vars
         self._sound_enabled = IntVar()
         self._sound_enabled.set(1)
         self._autorotate = IntVar()
-        self.autorotate = 1
+        self._autorotate.set(1)
+        self._rotor_lock = IntVar()
+        self._rotor_lock.set(0)
 
         self.root_menu = Menu(self)
         self.settings_menu = Menu(self.root_menu, tearoff=0)
@@ -101,10 +74,9 @@ class Root(Tk):
         self.root_menu.add_command(label='About', command=lambda: open_browser('https://github.com/cernyd/enigma'))
         self.root_menu.add_command(label='Help')
 
-
         self.settings_menu.add_checkbutton(label='Enable sound', onvalue=1, offvalue=0, variable=self._sound_enabled)
         self.settings_menu.add_checkbutton(label='Autorotate', variable=self._autorotate)
-        self.settings_menu.add_checkbutton(label='Rotor lock')
+        self.settings_menu.add_checkbutton(label='Rotor lock', variable=self._rotor_lock)
         self.settings_menu.add_separator()
         self.settings_menu.add_command(label='Reset all', command=self.reset_all)
 
@@ -115,7 +87,7 @@ class Root(Tk):
 
         # Lid init
         self.rowconfigure(index=0, weight=1)
-        self.open_lid.grid(column=3, row=0, rowspan=3, pady=5, padx=(15, 4))
+        self.open_lid.pack(side='right', pady=5, padx=(15, 4))
 
         # IO init
         self.text_input.grid(row=1, column=0, padx=3, pady=2)
@@ -128,40 +100,45 @@ class Root(Tk):
 
         self.last_len = 0  # Last input string length
 
+    @property
+    def rotor_lock(self):
+        return self._rotor_lock.get()
+
+    @property
+    def sound_enabled(self):
+        return self._sound_enabled.get()
+
     def reset_all(self):
         """Sets all settings to default"""
-        enigma.reflector = 'UKW-B'
-        enigma.rotors = ['III', 'II', 'I']
+        self.enigma.reflector = 'UKW-B'
+        self.enigma.rotors = ['III', 'II', 'I']
         self.text_input.delete('0.0', 'end')
-        self.update_rotor_pos()
         self.format_entries()
 
     def plugboard_menu(self):
         """Opens the plugboard GUI"""
-        my_plugboard_menu = PlugboardMenu(enigma.plugboard)
+        my_plugboard_menu = PlugboardMenu(self.enigma.plugboard)
         self.wait_window(my_plugboard_menu)
-        enigma.plugboard = PlugboardMenu.return_data
+        self.enigma.plugboard = PlugboardMenu.return_data
 
     def rotor_menu(self):
         """Opens the rotor gui and applies new values after closing"""
-        my_rotor_menu = RotorMenu(enigma.rotor_labels, enigma.ring_settings)
+        my_rotor_menu = RotorMenu(self.enigma.rotor_labels, self.enigma.ring_settings)
         self.wait_window(my_rotor_menu)
         new_values = my_rotor_menu.get_rotors()
         if new_values:
-            enigma.reflector = new_values[0]
-            enigma.rotors = new_values[1:]
+            self.enigma.reflector = new_values[0]
+            self.enigma.rotors = new_values[1:]
             self.text_input.delete('0.0', 'end')
             self.format_entries()
             self.update_rotor_pos()
 
-        enigma.ring_settings = my_rotor_menu.get_ring_settings()
+        self.enigma.ring_settings = my_rotor_menu.get_ring_settings()
 
     def button_press(self, letter):
         """Returns the encrypted letter, plays sound if sound enabled"""
-        if self._sound_enabled:
-            Playback.sound_enabled = self._sound_enabled
-            Playback.play('button_press')
-        return enigma.button_press(letter)
+        self.playback.play('button_press')
+        return self.enigma.button_press(letter)
 
     @property
     def input_box(self):
@@ -188,10 +165,6 @@ class Root(Tk):
     @property
     def autorotate(self):
         return self._autorotate.get()
-
-    @autorotate.setter
-    def autorotate(self, num):
-        self._autorotate.set(num)
 
     def current_status(self):
         """Checks for any changes in the entered text length"""
@@ -222,10 +195,12 @@ class Root(Tk):
                 output_text = self.output_box + self.button_press(self.input_box[-1])
                 self.output_box = output_text
             elif length_status == 'shorter' and self.autorotate:
-                enigma.rotate_primary(-1)
+                self.enigma.rotate_primary(-1)
 
-            self.update_rotor_pos()
 
+        self.left_indicator.update_indicator()
+        self.mid_indicator.update_indicator()
+        self.right_indicator.update_indicator()
 
 
 def format_digit(number: int) -> str:
@@ -237,13 +212,14 @@ def format_digit(number: int) -> str:
 
 
 class RotorIndicator(Frame):
-    def __init__(self, index, *args, **kwargs):
-        Frame.__init__(self, *args, **kwargs)
+    def __init__(self, master, enigma_instance, playback_instance, index):
+        Frame.__init__(self, master, bg='gray85')
+
+        self.bind('<Button>', self.update_indicator)
 
         self.index = index
 
-        self.indicator = Label(self, text='01', bd=1,
-                               relief='sunken', width=2)
+        self.indicator = Label(self, text='01', bd=1, relief='sunken', width=2)
 
         self.plus = Button(self, text='+', command=lambda: self.rotate(2, 1),
                            font=font)
@@ -252,17 +228,19 @@ class RotorIndicator(Frame):
                             font=font)
 
         self.minus.pack(side='top')
-        self.indicator.pack(side='top')
+        self.indicator.pack(side='top', pady=10, padx=20)
         self.plus.pack(side='top')
+
+        self.playback = playback_instance
+        self.enigma = enigma_instance
 
     def rotate(self, index, places=0):
         """Rotates the rotor with the selected index backward"""
-        Playback.sound_enabled = sound_enabled
-        Playback.play('click')
-        enigma.rotors[self.index].rotate(places)
+        self.playback.play('click')
+        self.enigma.rotors[self.index].rotate(places)
         self.update_indicator()
 
-    def update_indicator(self):
-        raw = enigma.rotors[2].position + 1
+    def update_indicator(self, event=None):
+        raw = self.enigma.rotors[self.index].position + 1
         text = format_digit(raw)
         self.indicator.config(text=text)

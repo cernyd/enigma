@@ -5,19 +5,15 @@ from os import path
 
 class Playback:
     """Module for playing sounds from the sounds folder"""
-    sound_enabled = True
-    sounds = list(map(lambda snd: snd[7:], glob(path.join('sounds', '*.wav'))))
 
-    def __init__(self):
-        raise NotImplementedError("This class was not designed for instantiation!")
+    def __init__(self, master_instance):
+        self.sounds = list(
+            map(lambda snd: snd[7:], glob(path.join('sounds', '*.wav'))))
+        self.master_instance = master_instance
 
-    def __new__(self):
-        raise NotImplementedError("This class was not designed for instantiation!")
-
-    @classmethod
-    def play(cls, sound_name):
+    def play(self, sound_name):
         """Plays a sound based on the entered sound name"""
         sound_name += '.wav'
 
-        if sound_name in cls.sounds and cls.sound_enabled:
+        if sound_name in self.sounds and self.master_instance.sound_enabled:
             PlaySound(path.join('sounds', sound_name), SND_ASYNC)
