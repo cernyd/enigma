@@ -109,8 +109,8 @@ class Enigma:
         shows a warning if the rotor label is invalid
         :param reflector: Reflector label for creating a reflector object
         """
-        if reflector in Enigma1.rotors:
-            self._reflector = Rotor(Enigma1.rotors[reflector])
+        if reflector in Enigma1.reflectors:
+            self._reflector = Rotor(Enigma1.reflectors[reflector])
         else:
             messagebox.showwarning('Invalid reflector', 'Invalid reflector,'
                                                         ' please try '
