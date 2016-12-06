@@ -5,11 +5,12 @@ from rotor import Rotor
 
 class Enigma:
     """Enigma machine object emulating all mechanical processes in the real enigma machine"""
-    def __init__(self, reflector, rotors):
+    def __init__(self, master_instance, reflector, rotors):
         """
         :param reflector: Reflector label, reflector object will be created automatically
         :param rotors: Three rotor labels, objects will be created automatically
         """
+        self.master = master_instance
         self.reflector = reflector
         self.rotors = rotors  # Calling property
         self.__plugboard = []
@@ -155,12 +156,13 @@ class Enigma:
         Rotates the first rotor, handles rotor turnovers
         :param places: Number of places to rotate ( negative = backwards )
         """
-        rotate_next = False
-        index = 0
-        for rotor in self._rotors:
-            if rotate_next or index == 0:
-                rotate_next = rotor.rotate(places)
-            index += 1
+        if not self.master.rotor_lock:
+            rotate_next = False
+            index = 0
+            for rotor in self._rotors:
+                if rotate_next or index == 0:
+                    rotate_next = rotor.rotate(places)
+                index += 1
 
     def button_press(self, letter):
         """

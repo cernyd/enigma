@@ -8,11 +8,11 @@ ring_labels = Enigma1.labels
 class RotorMenu(Toplevel):
     """GUI for setting rotor order, reflectors and ring settings"""
     def __init__(self, curr_rotors, ring_settings, *args, **kwargs):
-        Toplevel.__init__(self, *args, **kwargs)
+        Toplevel.__init__(self, bg='gray85', *args, **kwargs)
 
         self.curr_rotors = curr_rotors
 
-        self.config(bg='gray85')
+        self.config()
         self.attributes("-alpha", 0.0)
         self.after(0, self.attributes, "-alpha", 1.0)
         # Load smoothness upgrade ^
@@ -63,8 +63,7 @@ class RotorMenu(Toplevel):
         self.radio_groups = [[], [], [], []]
 
         # Rotors
-        rotors = ['I', 'II', 'III', 'IV', 'V' ]
-        reflectors = ['UKW-A', 'UKW-B', 'UKW-C']
+
 
         # Reflectors
         Label(self.rotor_frames[0], text='REFLECTOR', bd=1,
@@ -172,3 +171,19 @@ class RotorMenu(Toplevel):
             self.apply_button.config(state='active')
         else:
             self.apply_button.config(state='disabled')
+
+
+
+class Slot(Frame):
+    def __init__(self, master, enigma_instance, label, contents, var, ring_setting='',  *args, **kwargs):
+        Frame.__init__(self, master, bd=1, relief='raised', *args, **kwargs)
+
+        Label.pack(self, side='top', text=label)
+
+        for item in contents:  # Generate radio buttons
+            Radiobutton.pack(self, side='top', text='None')
+
+        if ring_setting:
+            Label.pack(self, side='top', text='RING\nSETTING')
+
+            OptionMenu(self, var, *Enigma1.labels)
