@@ -173,19 +173,34 @@ class RotorMenu(Toplevel):
 
 
 class Slot(Frame):
-    def __init__(self, master, enigma_instance, label, contents, var, ring_setting='',  *args, **kwargs):
+    def __init__(self, master, enigma_instance, label, var, index=0, type='rotor', *args, **kwargs):
         Frame.__init__(self, master, bd=1, relief='raised', *args, **kwargs)
 
         Label.pack(self, side='top', text=label)
 
-        self.rotor_var = StringVar()
+        self.enigma = enigma_instance
 
-        for item in contents:  # Generate radio buttons
-            Radiobutton.pack(self, side='top', text='None')
+        self.choice_var = StringVar()
 
-        if ring_setting:
+        self.radio_group = []
+
+        items = []
+        if type == 'rotor':
+            items.extend(list(Enigma1.rotors.keys()))
+            self.generate_contents(items)
+
             self.ring_setting_var = StringVar()
 
             Label.pack(self, side='top', text='RING\nSETTING')
 
-            OptionMenu(self, var, *Enigma1.labels)
+            OptionMenu(self, var=var, *Enigma1.labels)
+
+        elif type == 'reflector':
+            items.extend(list(Enigma1.reflectors.keys()))
+            self.generate_contents(items)
+
+    def generate_contents(self, contents):
+        for item in contents:
+            radio = Radiobutton(self, text=item, variable=self.choice_var, value=None)
+            radio.pack(side='top')
+            self.radio_group.append(radio)
