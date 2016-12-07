@@ -1,4 +1,5 @@
 from os import path
+from collections import OrderedDict
 
 
 alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -30,19 +31,16 @@ def get_icon(icon):
 class Enigma1:
     """Historically accurate Enigma 1 rotor and reflector wiring, useful position
     labels are available too"""
-    rotors = {
-        'I': ['EKMFLGDQVZNTOWYHXUSPAIBRCJ', 16],
-        'II': ['AJDKSIRUXBLHWTMCQGZNPYFVOE', 12],
-        'III': ['BDFHJLCPRTXVZNYEIWGAKMUSQO', 3],
-        'IV': ['ESOVPZJAYQUIRHXLNFTGKDCMWB', 17],
-        'V': ['VZBRGITYUPSDNHLXAWMJQOFECK', 7]
-    }
+    rotors = OrderedDict((('I', ['EKMFLGDQVZNTOWYHXUSPAIBRCJ', 16]),
+                         ('I', ['EKMFLGDQVZNTOWYHXUSPAIBRCJ', 16]),
+                         ('II', ['AJDKSIRUXBLHWTMCQGZNPYFVOE', 12]),
+                         ('III', ['BDFHJLCPRTXVZNYEIWGAKMUSQO', 3]),
+                         ('IV', ['ESOVPZJAYQUIRHXLNFTGKDCMWB', 17]),
+                         ('V', ['VZBRGITYUPSDNHLXAWMJQOFECK', 7])))
 
-    reflectors = {
-        'UKW-A': 'EJMZALYXVBWFCRQUONTSPIKHGD',
-        'UKW-B': 'YRUHQSLDPXNGOKMIEBFZCWVJAT',
-        'UKW-C': 'FVPJIAOYEDRZXWGCTKUQSBNMHL'
-    }
+    reflectors = OrderedDict((('UKW-A', 'EJMZALYXVBWFCRQUONTSPIKHGD'),
+                             ('UKW-B', 'YRUHQSLDPXNGOKMIEBFZCWVJAT'),
+                             ('UKW-C', 'FVPJIAOYEDRZXWGCTKUQSBNMHL')))
 
     labels =['A-01', 'B-02', 'C-03', 'D-04', 'E-05', 'F-06',
                                'G-07', 'H-08', 'I-09', 'J-10','K-11', 'L-12',
