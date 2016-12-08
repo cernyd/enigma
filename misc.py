@@ -13,6 +13,11 @@ def get_label(wiring):
         elif value == wiring:
             return key
 
+    for key, value in Enigma1.reflectors.items():
+        if value[0] == wiring:
+            return key
+        elif value == wiring:
+            return key
 
 def unique_pairs(pairs):
     return_pairs = []

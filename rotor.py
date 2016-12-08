@@ -24,7 +24,7 @@ class Rotor:
 
     # Label for the rotor menu
 
-    def label(self) -> str:
+    def get_label(self):
         return get_label(self.__back_board)
 
     # Routing functions

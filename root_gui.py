@@ -123,7 +123,7 @@ class Root(Tk):
 
     def rotor_menu(self):
         """Opens the rotor gui and applies new values after closing"""
-        my_rotor_menu = RotorMenu(self.enigma.rotor_labels, self.enigma.ring_settings)
+        my_rotor_menu = RotorMenu(self.enigma)
         self.wait_window(my_rotor_menu)
         new_values = my_rotor_menu.get_rotors()
         if new_values:

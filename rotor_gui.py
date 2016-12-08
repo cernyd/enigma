@@ -10,10 +10,11 @@ class RotorMenu(Toplevel):
     def __init__(self, enigma_instance, *args, **kwargs):
         Toplevel.__init__(self, bg='gray85', *args, **kwargs)
 
-        self.config()
         self.attributes("-alpha", 0.0)
         self.after(0, self.attributes, "-alpha", 1.0)
         # Load smoothness upgrade ^
+
+        self.enigma = enigma_instance
 
         # Bindings
         self.bind('<Button-1>', self.checkup)
@@ -23,17 +24,12 @@ class RotorMenu(Toplevel):
         self.iconbitmap(get_icon('rotor.ico'))
         self.resizable(False, False)
         self.wm_title("Rotor order")
-        """
+
         # Frames
-        self.root_frame = Frame(self)
-        self.root_frame.config(bg='gray85')
+        main_frame = Frame(self)
+        main_frame.config(bg='gray85')
         button_frame = Frame(self)
         button_frame.config(bg='gray85')
-        self.rotor_frames = \
-            [Frame(self.root_frame, bd=1, relief='raised'),
-             Frame(self.root_frame, bd=1, relief='raised'),
-             Frame(self.root_frame, bd=1, relief='raised'),
-             Frame(self.root_frame, bd=1, relief='raised')]
 
         # Buttons
 
@@ -49,83 +45,19 @@ class RotorMenu(Toplevel):
 
         self.storno_button.pack(side='right', padx=5, pady=5)
 
-        # Rotor stash
-        self.rotor_vars = [StringVar(), StringVar(), StringVar(),
-                           StringVar()]  # UKW, I, II, III
+        button_frame.pack(side='bottom', fill='x')
 
+        # Creating slots...
+        self.reflector = Slot(main_frame, self.enigma, type='reflector')
 
+        self.rotors = []
+        [self.rotors.append(Slot(main_frame, self.enigma, index=index)) for index in range(3)]
 
-        self.ring_setting_indicators = []
+        # Packing...
+        self.reflector.pack(side='left', fill='y', padx=2, pady=5)
+        [rotor.pack(side='left', padx=2, pady=5, fill='y') for rotor in self.rotors]
 
-        # Rotor nums
-        self.radio_groups = [[], [], [], []]
-
-        # Rotors
-
-
-        # Reflectors
-        Label(self.rotor_frames[0], text='REFLECTOR', bd=1,
-              relief='sunken').pack(side='top', pady=5, padx=5)
-
-        for reflector in reflectors:
-            radio = Radiobutton(self.rotor_frames[0], text=reflector,
-                                variable=self.rotor_vars[0], value=reflector)
-            self.radio_groups[0].append(radio)
-
-        # Rotors
-        index = 1
-        labels = [txt + ' ROTOR' for txt in ['THIRD', 'SECOND', 'FIRST']]
-
-        self.ring_setting_vars = [StringVar(), StringVar(), StringVar()]
-
-        ring_settings = [ring_labels[setting] for setting in ring_settings]
-
-        [var.set(setting) for var, setting in zip(self.ring_setting_vars, ring_settings)]
-
-        for _ in self.rotor_frames[1:]:
-            Label(self.rotor_frames[index], text=labels[index - 1], bd=1,
-                  relief='sunken').pack(side='top', pady=5, padx=5)
-
-            self.ring_setting_indicators.append(OptionMenu(self.rotor_frames[index], self.ring_setting_vars[index-1], *ring_labels))
-
-            for rotor in rotors:
-                radio = Radiobutton(self.rotor_frames[index], text=rotor,
-                                    variable=self.rotor_vars[index],
-                                    value=rotor)
-                self.radio_groups[index].append(radio)
-
-            index += 1
-
-        for values in self.radio_groups:
-            for radio in values:
-                radio.pack(side='top')
-
-        index = 0
-        for values in self.radio_groups:
-            for radio in values:
-                text = radio.config()['text'][4]
-                if text == self.curr_rotors[index]:
-                    radio.select()
-            index += 1
-
-        [indicator.pack(side='bottom', pady=(0,5)) for indicator in self.ring_setting_indicators]
-
-        index=1
-        for _ in self.rotor_frames[1:]:
-            Label(self.rotor_frames[index], text='RING \nSETTING', relief='sunken',
-                  bd='1', width=12).pack(side='bottom', pady=5, padx=5)
-            index+=1
-
-        self.checkup()
-
-        [var.trace('w', self.checkup) for var in self.rotor_vars]
-
-        # Init
-        [frame.pack(side='left', fill='both', padx=2) for frame in
-         self.rotor_frames]
-        button_frame.pack(side='bottom', fill='both')
-        self.root_frame.pack(padx=10, pady=5)
-        """
+        main_frame.pack(side='top', pady=(5, 0), padx=10)
 
     def checkup(self, *args):
         """Checks if all settings are valid ( determines if the apply button should be enabled )"""
@@ -173,10 +105,19 @@ class RotorMenu(Toplevel):
 
 
 class Slot(Frame):
-    def __init__(self, master, enigma_instance, label, var, index=0, type='rotor', *args, **kwargs):
+    def __init__(self, master, enigma_instance, index=0, type='rotor', *args, **kwargs):
         Frame.__init__(self, master, bd=1, relief='raised', *args, **kwargs)
 
-        Label.pack(self, side='top', text=label)
+        labels = ('THIRD', 'SECOND', 'FIRST')
+
+        text = ''
+
+        if type == 'rotor':
+            text = labels[index] + ' ROTOR'
+        elif type == 'reflector':
+            text = 'REFLECTOR'
+
+        Label(self, text=text, bd=1, relief='sunken').pack(side='top', padx=5, pady=5)
 
         self.enigma = enigma_instance
 
@@ -189,18 +130,25 @@ class Slot(Frame):
             items.extend(list(Enigma1.rotors.keys()))
             self.generate_contents(items)
 
-            self.ring_setting_var = StringVar()
+            # Ring setting indicator
+            self.ring_var = StringVar()
+            setting_idx = self.enigma.rotors[index].ring_setting
+            curr_setting = ring_labels[setting_idx]
 
-            Label.pack(self, side='top', text='RING\nSETTING')
+            self.ring_var.set(curr_setting)
 
-            OptionMenu(self, var=var, *Enigma1.labels)
+            Label(self, text='RING\nSETTING', bd=1, relief='sunken').pack(side='top', fill='x', padx=4)
+
+            OptionMenu(self, self.ring_var, *ring_labels).pack(side='top')
+            self.choice_var.set(self.enigma.rotors[index].get_label())
 
         elif type == 'reflector':
             items.extend(list(Enigma1.reflectors.keys()))
             self.generate_contents(items)
+            self.choice_var.set(self.enigma.reflector.get_label())
 
     def generate_contents(self, contents):
         for item in contents:
-            radio = Radiobutton(self, text=item, variable=self.choice_var, value=None)
+            radio = Radiobutton(self, text=item, variable=self.choice_var, value=item)
             radio.pack(side='top')
             self.radio_group.append(radio)
