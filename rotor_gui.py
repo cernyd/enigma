@@ -15,9 +15,10 @@ class RotorMenu(Toplevel):
         # Load smoothness upgrade ^
 
         self.enigma = enigma_instance
+        self.used_options = []
 
         # Bindings
-        self.bind('<Button-1>', self.checkup)
+        self.bind('<Button-1>', self.update_available)
 
         # Window config
         self.grab_set()
@@ -48,7 +49,7 @@ class RotorMenu(Toplevel):
         button_frame.pack(side='bottom', fill='x')
 
         # Creating slots...
-        self.reflector = Slot(main_frame, self.enigma, type='reflector')
+        self.reflector = Slot(main_frame, self.enigma, kind='reflector')
 
         self.rotors = []
         [self.rotors.append(Slot(main_frame, self.enigma, index=index)) for index in range(3)]
@@ -59,42 +60,20 @@ class RotorMenu(Toplevel):
 
         main_frame.pack(side='top', pady=(5, 0), padx=10)
 
-    def checkup(self, *args):
-        """Checks if all settings are valid ( determines if the apply button should be enabled )"""
-        self.update_current()
-        self.update_selected()
-        self.can_apply()
-
-    def update_current(self):
-        """Updates current selected rotors"""
-        self.curr_rotors = self.get_rotors()
-
     def storno(self):
         """Resets all values and destroys the window"""
         self.rotor_vars = []
         self.ring_setting_vars = []
         self.destroy()
 
-    def update_selected(self):
+    def update_available(self, event=None):
         """Updates what radiobuttons are active based on selected buttons"""
-        index = 0
-        for values in self.radio_groups:
-            for radio in values:
-                text = radio.config()['text'][4]
-                if text in self.curr_rotors:
-                    if text != self.curr_rotors[index]:
-                        radio.config(state='disabled')
-                else:
-                    radio.config(state='active')
-            index += 1
+        self.used_options = []
+        self.used_options.append(self.reflector.get_info()[0])
+        for rotor in self.rotors:
+            self.used_options.append(rotor.get_info()[0])
 
-    def get_rotors(self):
-        """Gets all rotor values"""
-        return [radio.get() for radio in self.rotor_vars]
-
-    def get_ring_settings(self):
-        """Gets all ring settings"""
-        return [ring_labels.index(setting.get()) for setting in self.ring_setting_vars[::-1]]
+        print(self.used_options)
 
     def can_apply(self, event=None):
         """Sets the apply button to active or disabled based on criteria"""
@@ -105,16 +84,16 @@ class RotorMenu(Toplevel):
 
 
 class Slot(Frame):
-    def __init__(self, master, enigma_instance, index=0, type='rotor', *args, **kwargs):
+    def __init__(self, master, enigma_instance, index=0, kind='rotor', *args, **kwargs):
         Frame.__init__(self, master, bd=1, relief='raised', *args, **kwargs)
 
         labels = ('THIRD', 'SECOND', 'FIRST')
 
         text = ''
 
-        if type == 'rotor':
+        if kind == 'rotor':
             text = labels[index] + ' ROTOR'
-        elif type == 'reflector':
+        elif kind == 'reflector':
             text = 'REFLECTOR'
 
         Label(self, text=text, bd=1, relief='sunken').pack(side='top', padx=5, pady=5)
@@ -126,7 +105,7 @@ class Slot(Frame):
         self.radio_group = []
 
         items = []
-        if type == 'rotor':
+        if kind == 'rotor':
             items.extend(list(Enigma1.rotors.keys()))
             self.generate_contents(items)
 
@@ -142,7 +121,7 @@ class Slot(Frame):
             OptionMenu(self, self.ring_var, *ring_labels).pack(side='top')
             self.choice_var.set(self.enigma.rotors[index].get_label())
 
-        elif type == 'reflector':
+        elif kind == 'reflector':
             items.extend(list(Enigma1.reflectors.keys()))
             self.generate_contents(items)
             self.choice_var.set(self.enigma.reflector.get_label())
@@ -152,3 +131,12 @@ class Slot(Frame):
             radio = Radiobutton(self, text=item, variable=self.choice_var, value=item)
             radio.pack(side='top')
             self.radio_group.append(radio)
+
+    def update_enabled(self):
+        pass
+
+    def get_info(self):
+        if hasattr(self, 'ring_var'):
+            return [self.choice_var.get(), self.ring_var.get()]
+        else:
+            return [self.choice_var.get()]
