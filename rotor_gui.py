@@ -15,10 +15,8 @@ class RotorMenu(Toplevel):
         # Load smoothness upgrade ^
 
         self.enigma = enigma_instance
-        self.used_options = []
-
-        # Bindings
-        self.bind('<Button-1>', self.update_available)
+        self.curr_rotors = ['','','','']
+        self.curr_ring_settings = [0,0,0]
 
         # Window config
         self.grab_set()
@@ -66,21 +64,9 @@ class RotorMenu(Toplevel):
         self.ring_setting_vars = []
         self.destroy()
 
-    def update_available(self, event=None):
-        """Updates what radiobuttons are active based on selected buttons"""
-        self.used_options = []
-        self.used_options.append(self.reflector.get_info()[0])
-        for rotor in self.rotors:
-            self.used_options.append(rotor.get_info()[0])
-
-        print(self.used_options)
-
     def can_apply(self, event=None):
         """Sets the apply button to active or disabled based on criteria"""
-        if all(self.get_rotors()):
-            self.apply_button.config(state='active')
-        else:
-            self.apply_button.config(state='disabled')
+        pass
 
 
 class Slot(Frame):
@@ -88,6 +74,10 @@ class Slot(Frame):
         Frame.__init__(self, master, bd=1, relief='raised', *args, **kwargs)
 
         labels = ('THIRD', 'SECOND', 'FIRST')
+
+        self.master = master
+        self.index = index
+        self.kind = kind
 
         text = ''
 
@@ -99,15 +89,15 @@ class Slot(Frame):
         Label(self, text=text, bd=1, relief='sunken').pack(side='top', padx=5, pady=5)
 
         self.enigma = enigma_instance
-
         self.choice_var = StringVar()
-
+        self.socket_idx = 0
         self.radio_group = []
 
         items = []
         if kind == 'rotor':
             items.extend(list(Enigma1.rotors.keys()))
             self.generate_contents(items)
+            self.socket_idx += 1
 
             # Ring setting indicator
             self.ring_var = StringVar()
@@ -120,11 +110,13 @@ class Slot(Frame):
 
             OptionMenu(self, self.ring_var, *ring_labels).pack(side='top')
             self.choice_var.set(self.enigma.rotors[index].get_label())
+            self.ring_var.trace('w', self.update_selected)
 
         elif kind == 'reflector':
             items.extend(list(Enigma1.reflectors.keys()))
             self.generate_contents(items)
             self.choice_var.set(self.enigma.reflector.get_label())
+        self.choice_var.trace('w', self.update_selected)
 
     def generate_contents(self, contents):
         for item in contents:
@@ -132,11 +124,19 @@ class Slot(Frame):
             radio.pack(side='top')
             self.radio_group.append(radio)
 
-    def update_enabled(self):
+    def update_selected(self, event=None):
+        if self.kind == 'reflector':
+            self.master.curr_selected[self.index] = self.choice_var.get()
+        elif self.kind == 'rotor':
+            self.master.curr_selected[self.index+1] = self.choice_var.get()
+            self.master.curr_ring_settings[self.index] = self.ring_var.get()
+        print(self.master.curr_selected)
+
+    def write_changes(self):
         pass
 
     def get_info(self):
-        if hasattr(self, 'ring_var'):
+        if self.kind == 'rotor':
             return [self.choice_var.get(), self.ring_var.get()]
         else:
             return [self.choice_var.get()]
