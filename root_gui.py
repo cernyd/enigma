@@ -234,7 +234,7 @@ class RotorIndicator(Frame):
         self.playback = playback_instance
         self.enigma = enigma_instance
 
-    def rotate(self, index, places=0):
+    def rotate(self, places=0):
         """Rotates the rotor with the selected index backward"""
         self.playback.play('click')
         self.enigma.rotors[self.index].rotate(places)
