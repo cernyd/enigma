@@ -132,6 +132,7 @@ class Enigma:
         Takes three numbers as ring settings and applies them to the rotors
         :param offsets: Sets the ring offset
         """
+        print('Offsets to enigma > ', offsets)
         for rotor, setting in zip(self.rotors, offsets):
             rotor.ring_setting = setting
 

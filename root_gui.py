@@ -124,9 +124,9 @@ class Root(Tk):
     def rotor_menu(self):
         """Opens the rotor gui and applies new values after closing"""
         my_rotor_menu = RotorMenu(self.enigma)
+        self.wait_window(my_rotor_menu)
         self.text_input.delete('0.0', 'end')
         self.format_entries()
-        # self.update_rotor_pos()
 
     def button_press(self, letter):
         """Returns the encrypted letter, plays sound if sound enabled"""
@@ -214,10 +214,10 @@ class RotorIndicator(Frame):
 
         self.indicator = Label(self, text='01', bd=1, relief='sunken', width=2)
 
-        self.plus = Button(self, text='+', command=lambda: self.rotate(2, 1),
+        self.plus = Button(self, text='+', command=lambda: self.rotate(1),
                            font=font)
 
-        self.minus = Button(self, text='-', command=lambda: self.rotate(2, -1),
+        self.minus = Button(self, text='-', command=lambda: self.rotate(-1),
                             font=font)
 
         self.minus.pack(side='top')
