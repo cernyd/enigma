@@ -124,16 +124,9 @@ class Root(Tk):
     def rotor_menu(self):
         """Opens the rotor gui and applies new values after closing"""
         my_rotor_menu = RotorMenu(self.enigma)
-        self.wait_window(my_rotor_menu)
-        new_values = my_rotor_menu.get_rotors()
-        if new_values:
-            self.enigma.reflector = new_values[0]
-            self.enigma.rotors = new_values[1:]
-            self.text_input.delete('0.0', 'end')
-            self.format_entries()
-            self.update_rotor_pos()
-
-        self.enigma.ring_settings = my_rotor_menu.get_ring_settings()
+        self.text_input.delete('0.0', 'end')
+        self.format_entries()
+        # self.update_rotor_pos()
 
     def button_press(self, letter):
         """Returns the encrypted letter, plays sound if sound enabled"""
