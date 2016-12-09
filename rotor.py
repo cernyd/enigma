@@ -84,7 +84,7 @@ class Rotor:
         Sets ring setting ( wiring offset relative to the position indicator numbers )
         :param setting: Wiring offset relative to the indicator letters
         """
-        assert (setting in range(0, 25)), 'Invalid ring setting "%d"...' % setting
+        assert (setting in range(0, 25)), 'Invalid ring setting "%s"...' % str(setting)
 
         setting -= self.__ring_setting
         self.__back_board = self.__back_board = self.__back_board[setting:] + self.__back_board[:setting]
