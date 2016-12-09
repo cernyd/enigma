@@ -35,14 +35,15 @@ class Slot(Frame):
 
             # Ring setting indicator
             self.ring_var = StringVar()
-            setting_idx = self.enigma.rotors[index].ring_setting
-            curr_setting = ring_labels[setting_idx]
-
-            self.ring_var.set(curr_setting)
 
             Label(self, text='RING\nSETTING', bd=1, relief='sunken').pack(side='top', fill='x', padx=4)
 
             OptionMenu(self, self.ring_var, *ring_labels).pack(side='top')
+
+            setting_idx = self.enigma.rotors[index].ring_setting
+            curr_setting = ring_labels[setting_idx]
+            self.ring_var.set(curr_setting)
+
             self.choice_var.set(self.enigma.rotors[index].get_label())
 
             self.ring_var.trace('w', self.update_selected)
@@ -66,7 +67,9 @@ class Slot(Frame):
             self.master.curr_reflector = self.choice_var.get()
         elif self.kind == 'rotor':
             self.master.curr_rotors[self.index] = self.choice_var.get()
-            self.master.curr_ring_settings[self.index] = self.ring_var.get()
+
+            ring_setting = Enigma1.labels.index(self.ring_var.get())
+            self.master.curr_ring_settings[self.index] = ring_setting
 
     def get_info(self):
         if self.kind == 'rotor':
