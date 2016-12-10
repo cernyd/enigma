@@ -66,3 +66,10 @@ class RotorMenu(Toplevel):
         self.enigma.reflector = self.curr_reflector
         self.enigma.ring_settings = self.curr_ring_settings
         self.destroy()
+
+    def update_all(self):
+        try:
+            for rotor in self.rotors:
+                rotor.update_available()
+        except AttributeError: # If the rotor group does not exist yet
+            pass
