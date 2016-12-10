@@ -35,15 +35,15 @@ class RotorMenu(Toplevel):
         button_frame.config(bg='gray85')
 
         # Buttons
-        self.apply_button = Button(button_frame, text='Apply', width=12,
+        apply_button = Button(button_frame, text='Apply', width=12,
                                    command=self.apply)
 
-        self.apply_button.pack(side='right', padx=5, pady=5)
+        apply_button.pack(side='right', padx=5, pady=5)
 
-        self.storno_button = Button(button_frame, text='Storno', width=12,
+        storno_button = Button(button_frame, text='Storno', width=12,
                                     command=self.destroy)
 
-        self.storno_button.pack(side='right', padx=5, pady=5)
+        storno_button.pack(side='right', padx=5, pady=5)
 
         button_frame.pack(side='bottom', fill='x')
 
