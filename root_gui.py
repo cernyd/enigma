@@ -7,6 +7,7 @@ from misc import get_icon
 from plugboard_gui import PlugboardMenu
 from rotor_gui import RotorMenu
 from sound_ctl import Playback
+from rotor_indicator import RotorIndicator
 
 font = ('Arial', 10)
 
@@ -190,50 +191,6 @@ class Root(Tk):
             elif length_status == 'shorter' and self.autorotate:
                 self.enigma.rotate_primary(-1)
 
-
         self.left_indicator.update_indicator()
         self.mid_indicator.update_indicator()
         self.right_indicator.update_indicator()
-
-
-def format_digit(number: int) -> str:
-    """Adds returns 01 when 1 entered etc."""
-    number = str(number)
-    if len(number) != 2:
-        number = '0' + number
-    return number
-
-
-class RotorIndicator(Frame):
-    def __init__(self, master, enigma_instance, playback_instance, index):
-        Frame.__init__(self, master, bg='gray85')
-
-        self.bind('<Button>', self.update_indicator)
-
-        self.index = index
-
-        self.indicator = Label(self, text='01', bd=1, relief='sunken', width=2)
-
-        self.plus = Button(self, text='+', command=lambda: self.rotate(1),
-                           font=font)
-
-        self.minus = Button(self, text='-', command=lambda: self.rotate(-1),
-                            font=font)
-
-        self.minus.pack(side='top')
-        self.indicator.pack(side='top', pady=10, padx=20)
-        self.plus.pack(side='top')
-
-        self.playback = playback_instance
-        self.enigma = enigma_instance
-
-    def rotate(self, places=0):
-        """Rotates the rotor with the selected index backward"""
-        self.playback.play('click')
-        self.enigma.rotors[self.index].rotate(places)
-        self.update_indicator()
-
-    def update_indicator(self, event=None):
-        raw = self.enigma.rotors[self.index].position + 1
-        text = format_digit(raw)
-        self.indicator.config(text=text)

@@ -5,12 +5,12 @@ from rotor import Rotor
 
 class Enigma:
     """Enigma machine object emulating all mechanical processes in the real enigma machine"""
-    def __init__(self, master_instance, reflector, rotors):
+    def __init__(self, master, reflector, rotors):
         """
         :param reflector: Reflector label, reflector object will be created automatically
         :param rotors: Three rotor labels, objects will be created automatically
         """
-        self.master = master_instance
+        self.master = master
         self.reflector = reflector
         self.rotors = rotors  # Calling property
         self.__plugboard = []

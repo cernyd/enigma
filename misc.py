@@ -7,13 +7,7 @@ alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 def get_label(wiring):
     """Finds the rotor label corresponding to the input wiring"""
-    for key, value in Enigma1.rotors.items():
-        if value[0] == wiring:
-            return key
-        elif value == wiring:
-            return key
-
-    for key, value in Enigma1.reflectors.items():
+    for key, value in dict(**Enigma1.rotors, **Enigma1.reflectors).items():
         if value[0] == wiring:
             return key
         elif value == wiring:
