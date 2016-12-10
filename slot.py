@@ -72,7 +72,7 @@ class Slot(Frame):
             ring_setting = Enigma1.labels.index(self.ring_var.get())
             self.master.curr_ring_settings[self.index] = ring_setting
 
-        # self.update_available()
+        self.master.update_all()
 
     def update_available(self, *events):
         for radio in self.radio_group:
