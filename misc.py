@@ -13,15 +13,6 @@ def get_label(wiring):
         elif value == wiring:
             return key
 
-def unique_pairs(pairs):
-    return_pairs = []
-    for pair in pairs:
-        if pair not in return_pairs and list(reversed(pair)) not in return_pairs:
-            if all(pair):
-                return_pairs.append(pair)
-    return return_pairs
-
-
 def get_icon(icon):
     """Gets icon path from the icon folder"""
     return path.join('icons', icon)
