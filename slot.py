@@ -5,7 +5,7 @@ ring_labels = Enigma1.labels
 
 class Slot(Frame):
     def __init__(self, tk_master, master, enigma_instance, index=0, kind='rotor', *args, **kwargs):
-        Frame.__init__(self, master, bd=1, relief='raised', *args, **kwargs)
+        Frame.__init__(self, tk_master, bd=1, relief='raised', *args, **kwargs)
 
         labels = ('THIRD', 'SECOND', 'FIRST')
 
@@ -54,6 +54,7 @@ class Slot(Frame):
             self.choice_var.set(self.enigma.reflector.get_label())
 
         self.choice_var.trace('w', self.update_selected)
+
         self.update_selected()
 
     def generate_contents(self, contents):
@@ -71,8 +72,19 @@ class Slot(Frame):
             ring_setting = Enigma1.labels.index(self.ring_var.get())
             self.master.curr_ring_settings[self.index] = ring_setting
 
-    def get_info(self):
-        if self.kind == 'rotor':
-            return [self.choice_var.get(), self.ring_var.get()]
-        else:
-            return [self.choice_var.get()]
+        # self.update_available()
+
+    def update_available(self, *events):
+        for radio in self.radio_group:
+            if self.kind == 'reflector':
+                if radio['value'] == self.master.curr_reflector:
+                    if radio['value'] != self.choice_var.get():
+                        radio.config(state='disabled')
+                else:
+                    radio.config(state='active')
+            elif self.kind == 'rotor':
+                if radio['value'] in self.master.curr_rotors:
+                    if radio['value'] != self.choice_var.get():
+                        radio.config(state='disabled')
+                else:
+                    radio.config(state='active')

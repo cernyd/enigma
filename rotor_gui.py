@@ -11,6 +11,7 @@ class RotorMenu(Toplevel):
         self.attributes("-alpha", 0.0)
         self.after(0, self.attributes, "-alpha", 1.0)
         # Load smoothness upgrade ^
+
         self.enigma = enigma_instance
         self.curr_rotors = ['', '', '']
         self.curr_reflector = ''
@@ -24,7 +25,7 @@ class RotorMenu(Toplevel):
 
         # Frames
         main_frame = Frame(self)
-        main_frame.config(bg='red')
+        main_frame.config(bg='gray85')
         button_frame = Frame(self)
         button_frame.config(bg='gray85')
 
@@ -52,7 +53,7 @@ class RotorMenu(Toplevel):
         self.reflector.pack(side='left', fill='y', padx=(10, 2), pady=5)
         [rotor.pack(side='left', padx=2, pady=5, fill='y') for rotor in self.rotors]
 
-        main_frame.pack(side='top', pady=(5, 0), padx=(8,0))
+        main_frame.pack(side='top', pady=(5, 0), padx=(0,10))
 
     def storno(self):
         """Resets all values and destroys the window"""
@@ -65,9 +66,3 @@ class RotorMenu(Toplevel):
         self.enigma.reflector = self.curr_reflector
         self.enigma.ring_settings = self.curr_ring_settings
         self.destroy()
-
-    def can_apply(self, event=None):
-        """Sets the apply button to active or disabled based on criteria"""
-        pass
-
-
