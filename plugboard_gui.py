@@ -1,6 +1,7 @@
-from tkinter import Toplevel, Entry, Label, Frame, StringVar, Button
-from misc import get_icon, Enigma1, unique_pairs
+from tkinter import Toplevel, Frame, Button
+from misc import get_icon, Enigma1
 from plug_socket import PlugSocket
+
 
 layout = [[16, 22, 4, 17, 19, 25, 20, 8, 14],  # Plugboard is layed out like a keyboard
           [0, 18, 3, 5, 6, 7, 9, 10],
@@ -8,7 +9,6 @@ layout = [[16, 22, 4, 17, 19, 25, 20, 8, 14],  # Plugboard is layed out like a k
 
 
 labels = Enigma1.labels
-used_letters = []
 
 
 class PlugboardMenu(Toplevel):
@@ -17,18 +17,17 @@ class PlugboardMenu(Toplevel):
         Toplevel.__init__(self, *args, **kwargs)
 
         self.enigma = enigma_instance
-        self.used_letters = []
+        self.used = []  # All used letters
+        self.pairs = self.enigma.plugboard  # Pairs to return
 
         self.attributes("-alpha", 0.0)
         self.after(0, self.attributes, "-alpha", 1.0)
         # Load smoothness upgrade ^
 
-        # self.bind('<Key>', self.update_pairs)
-
         # Window config
         self.grab_set()
         self.iconbitmap(get_icon('plugboard.ico'))
-        # self.resizable(False, False)
+        self.resizable(False, False)
         self.wm_title("Plugboard")
 
         rows = []
@@ -37,7 +36,7 @@ class PlugboardMenu(Toplevel):
         for row in layout:
             new_row = Frame(self)
             for item in row:
-                self.plug_sockets.append(PlugSocket(new_row, labels[item]))
+                self.plug_sockets.append(PlugSocket(new_row, self, labels[item]))
             rows.append(new_row)
 
         for row in rows:
@@ -62,5 +61,27 @@ class PlugboardMenu(Toplevel):
         button_frame.pack(side='bottom', fill='x')
 
     def apply(self):
-        # self.enigma = unique_pairs(self.get_pairs())
+        self.enigma.plugboard = self.pairs
         self.destroy()
+
+    def delete_used(self, letter):
+        self.used.remove(letter)
+
+    def add_used(self, letter):
+        if letter not in self.used:
+            self.used.append(letter)
+
+    def get_target(self, label):
+        for socket in self.plug_sockets:
+            if socket.label == label:
+                return socket
+
+    def add_pair(self, pair):
+        if pair not in self.pairs and list(reversed(pair)) not in self.pairs:
+            self.pairs.append(pair)
+
+    def remove_pair(self, pair):
+        try:
+            self.pairs.remove(pair)
+        except ValueError:
+            self.pairs.remove(list(reversed(pair)))
