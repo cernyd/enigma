@@ -120,7 +120,6 @@ class Root(Tk):
         """Opens the plugboard GUI"""
         my_plugboard_menu = PlugboardMenu(self.enigma.plugboard)
         self.wait_window(my_plugboard_menu)
-        self.enigma.plugboard = PlugboardMenu.return_data
 
     def rotor_menu(self):
         """Opens the rotor gui and applies new values after closing"""

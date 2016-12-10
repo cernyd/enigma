@@ -1,5 +1,5 @@
-from tkinter import Frame, StringVar, Label, Entry
-from re import sub
+from tkinter import Frame, StringVar, Label
+from plug_entry import PlugEntry
 
 
 class PlugSocket(Frame):
@@ -10,37 +10,17 @@ class PlugSocket(Frame):
 
         self._label = label
 
-        input_trace = StringVar()
-        input_trace.set('')
-
         Label(self, text=label).pack(side='top')
 
-        self.plug_socket = Entry(self, width=2, justify='center',
-                                 textvariable=input_trace)
-
-        input_trace.trace('w', self.update_entry)
+        self.plug_socket = PlugEntry(self, self, width=2, justify='center')
 
         self.plug_socket.pack(side='bottom', pady=5)
 
-    @property
-    def label(self):
-        return self._label[0]
+    def link(self):
+        pass
 
-    @property
-    def socket(self):
-        """Gets string value of the socket"""
-        return [self.label, self.plug_socket.get()]
+    def unlink(self):
+        pass
 
-    def update_entry(self, *args, character=''):
-        """Ensures only a single, uppercase letter is entered"""
-        socket_data = self.socket[1]  # Data from the entry
-        raw = character[0].upper() if character else self.socket[1][0].upper()
-        self.plug_socket.delete('0', 'end')
-        if raw:
-            pattern = r"[^A-Za-z]|[%s]" % self.label
-            string = sub(pattern, '', raw.upper())[0]
-            if string and string not in used_letters:
-                self.plug_socket.insert('0', string)
-
-    def clear(self):
-        self.plug_socket.delete('0', 'end')
+    def event(self):
+        print('PLUG EVENT')
