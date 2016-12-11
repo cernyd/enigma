@@ -156,6 +156,7 @@ class Root(Tk):
         self.enigma.rotors = ['III', 'II', 'I']
         self.enigma.plugboard = []
         self.text_input.delete('0.0', 'end')
+        self.last_len = 0
 
         self.left_indicator.update_indicator()
         self.mid_indicator.update_indicator()
