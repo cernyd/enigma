@@ -18,6 +18,8 @@ class PlugSocket(Frame):
 
         self.plug_socket.pack(side='bottom', pady=5)
 
+        # Loading data
+
         my_pair = [pair for pair in self.master.enigma.plugboard if self.label in pair]
 
         if my_pair:
@@ -28,7 +30,6 @@ class PlugSocket(Frame):
                 self.plug_socket.set(my_pair[1])
 
     def link(self, target='', obj=None):
-        self.master.add_used(self.label)
         if not obj:  # Link constructed locally
             if target:
                 obj = self.master.get_target(target)
@@ -38,13 +39,14 @@ class PlugSocket(Frame):
                 print('Invalid (empty) link call.')
         self.plug_socket.set(obj.label)
         self.pair = obj
+        self.master.add_used(self.label)
 
     def unlink(self, external=False):
         self.master.delete_used(self.label)
         if self.pair:
             if not external: # Would cause a loop presumably
                 self.pair.unlink(True)
-            self.master.remove_pair([self.label, self.pair.label])
+                self.master.remove_pair([self.label, self.pair.label])
             self.plug_socket.clear()
             self.pair = None
         else:
