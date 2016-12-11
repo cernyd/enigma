@@ -34,7 +34,7 @@ class Root(Tk):
 
         # Frames
         self.rotor_container = Frame(self, bd=1, relief='raised', bg='gray85')
-        self.io_container = Frame(self)
+
         self.plugboard = Frame(self)
 
         # Lid
@@ -43,28 +43,6 @@ class Root(Tk):
 
         # Plugboard
         self.open_plugboard = Button(self.plugboard, text='Plugboard', command=self.plugboard_menu)
-
-        # Scrollbars
-        self.input_scrollbar = Scrollbar(self.io_container)
-        self.output_scrollbar = Scrollbar(self.io_container)
-
-        # IO init
-        Label(self.io_container, text='Input', font=('Arial', 12)).grid(row=0,
-                                                                        column=0)
-        self.text_input = Text(self.io_container, width=25, height=5,
-                               yscrollcommand=self.input_scrollbar_wrapper)
-
-        Label(self.io_container, text='Output', font=('Arial', 12)).grid(row=2,
-                                                                         column=0)
-
-        self.text_output = Text(self.io_container, width=25, height=5,
-                                yscrollcommand=self.output_scrollbar_wrapper)
-
-        self.input_scrollbar.config(command=self.input_yview)
-        self.output_scrollbar.config(command=self.output_yview)
-
-        self.input_scrollbar.grid(row=1, column=1, sticky='ns')
-        self.output_scrollbar.grid(row=3, column=1, sticky='ns')
 
         # Rotor
         self.left_indicator = RotorIndicator(self.rotor_container, self.enigma, self.playback, 2)
@@ -107,16 +85,53 @@ class Root(Tk):
         self.rowconfigure(index=0, weight=1)
         self.open_lid.pack(side='right', pady=5, padx=(15, 4))
 
+        # Container init
+        self.rotor_container.pack(fill='both', padx=5, pady=5, side='top')
+        self.construct_io()
+        self.plugboard.pack(side='bottom', fill='both', padx=3, pady=3)
+
+        self.last_len = 0  # Last input string length
+
+    def construct_io(self):
+        """Constructs the IO Frame widgets"""
+        self.io_container = Frame(self)
+
+        # Scrollbars
+        self.input_scrollbar = Scrollbar(self.io_container)
+        self.output_scrollbar = Scrollbar(self.io_container)
+
+        # IO init
+        Label(self.io_container, text='Input', font=('Arial', 12)).grid(row=0,
+                                                                        column=0)
+
+        self.text_input = Text(self.io_container, width=25, height=5,
+                               yscrollcommand=self.input_scrollbar_wrapper)
+
+        self.text_input.is_input_widget = True
+
+        Label(self.io_container, text='Output', font=('Arial', 12)).grid(row=2,
+                                                                         column=0)
+
+        self.text_output = Text(self.io_container, width=25, height=5,
+                                yscrollcommand=self.output_scrollbar_wrapper,
+                                state='disabled')
+
+        self.input_scrollbar.config(command=self.input_yview)
+        self.output_scrollbar.config(command=self.output_yview)
+
+        self.input_scrollbar.grid(row=1, column=1, sticky='ns')
+        self.output_scrollbar.grid(row=3, column=1, sticky='ns')
+
         # IO init
         self.text_input.grid(row=1, column=0, padx=3, pady=2)
         self.text_output.grid(row=3, column=0, padx=3, pady=2)
+        # self.clear_io()
+        self.io_container.pack(side='top')
 
-        # Container init
-        self.rotor_container.pack(fill='both', padx=5, pady=5, side='top')
-        self.plugboard.pack(side='bottom', fill='both', padx=3, pady=3)
-        self.io_container.pack(side='bottom')
-
-        self.last_len = 0  # Last input string length
+    def clear_io(self):
+        """Clears the IO frame"""
+        for obj in self.io_container.winfo_children():
+            obj.destroy()
 
     def input_yview(self, *event):
         """Input yview controller, used to synchronise scrolling"""
@@ -157,6 +172,11 @@ class Root(Tk):
         self.enigma.plugboard = []
         self.text_input.delete('0.0', 'end')
         self.last_len = 0
+
+        self._autorotate.set(1)
+        self._sound_enabled.set(1)
+        self._sync_scroll.set(1)
+        self._rotor_lock.set(0)
 
         self.left_indicator.update_indicator()
         self.mid_indicator.update_indicator()
@@ -200,8 +220,10 @@ class Root(Tk):
     @output_box.setter
     def output_box(self, string):
         """Sets output field to the value of string"""
+        self.text_output.config(state='normal')
         self.text_output.delete('0.0', 'end')
         self.text_output.insert('0.0', string)
+        self.text_output.config(state='disabled')
 
     @property
     def sync_scroll(self):
@@ -213,6 +235,7 @@ class Root(Tk):
 
     def current_status(self):
         """Checks for any changes in the entered text length"""
+        self.format_entries()
         input_length = len(self.input_box)
         if self.last_len != input_length:
             if self.last_len > input_length:
@@ -232,16 +255,17 @@ class Root(Tk):
 
     def press_event(self, event=None):
         """Activates if any key is pressed"""
-        length_status = self.current_status()
+        if type(event.widget) == Text and hasattr(event.widget, 'is_input_widget'):  # Because I can't trace it...
+            length_status = self.current_status()
 
-        if length_status:
-            self.format_entries()
-            if length_status == 'longer':
-                output_text = self.output_box + self.button_press(self.input_box[-1])
-                self.output_box = output_text
-            elif length_status == 'shorter' and self.autorotate:
-                self.enigma.rotate_primary(-1)
+            if length_status:
+                self.format_entries()
+                if length_status == 'longer':
+                    output_text = self.output_box + self.button_press(self.input_box[-1])
+                    self.output_box = output_text
+                elif length_status == 'shorter' and self.autorotate:
+                    self.enigma.rotate_primary(-1)
 
-        self.left_indicator.update_indicator()
-        self.mid_indicator.update_indicator()
-        self.right_indicator.update_indicator()
+            self.left_indicator.update_indicator()
+            self.mid_indicator.update_indicator()
+            self.right_indicator.update_indicator()
