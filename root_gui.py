@@ -213,6 +213,8 @@ class Root(Tk):
         self.mid_indicator.update_indicator()
         self.right_indicator.update_indicator()
 
+        self.light_up('')
+
         self.format_entries()
 
     def plugboard_menu(self):
