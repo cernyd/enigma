@@ -55,7 +55,7 @@ class Root(Tk):
         Label(self.io_container, text='Output', font=('Arial', 12)).grid(row=2,
                                                                          column=0)
         self.text_output = Text(self.io_container, width=25, height=5, yscrollcommand=self.output_scrollbar.set)
-        var = IntVar()
+
         self.input_scrollbar.config(command=self.text_input.yview)
         self.output_scrollbar.config(command=self.text_output.yview)
 
@@ -128,7 +128,13 @@ class Root(Tk):
         """Sets all settings to default"""
         self.enigma.reflector = 'UKW-B'
         self.enigma.rotors = ['III', 'II', 'I']
+        self.enigma.plugboard = []
         self.text_input.delete('0.0', 'end')
+
+        self.left_indicator.update_indicator()
+        self.mid_indicator.update_indicator()
+        self.right_indicator.update_indicator()
+
         self.format_entries()
 
     def plugboard_menu(self):
@@ -178,6 +184,9 @@ class Root(Tk):
         if self.sync_scroll:
             print('Scrolling synchronised!')
 
+        print(self.input_scrollbar.get())
+        print(self.output_scrollbar.get())
+
     @property
     def autorotate(self):
         return self._autorotate.get()
@@ -203,6 +212,7 @@ class Root(Tk):
 
     def press_event(self, event=None):
         """Activates if any key is pressed"""
+        self.synchron_scrolling()
         length_status = self.current_status()
 
         if length_status:
