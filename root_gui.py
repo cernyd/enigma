@@ -3,7 +3,7 @@ from tkinter import Tk, Frame, Label, Button, Text, IntVar, Menu, Scrollbar
 from webbrowser import open as open_browser
 
 from enigma import Enigma
-from misc import get_icon
+from misc import get_icon, Enigma1
 from plugboard_gui import PlugboardMenu
 from rotor_gui import RotorMenu
 from sound_ctl import Playback
@@ -19,6 +19,7 @@ class Root(Tk):
 
         self.enigma = Enigma(self, 'UKW-B', ['III', 'II', 'I'])
         self.playback = Playback(self)
+        self.last_bulb = None
 
         self.attributes("-alpha", 0.0)
         self.after(0, self.attributes, "-alpha", 1.0)
@@ -34,7 +35,6 @@ class Root(Tk):
 
         # Frames
         self.rotor_container = Frame(self, bd=1, relief='raised', bg='gray85')
-
         self.plugboard = Frame(self)
 
         # Lid
@@ -87,10 +87,41 @@ class Root(Tk):
 
         # Container init
         self.rotor_container.pack(fill='both', padx=5, pady=5, side='top')
+        self.construct_lightboard()
         self.construct_io()
         self.plugboard.pack(side='bottom', fill='both', padx=3, pady=3)
 
         self.last_len = 0  # Last input string length
+
+    def light_up(self, letter):
+        if self.last_bulb:
+            self.last_bulb.config(fg='black')
+        for bulb in self.bulbs:
+            if bulb['text'] == letter:
+                bulb.config(fg='yellow')
+                self.last_bulb = bulb
+                break
+
+    def construct_lightboard(self):
+        self.lightboard = Frame(self, bd=1, relief='raised', bg='gray85')
+
+        rows = []
+        self.bulbs = []
+
+        for row in Enigma1.layout:
+            new_row = Frame(self.lightboard)
+            for item in row:
+                text = Enigma1.labels[item][0]
+                self.bulbs.append(Label(new_row, text=text, font=('Arial', 14), bg='gray85'))
+            rows.append(new_row)
+
+        for row in rows:
+            row.pack(side='top')
+
+        for item in self.bulbs:
+            item.pack(side='left')
+
+        self.lightboard.pack(side='top', fill='both', padx=5)
 
     def construct_io(self):
         """Constructs the IO Frame widgets"""
@@ -255,7 +286,6 @@ class Root(Tk):
 
     def press_event(self, event=None):
         """Activates if any key is pressed"""
-        print(event.keysym)
         correct_widget = type(event.widget) == Text and \
                          hasattr(event.widget, 'is_input_widget')
         not_keystroke = event.state != 12 and 'Control' not in event.keysym
@@ -266,7 +296,8 @@ class Root(Tk):
             if length_status:
                 self.format_entries()
                 if length_status == 'longer':
-                    output_text = self.output_box + self.button_press(self.input_box[-1])
+                    letter = self.button_press(self.input_box[-1])
+                    output_text = self.output_box + letter
                     self.output_box = output_text
                 elif length_status == 'shorter' and self.autorotate:
                     self.enigma.rotate_primary(-1)
@@ -274,3 +305,8 @@ class Root(Tk):
             self.left_indicator.update_indicator()
             self.mid_indicator.update_indicator()
             self.right_indicator.update_indicator()
+
+        if len(self.output_box):
+            self.light_up(self.output_box[-1])
+        else:
+            self.light_up('')

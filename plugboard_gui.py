@@ -11,9 +11,7 @@ class PlugboardMenu(Toplevel):
     def __init__(self, enigma_instance, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
 
-        layout = [[16, 22, 4, 17, 19, 25, 20, 8, 14],
-                  [0, 18, 3, 5, 6, 7, 9, 10],
-                  [15, 24, 23, 2, 21, 1, 13, 12, 11]]
+        layout = Enigma1.layout
 
         self.enigma = enigma_instance
         self.used = []  # All used letters
