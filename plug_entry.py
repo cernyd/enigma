@@ -42,5 +42,4 @@ class PlugEntry(Entry):
     def validate(self, raw):
         forbidden = ''.join(self.master.local_forbidden)
         raw = sub('([\s]|[%s])+' % (forbidden), '', raw).upper()
-        print('New raw > ', raw)
         return raw[0] if raw else raw

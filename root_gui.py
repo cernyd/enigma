@@ -1,5 +1,5 @@
 from re import sub
-from tkinter import Tk, Frame, Label, Button, Text, IntVar, Menu
+from tkinter import Tk, Frame, Label, Button, Text, IntVar, Menu, Scrollbar
 from webbrowser import open as open_browser
 
 from enigma import Enigma
@@ -44,13 +44,23 @@ class Root(Tk):
         # Plugboard
         self.open_plugboard = Button(self.plugboard, text='Plugboard', command=self.plugboard_menu)
 
+        # Scrollbars
+        self.input_scrollbar = Scrollbar(self.io_container)
+        self.output_scrollbar = Scrollbar(self.io_container)
+
         # IO init
         Label(self.io_container, text='Input', font=('Arial', 12)).grid(row=0,
                                                                         column=0)
-        self.text_input = Text(self.io_container, width=25, height=3)
+        self.text_input = Text(self.io_container, width=25, height=5, yscrollcommand=self.input_scrollbar.set)
         Label(self.io_container, text='Output', font=('Arial', 12)).grid(row=2,
                                                                          column=0)
-        self.text_output = Text(self.io_container, width=25, height=3)
+        self.text_output = Text(self.io_container, width=25, height=5, yscrollcommand=self.output_scrollbar.set)
+        var = IntVar()
+        self.input_scrollbar.config(command=self.text_input.yview)
+        self.output_scrollbar.config(command=self.text_output.yview)
+
+        self.input_scrollbar.grid(row=1, column=1, sticky='ns')
+        self.output_scrollbar.grid(row=3, column=1, sticky='ns')
 
         # Rotor
         self.left_indicator = RotorIndicator(self.rotor_container, self.enigma, self.playback, 2)
@@ -68,6 +78,8 @@ class Root(Tk):
         self._autorotate.set(1)
         self._rotor_lock = IntVar()
         self._rotor_lock.set(0)
+        self._sync_scroll = IntVar()
+        self._sync_scroll.set(1)
 
         self.root_menu = Menu(self)
         self.settings_menu = Menu(self.root_menu, tearoff=0)
@@ -78,10 +90,13 @@ class Root(Tk):
         self.settings_menu.add_checkbutton(label='Enable sound', onvalue=1, offvalue=0, variable=self._sound_enabled)
         self.settings_menu.add_checkbutton(label='Autorotate', variable=self._autorotate)
         self.settings_menu.add_checkbutton(label='Rotor lock', variable=self._rotor_lock)
+        self.settings_menu.add_checkbutton(label='Synchronised scrolling', variable=self._sync_scroll)
         self.settings_menu.add_separator()
         self.settings_menu.add_command(label='Reset all', command=self.reset_all)
 
         self.config(menu=self.root_menu)
+
+        self._sync_scroll.trace('w', self.synchron_scrolling)
 
         # Plugboard init
         self.open_plugboard.pack(fill='x')
@@ -154,6 +169,14 @@ class Root(Tk):
         """Sets output field to the value of string"""
         self.text_output.delete('0.0', 'end')
         self.text_output.insert('0.0', string)
+
+    @property
+    def sync_scroll(self):
+        return self._sync_scroll.get()
+
+    def synchron_scrolling(self, *event):
+        if self.sync_scroll:
+            print('Scrolling synchronised!')
 
     @property
     def autorotate(self):
