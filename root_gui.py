@@ -51,13 +51,17 @@ class Root(Tk):
         # IO init
         Label(self.io_container, text='Input', font=('Arial', 12)).grid(row=0,
                                                                         column=0)
-        self.text_input = Text(self.io_container, width=25, height=5, yscrollcommand=self.input_scrollbar.set)
+        self.text_input = Text(self.io_container, width=25, height=5,
+                               yscrollcommand=self.input_scrollbar_wrapper)
+
         Label(self.io_container, text='Output', font=('Arial', 12)).grid(row=2,
                                                                          column=0)
-        self.text_output = Text(self.io_container, width=25, height=5, yscrollcommand=self.output_scrollbar.set)
 
-        self.input_scrollbar.config(command=self.text_input.yview)
-        self.output_scrollbar.config(command=self.text_output.yview)
+        self.text_output = Text(self.io_container, width=25, height=5,
+                                yscrollcommand=self.output_scrollbar_wrapper)
+
+        self.input_scrollbar.config(command=self.input_yview)
+        self.output_scrollbar.config(command=self.output_yview)
 
         self.input_scrollbar.grid(row=1, column=1, sticky='ns')
         self.output_scrollbar.grid(row=3, column=1, sticky='ns')
@@ -96,8 +100,6 @@ class Root(Tk):
 
         self.config(menu=self.root_menu)
 
-        self._sync_scroll.trace('w', self.synchron_scrolling)
-
         # Plugboard init
         self.open_plugboard.pack(fill='x')
 
@@ -115,6 +117,30 @@ class Root(Tk):
         self.io_container.pack(side='bottom')
 
         self.last_len = 0  # Last input string length
+
+    def input_yview(self, *event):
+        """Input yview controller, used to synchronise scrolling"""
+        self.text_input.yview(*event)
+        if self.sync_scroll:
+            self.text_output.yview(*event)
+
+    def input_scrollbar_wrapper(self, *args):
+        """Relays the scrollbar set actions, used for synchronised scrolling"""
+        self.input_scrollbar.set(*args)
+        if self.sync_scroll:
+            self.output_scrollbar.set(*args)
+
+    def output_yview(self, *event):
+        """Output yview controller, used to synchronise scrolling"""
+        self.text_output.yview(*event)
+        if self.sync_scroll:
+            self.text_input.yview(*event)
+
+    def output_scrollbar_wrapper(self, *args):
+        """Relays the scrollbar set actions, used for synchronised scrolling"""
+        self.output_scrollbar.set(*args)
+        if self.sync_scroll:
+            self.input_scrollbar.set(*args)
 
     @property
     def rotor_lock(self):
@@ -180,13 +206,6 @@ class Root(Tk):
     def sync_scroll(self):
         return self._sync_scroll.get()
 
-    def synchron_scrolling(self, *event):
-        if self.sync_scroll:
-            print('Scrolling synchronised!')
-
-        print(self.input_scrollbar.get())
-        print(self.output_scrollbar.get())
-
     @property
     def autorotate(self):
         return self._autorotate.get()
@@ -212,7 +231,6 @@ class Root(Tk):
 
     def press_event(self, event=None):
         """Activates if any key is pressed"""
-        self.synchron_scrolling()
         length_status = self.current_status()
 
         if length_status:
