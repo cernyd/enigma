@@ -255,7 +255,12 @@ class Root(Tk):
 
     def press_event(self, event=None):
         """Activates if any key is pressed"""
-        if type(event.widget) == Text and hasattr(event.widget, 'is_input_widget'):  # Because I can't trace it...
+        print(event.keysym)
+        correct_widget = type(event.widget) == Text and \
+                         hasattr(event.widget, 'is_input_widget')
+        not_keystroke = event.state != 12 and 'Control' not in event.keysym
+
+        if correct_widget and not_keystroke:  # Because I can't trace it...
             length_status = self.current_status()
 
             if length_status:
