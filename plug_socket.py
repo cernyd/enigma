@@ -41,7 +41,7 @@ class PlugSocket(Frame):
         self.pair = obj
         self.master.add_used(self.label)
 
-    def unlink(self, external=False):
+    def unlink(self, external=False): # Attempting to unlink after each delete!
         self.master.delete_used(self.label)
         if self.pair:
             if not external: # Would cause a loop presumably

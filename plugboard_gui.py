@@ -65,7 +65,10 @@ class PlugboardMenu(Toplevel):
         self.destroy()
 
     def delete_used(self, letter):
-        self.used.remove(letter)
+        try:
+            self.used.remove(letter)
+        except ValueError:
+            pass
 
     def add_used(self, letter):
         if letter not in self.used:
@@ -84,4 +87,8 @@ class PlugboardMenu(Toplevel):
         try:
             self.pairs.remove(pair)
         except ValueError:
+            pass
+        try:
             self.pairs.remove(list(reversed(pair)))
+        except ValueError:
+            pass
