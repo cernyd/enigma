@@ -8,6 +8,7 @@ from plugboard_gui import PlugboardMenu
 from rotor_gui import RotorMenu
 from sound_ctl import Playback
 from rotor_indicator import RotorIndicator
+from glob import glob
 
 
 font = ('Arial', 10)
@@ -320,19 +321,37 @@ class Root(Tk):
             self.light_up()
 
     def save_config(self):
-        data = dict(root=dict(sound_enabled=self._sound_enabled.get(),
-                              autorotate=self._autorotate.get(),
-                              rotor_lock=self._rotor_lock.get(),
-                              synchronised_scrolling=self._sync_scroll.get()),
-                    enigma=self.enigma.dump_config())
-        save_config(data)
+        choice = True
+        if glob('settings.txt'):
+            choice = messagebox.askyesno('Save file detected', 'Save file '
+                                                               'detected, do you'
+                                                               ' wish to '
+                                                         'overwrite with new '
+                                                         'configuration data?')
+
+        if choice:
+            data = dict(root=dict(sound_enabled=self._sound_enabled.get(),
+                                  autorotate=self._autorotate.get(),
+                                  rotor_lock=self._rotor_lock.get(),
+                                  synchronised_scrolling=self._sync_scroll.get()),
+                        enigma=self.enigma.dump_config())
+            save_config(data)
 
     def load_config(self, config=None):
-        data = load_config()
-        self._sound_enabled.set(data['root']['sound_enabled'])
-        self._autorotate.set(data['root']['autorotate'])
-        self._rotor_lock.set(data['root']['rotor_lock'])
-        self._sync_scroll.set(data['root']['synchronised_scrolling'])
-        self.reset_all()
-        self.enigma.load_config(data['enigma'])
-        self.update_indicators()
+        if glob('settings.txt'):
+            try:
+                data = load_config()
+                self._sound_enabled.set(data['root']['sound_enabled'])
+                self._autorotate.set(data['root']['autorotate'])
+                self._rotor_lock.set(data['root']['rotor_lock'])
+                self._sync_scroll.set(data['root']['synchronised_scrolling'])
+                self.reset_all()
+                self.enigma.load_config(data['enigma'])
+                self.update_indicators()
+            except Exception as err_msg:
+                messagebox.showerror('Loading error', 'Failed to load '
+                                                      'configuration,'
+                                                      'Error message:"%s"' %
+                                     (err_msg))
+        else:
+            messagebox.showerror('Loading error', 'No save file found!')
