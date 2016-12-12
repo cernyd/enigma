@@ -1,5 +1,5 @@
 from re import sub
-from tkinter import Tk, Frame, Label, Button, Text, IntVar, Menu, Scrollbar
+from tkinter import Tk, Frame, Label, Button, Text, IntVar, Menu, Scrollbar, messagebox
 from webbrowser import open as open_browser
 from config_handler import save_config, load_config
 from enigma import Enigma
@@ -167,11 +167,6 @@ class Root(Tk):
         # self.clear_io()
         self.io_container.pack(side='top')
 
-    def clear_io(self):
-        """Clears the IO frame"""
-        for obj in self.io_container.winfo_children():
-            obj.destroy()
-
     def input_yview(self, *event):
         """Input yview controller, used to synchronise scrolling"""
         self.text_input.yview(*event)
@@ -217,13 +212,16 @@ class Root(Tk):
         self._sync_scroll.set(1)
         self._rotor_lock.set(0)
 
-        self.left_indicator.update_indicator()
-        self.mid_indicator.update_indicator()
-        self.right_indicator.update_indicator()
+        self.update_indicators()
 
         self.light_up('')
 
         self.format_entries()
+
+    def update_indicators(self):
+        self.left_indicator.update_indicator()
+        self.mid_indicator.update_indicator()
+        self.right_indicator.update_indicator()
 
     def plugboard_menu(self):
         """Opens the plugboard GUI"""
@@ -324,9 +322,9 @@ class Root(Tk):
     def save_config(self):
         data = dict(root=dict(sound_enabled=self._sound_enabled.get(),
                               autorotate=self._autorotate.get(),
-                              rotor_lock=self._rotor_lock.get()),
+                              rotor_lock=self._rotor_lock.get(),
+                              synchronised_scrolling=self._sync_scroll.get()),
                     enigma=self.enigma.dump_config())
-        print(data)
         save_config(data)
 
     def load_config(self, config=None):
@@ -334,5 +332,7 @@ class Root(Tk):
         self._sound_enabled.set(data['root']['sound_enabled'])
         self._autorotate.set(data['root']['autorotate'])
         self._rotor_lock.set(data['root']['rotor_lock'])
+        self._sync_scroll.set(data['root']['synchronised_scrolling'])
         self.reset_all()
         self.enigma.load_config(data['enigma'])
+        self.update_indicators()
