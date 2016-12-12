@@ -1,8 +1,9 @@
 from misc import get_label, alphabet
 
+
 class Rotor:
     """Class simulating (fairly) accurate enigma machine rotor behavior"""
-    def __init__(self, wiring=str, turnover=0, position=0, setting=0, config_data=None):
+    def __init__(self, wiring='', turnover=0, position=0, setting=0, config_data=None):
         """
         :param wiring: Defines how letters are wired back and forth
         :param turnover: Sets on which indicator letter the next rotor is turned
@@ -10,19 +11,19 @@ class Rotor:
         :param setting: Label indicator relative to internal wiring
         """
 
+        self.__ring_setting = setting
+        self.__position = position
         self.__front_board = alphabet
         self.__back_board = wiring
 
-        self.__position = position
-        self.position = position
-
-        self.__ring_setting = setting
-        self.ring_setting = setting
-
-        self.__turnover = turnover
-
         if config_data:
             self.load_config(config_data)
+        else:
+            self.position = position
+
+            self.ring_setting = setting
+
+            self.__turnover = turnover
 
     # Label for the rotor menu
 
@@ -122,10 +123,7 @@ class Rotor:
 
     def load_config(self, data):
         """Loads rotor configuration data"""
-        try:
-            self.__back_board = data['wiring']
-            self.__turnover = data['turnover']
-            self.ring_setting = data['ring_setting']
-            self.position = data['position']
-        except Exception:
-            print(data)
+        self.__back_board = data['wiring']
+        self.__turnover = data['turnover']
+        self.ring_setting = data['ring_setting']
+        self.position = data['position']

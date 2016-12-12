@@ -200,5 +200,5 @@ class Enigma:
     def load_config(self, data):
         """Loads everything from the data config"""
         self.plugboard = data['plugboard']
-        self.reflector = Rotor(config_data=data['reflector'])
-        self.rotors = [Rotor(config_data=config) for config in data['rotors']]
+        self._reflector = Rotor(config_data=data['reflector'])
+        self._rotors = [Rotor(config_data=config) for config in data['rotors']]
