@@ -10,20 +10,19 @@ class Rotor:
         :param position: Rotor position relative to input
         :param setting: Label indicator relative to internal wiring
         """
-
         self.__ring_setting = setting
         self.__position = position
         self.__front_board = alphabet
         self.__back_board = wiring
+        self.turnover = turnover
 
         if config_data:
             self.load_config(config_data)
         else:
             self.position = position
-
             self.ring_setting = setting
 
-            self.__turnover = turnover
+        self.last_position = 0
 
     # Label for the rotor menu
 
@@ -55,16 +54,18 @@ class Rotor:
         :return: Info if the next position should be turned over
         """
         assert (places in range(-25, 26)), 'Can\'t rotate by "%d" places...' % places
-
+        self.last_position = self.__position
         self.__position += places
 
         return_val = False
         if self.__position == 26:
             self.__position = 0
-            return_val = True # Used to indicate if the next rotor should be moved
+
         elif self.__position == -1:
             self.__position = 25
-            return_val = True
+
+        if self.__position == self.turnover:
+            return_val = True  # Used to indicate if the next rotor should be moved
 
         self.__front_board = self.__front_board[places:] + self.__front_board[:places]
         self.__back_board = self.__back_board[places:] + self.__back_board[:places]
@@ -119,11 +120,11 @@ class Rotor:
         return dict(wiring=self.__back_board,
                     ring_setting=self.__ring_setting,
                     position=self.__position,
-                    turnover=self.__turnover)
+                    turnover=self.turnover)
 
     def load_config(self, data):
         """Loads rotor configuration data"""
         self.__back_board = data['wiring']
-        self.__turnover = data['turnover']
+        self.turnover = data['turnover']
         self.ring_setting = data['ring_setting']
         self.position = data['position']

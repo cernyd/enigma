@@ -22,7 +22,6 @@ class Enigma1:
     """Historically accurate Enigma 1 rotor and reflector wiring, useful position
     labels are available too"""
     rotors = OrderedDict((('I', ['EKMFLGDQVZNTOWYHXUSPAIBRCJ', 16]),
-                         ('I', ['EKMFLGDQVZNTOWYHXUSPAIBRCJ', 16]),
                          ('II', ['AJDKSIRUXBLHWTMCQGZNPYFVOE', 12]),
                          ('III', ['BDFHJLCPRTXVZNYEIWGAKMUSQO', 3]),
                          ('IV', ['ESOVPZJAYQUIRHXLNFTGKDCMWB', 17]),
