@@ -1,13 +1,14 @@
 from re import sub
 from tkinter import Tk, Frame, Label, Button, Text, IntVar, Menu, Scrollbar
 from webbrowser import open as open_browser
-
+from config_handler import save_config, load_config
 from enigma import Enigma
 from misc import get_icon, Enigma1
 from plugboard_gui import PlugboardMenu
 from rotor_gui import RotorMenu
 from sound_ctl import Playback
 from rotor_indicator import RotorIndicator
+
 
 font = ('Arial', 10)
 
@@ -17,7 +18,7 @@ class Root(Tk):
     def __init__(self, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
 
-        self.enigma = Enigma(self, 'UKW-B', ['III', 'II', 'I'])
+        self.enigma = Enigma('UKW-B', ['III', 'II', 'I'], master=self)
         self.playback = Playback(self)
         self.last_bulb = None
 
@@ -63,20 +64,26 @@ class Root(Tk):
         self._sync_scroll = IntVar()
         self._sync_scroll.set(1)
 
-        self.root_menu = Menu(self)
-        self.settings_menu = Menu(self.root_menu, tearoff=0)
-        self.root_menu.add_cascade(label='Settings', menu=self.settings_menu)
-        self.root_menu.add_command(label='About', command=lambda: open_browser('https://github.com/cernyd/enigma'))
-        self.root_menu.add_command(label='Help')
+        root_menu = Menu(self)
+        settings_menu = Menu(root_menu, tearoff=0)
+        root_menu.add_cascade(label='Settings', menu=settings_menu)
+        root_menu.add_command(label='About', command=lambda: open_browser('https://github.com/cernyd/enigma'))
+        root_menu.add_command(label='Help')
 
-        self.settings_menu.add_checkbutton(label='Enable sound', onvalue=1, offvalue=0, variable=self._sound_enabled)
-        self.settings_menu.add_checkbutton(label='Autorotate', variable=self._autorotate)
-        self.settings_menu.add_checkbutton(label='Rotor lock', variable=self._rotor_lock)
-        self.settings_menu.add_checkbutton(label='Synchronised scrolling', variable=self._sync_scroll)
-        self.settings_menu.add_separator()
-        self.settings_menu.add_command(label='Reset all', command=self.reset_all)
+        config_menu = Menu(settings_menu, tearoff=0)
+        config_menu.add_command(label='Save Settings', command=self.save_config())
+        config_menu.add_command(label='Load Settings', command=self.load_config)
 
-        self.config(menu=self.root_menu)
+        settings_menu.add_cascade(label='Saving and Loading', menu=config_menu)
+        settings_menu.add_separator()
+        settings_menu.add_checkbutton(label='Enable sound', onvalue=1, offvalue=0, variable=self._sound_enabled)
+        settings_menu.add_checkbutton(label='Autorotate', variable=self._autorotate)
+        settings_menu.add_checkbutton(label='Rotor lock', variable=self._rotor_lock)
+        settings_menu.add_checkbutton(label='Synchronised scrolling', variable=self._sync_scroll)
+        settings_menu.add_separator()
+        settings_menu.add_command(label='Reset all', command=self.reset_all)
+
+        self.config(menu=root_menu)
 
         # Plugboard init
         self.open_plugboard.pack(fill='x')
@@ -313,3 +320,20 @@ class Root(Tk):
             self.light_up(self.output_box[-1])
         else:
             self.light_up()
+
+    def save_config(self):
+        data = dict(root=dict(sound_enabled=self._sound_enabled.get(),
+                              autorotate=self._autorotate.get(),
+                              rotor_lock=self._rotor_lock.get()),
+                    enigma=self.enigma.dump_config())
+        print(data)
+        save_config(data)
+
+    def load_config(self, config=None):
+        data = load_config()
+        print(data)
+        self._sound_enabled.set(data['root']['sound_enabled'])
+        self._autorotate.set(data['root']['autorotate'])
+        self._rotor_lock.set(data['root']['rotor_lock'])
+        self.reset_all()
+        self.enigma.load_config(data['enigma'])

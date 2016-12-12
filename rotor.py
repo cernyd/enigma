@@ -2,14 +2,13 @@ from misc import get_label, alphabet
 
 class Rotor:
     """Class simulating (fairly) accurate enigma machine rotor behavior"""
-    def __init__(self, wiring=str, turnover=0, position=0, setting=0):
+    def __init__(self, wiring=str, turnover=0, position=0, setting=0, config_data=None):
         """
         :param wiring: Defines how letters are wired back and forth
         :param turnover: Sets on which indicator letter the next rotor is turned
         :param position: Rotor position relative to input
         :param setting: Label indicator relative to internal wiring
         """
-        assert(len(wiring) == 26 and type(wiring) == str), 'Invalid wiring "%s"' % wiring
 
         self.__front_board = alphabet
         self.__back_board = wiring
@@ -21,6 +20,9 @@ class Rotor:
         self.ring_setting = setting
 
         self.__turnover = turnover
+
+        if config_data:
+            self.load_config(config_data)
 
     # Label for the rotor menu
 
@@ -110,3 +112,20 @@ class Rotor:
         position -= self.__position
         self.rotate(position)
         self.__position = position
+
+    def dump_config(self):
+        """Dumps rotor configuration data"""
+        return dict(wiring=self.__back_board,
+                    ring_setting=self.__ring_setting,
+                    position=self.__position,
+                    turnover=self.__turnover)
+
+    def load_config(self, data):
+        """Loads rotor configuration data"""
+        try:
+            self.__back_board = data['wiring']
+            self.__turnover = data['turnover']
+            self.ring_setting = data['ring_setting']
+            self.position = data['position']
+        except Exception:
+            print(data)

@@ -57,8 +57,6 @@ class PlugboardMenu(Toplevel):
 
         button_frame.pack(side='bottom', fill='x')
 
-        print(self.pairs)
-
     def apply(self):
         self.enigma.plugboard = self.pairs
         self.destroy()
