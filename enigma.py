@@ -58,6 +58,12 @@ class Enigma:
         return return_list
 
     @property
+    def rotor_turnovers(self):
+        return_list = [self.reflector.turnover]
+        return_list.extend([rotor.turnover for rotor in self._rotors])
+        return return_list
+
+    @property
     def rotors(self):
         """
         Returns private rotor objects

@@ -9,6 +9,7 @@ from rotor_gui import RotorMenu
 from sound_ctl import Playback
 from rotor_indicator import RotorIndicator
 from glob import glob
+from os import remove
 
 
 font = ('Arial', 10)
@@ -72,8 +73,9 @@ class Root(Tk):
         root_menu.add_command(label='Help')
 
         config_menu = Menu(settings_menu, tearoff=0)
-        config_menu.add_command(label='Save Settings', command=self.save_config)
-        config_menu.add_command(label='Load Settings', command=self.load_config)
+        config_menu.add_command(label='Save Configuration', command=self.save_config)
+        config_menu.add_command(label='Load Configuration', command=self.load_config)
+        config_menu.add_command(label='Delete Configuration', command=self.delete_config)
 
         settings_menu.add_cascade(label='Saving and Loading', menu=config_menu)
         settings_menu.add_separator()
@@ -235,6 +237,8 @@ class Root(Tk):
         self.wait_window(my_rotor_menu)
         self.text_input.delete('0.0', 'end')
         self.format_entries()
+        print(self.enigma.rotor_labels)
+        print(self.enigma.rotor_turnovers)
 
     def button_press(self, letter):
         """Returns the encrypted letter, plays sound if sound enabled"""
@@ -337,7 +341,7 @@ class Root(Tk):
                         enigma=self.enigma.dump_config())
             save_config(data)
 
-    def load_config(self, config=None):
+    def load_config(self):
         if glob('settings.txt'):
             try:
                 data = load_config()
@@ -355,3 +359,6 @@ class Root(Tk):
                                      (err_msg))
         else:
             messagebox.showerror('Loading error', 'No save file found!')
+
+    def delete_config(self):
+        remove('settings.txt')
