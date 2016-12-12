@@ -71,7 +71,7 @@ class Root(Tk):
         root_menu.add_command(label='Help')
 
         config_menu = Menu(settings_menu, tearoff=0)
-        config_menu.add_command(label='Save Settings', command=self.save_config())
+        config_menu.add_command(label='Save Settings', command=self.save_config)
         config_menu.add_command(label='Load Settings', command=self.load_config)
 
         settings_menu.add_cascade(label='Saving and Loading', menu=config_menu)
@@ -331,7 +331,6 @@ class Root(Tk):
 
     def load_config(self, config=None):
         data = load_config()
-        print(data)
         self._sound_enabled.set(data['root']['sound_enabled'])
         self._autorotate.set(data['root']['autorotate'])
         self._rotor_lock.set(data['root']['rotor_lock'])
