@@ -15,7 +15,7 @@ class PlugboardMenu(Toplevel):
 
         self.enigma = enigma_instance
         self.used = []  # All used letters
-        self.pairs = self.enigma.plugboard  # Pairs to return
+        self._pairs = self.enigma.plugboard  # Pairs to return
 
         self.attributes("-alpha", 0.0)
         self.after(0, self.attributes, "-alpha", 1.0)
@@ -57,6 +57,8 @@ class PlugboardMenu(Toplevel):
 
         button_frame.pack(side='bottom', fill='x')
 
+        print(self.pairs)
+
     def apply(self):
         self.enigma.plugboard = self.pairs
         self.destroy()
@@ -76,16 +78,11 @@ class PlugboardMenu(Toplevel):
             if socket.label == label:
                 return socket
 
-    def add_pair(self, pair):
-        if pair not in self.pairs and list(reversed(pair)) not in self.pairs:
-            self.pairs.append(pair)
-
-    def remove_pair(self, pair):
-        try:
-            self.pairs.remove(pair)
-        except ValueError:
-            pass
-        try:
-            self.pairs.remove(list(reversed(pair)))
-        except ValueError:
-            pass
+    @property
+    def pairs(self):
+        pairs = []
+        for socket in self.plug_sockets:
+            pair = [socket.label, socket.get_socket()]
+            if all(pair) and pair not in pairs and list(reversed(pair)) not in pairs:
+                pairs.append(pair)
+        return pairs

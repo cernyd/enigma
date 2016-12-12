@@ -33,10 +33,13 @@ class PlugSocket(Frame):
         if not obj:  # Link constructed locally
             if target:
                 obj = self.master.get_target(target)
-                obj.link(obj=self)
-                self.master.add_pair([self.label, obj.label])
+                if obj:
+                    obj.link(obj=self)
+                else:
+                    return
             else:
                 print('Invalid (empty) link call.')
+                return
         self.plug_socket.set(obj.label)
         self.pair = obj
         self.master.add_used(self.label)
@@ -46,7 +49,6 @@ class PlugSocket(Frame):
         if self.pair:
             if not external: # Would cause a loop presumably
                 self.pair.unlink(True)
-                self.master.remove_pair([self.label, self.pair.label])
             self.plug_socket.clear()
             self.pair = None
         else:
@@ -55,6 +57,9 @@ class PlugSocket(Frame):
     @property
     def label(self):
         return self._label[0]
+
+    def get_socket(self):
+        return self.plug_socket.get()
 
     @property
     def local_forbidden(self):

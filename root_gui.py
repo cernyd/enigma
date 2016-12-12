@@ -93,14 +93,15 @@ class Root(Tk):
 
         self.last_len = 0  # Last input string length
 
-    def light_up(self, letter):
+    def light_up(self, letter=''):
         if self.last_bulb:
             self.last_bulb.config(fg='black')
-        for bulb in self.bulbs:
-            if bulb['text'] == letter:
-                bulb.config(fg='yellow')
-                self.last_bulb = bulb
-                break
+        if letter:
+            for bulb in self.bulbs:
+                if bulb['text'] == letter:
+                    bulb.config(fg='yellow')
+                    self.last_bulb = bulb
+                    break
 
     def construct_lightboard(self):
         self.lightboard = Frame(self, bd=1, relief='raised', bg='gray85')
@@ -112,7 +113,7 @@ class Root(Tk):
             new_row = Frame(self.lightboard)
             for item in row:
                 text = Enigma1.labels[item][0]
-                self.bulbs.append(Label(new_row, text=text, font=('Arial', 14), bg='gray85'))
+                self.bulbs.append(Label(new_row, text=text, font=('Arial', 14), bg='gray85', padx=2))
             rows.append(new_row)
 
         for row in rows:
@@ -311,4 +312,4 @@ class Root(Tk):
         if len(self.output_box):
             self.light_up(self.output_box[-1])
         else:
-            self.light_up('')
+            self.light_up()
