@@ -16,8 +16,8 @@ class PlugEntry(Entry):
 
         self.last_val = ''
 
-    def event(self, *event):
-        new_val = self.validate(self.get()) # Raw new data
+    def event(self, event=None):
+        new_val = self.validate(self.get())  # Raw new data
         delete = self.last_val and not new_val
         write = not self.last_val and new_val
 
@@ -41,5 +41,5 @@ class PlugEntry(Entry):
 
     def validate(self, raw):
         forbidden = ''.join(self.master.local_forbidden)
-        raw = sub('([\s]|[%s])+' % (forbidden), '', raw).upper()
+        raw = sub('([\s]|[%s])+' % forbidden, '', raw).upper()
         return raw[0] if raw else raw

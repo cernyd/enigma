@@ -62,10 +62,10 @@ class Slot(Frame):
             radio.pack(side='top')
             self.radio_group.append(radio)
 
-    def update_selected(self, *events):
+    def update_selected(self, event=None):
         """
         Updates the master buffer
-        :param events: Callback event handling
+        :param event: Callback event handling
         """
         if self.kind == 'reflector':
             self.master.curr_reflector = self.choice_var.get()
@@ -77,10 +77,10 @@ class Slot(Frame):
 
         self.master.update_all()
 
-    def update_available(self, *events):
+    def update_available(self, event=None):
         """
-
-        :param events: Callback event handling
+        Updates all available rotors ( in slots )
+        :param event: Callback event handling
         """
         for radio in self.radio_group:
             if self.kind == 'reflector':

@@ -90,12 +90,13 @@ class Enigma:
     @property
     def positions(self):
         """
-        Prints rotor wiring ( the offset is visible ), this can visualise therotors turning
+        Prints rotor wiring ( the offset is visible ), this can visualise the
+        rotors turning.
         :return: String showing the rotor wiring
         """
         output = '%s %s %s' % (self.rotors[2].back_board,
-                                              self.rotors[1].back_board,
-                                              self.rotors[0].back_board)
+                               self.rotors[1].back_board,
+                               self.rotors[0].back_board)
 
         if self.last_output != output:  # Wiring only printed if anything changed
             return output
@@ -157,7 +158,7 @@ class Enigma:
                 neighbour.extend(pair)
                 neighbour.remove(letter)
                 return neighbour[0]
-        return letter # If no connection found
+        return letter  # If no connection found
 
     def rotate_primary(self, places=1):
         """
@@ -182,7 +183,7 @@ class Enigma:
         """
         self.rotate_primary()
         output = letter
-
+        print(self.positions)
         output = self.plugboard_route(output)
 
         for rotor in self._rotors:
@@ -198,7 +199,7 @@ class Enigma:
         return output
 
     def dump_config(self):
-        """Dumpts the whole enigma data config"""
+        """Dumps the whole enigma data config"""
         return dict(plugboard=self.__plugboard,
                     reflector=self.reflector.dump_config(),
                     rotors=[rotor.dump_config() for rotor in self._rotors])

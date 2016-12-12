@@ -8,6 +8,7 @@ def load_config():
         decoded = b85decode(data)
         return loads(decoded)
 
+
 def save_config(config_data):
     with open('settings.txt', 'wb') as file:
         pickled = dumps(config_data)

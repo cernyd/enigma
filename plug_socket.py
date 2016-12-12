@@ -1,4 +1,4 @@
-from tkinter import Frame, StringVar, Label
+from tkinter import Frame, Label
 from plug_entry import PlugEntry
 
 
@@ -44,10 +44,10 @@ class PlugSocket(Frame):
         self.pair = obj
         self.master.add_used(self.label)
 
-    def unlink(self, external=False): # Attempting to unlink after each delete!
+    def unlink(self, external=False):  # Attempting to unlink after each delete!
         self.master.delete_used(self.label)
         if self.pair:
-            if not external: # Would cause a loop presumably
+            if not external:  # Would cause a loop presumably
                 self.pair.unlink(True)
             self.plug_socket.clear()
             self.pair = None
