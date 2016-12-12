@@ -5,16 +5,20 @@ from rotor import Rotor
 
 class Enigma:
     """Enigma machine object emulating all mechanical processes in the real enigma machine"""
-    def __init__(self, master, reflector, rotors):
+    def __init__(self, reflector=None, rotors=None, master=None, config_data=None):
         """
         :param reflector: Reflector label, reflector object will be created automatically
         :param rotors: Three rotor labels, objects will be created automatically
         """
-        self.master = master
         self.reflector = reflector
         self.rotors = rotors  # Calling property
         self.__plugboard = []
-        self.last_output = '' # To avoid sending the same data from rotor position class
+        self.last_output = ''  # To avoid sending the same data from rotor position class
+
+        if master:
+            self.master = master
+        if config_data:
+            self.load_config(config_data)
 
     # Plugboard property
 
@@ -154,13 +158,14 @@ class Enigma:
         Rotates the first rotor, handles rotor turnovers
         :param places: Number of places to rotate ( negative = backwards )
         """
-        if not self.master.rotor_lock:
-            rotate_next = False
-            index = 0
-            for rotor in self._rotors:
-                if rotate_next or index == 0:
-                    rotate_next = rotor.rotate(places)
-                index += 1
+        if self.master:
+            if not self.master.rotor_lock:
+                rotate_next = False
+                index = 0
+                for rotor in self._rotors:
+                    if rotate_next or index == 0:
+                        rotate_next = rotor.rotate(places)
+                    index += 1
 
     def button_press(self, letter):
         """
@@ -185,3 +190,15 @@ class Enigma:
         output = self.plugboard_route(output)
 
         return output
+
+    def dump_config(self):
+        """Dumpts the whole enigma data config"""
+        return dict(plugboard=self.__plugboard,
+                    reflector=self.reflector.dump_config(),
+                    rotors=[rotor.dump_config() for rotor in self._rotors])
+
+    def load_config(self, data):
+        """Loads everything from the data config"""
+        self.plugboard = data['plugboard']
+        self.reflector = Rotor(config_data=data['reflector'])
+        self.rotors = [Rotor(config_data=config) for config in data['rotors']]
