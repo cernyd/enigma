@@ -299,8 +299,9 @@ class Root(Tk):
 
     def press_event(self, event=None):
         """Activates if any key is pressed"""
-        correct_widget = type(event.widget) == Text and \
-                         hasattr(event.widget, 'is_input_widget')
+        correct_widget = type(event.widget) == Text and hasattr(event.widget,
+                                                                'is_input_widget')
+
         not_keystroke = event.state != 12 and 'Control' not in event.keysym
 
         if correct_widget and not_keystroke:  # Because I can't trace it...
@@ -327,11 +328,10 @@ class Root(Tk):
     def save_config(self):
         choice = True
         if glob('settings.txt'):
-            choice = messagebox.askyesno('Save file detected', 'Save file '
-                                                               'detected, do you'
-                                                               ' wish to '
-                                                         'overwrite with new '
-                                                         'configuration data?')
+            msg = 'Save file detected, do you wish to overwrite with new ' \
+                  'configuration data?'
+
+            choice = messagebox.askyesno('Save file detected', msg)
 
         if choice:
             data = dict(root=dict(sound_enabled=self._sound_enabled.get(),
@@ -356,9 +356,10 @@ class Root(Tk):
                 messagebox.showerror('Loading error', 'Failed to load '
                                                       'configuration,'
                                                       'Error message:"%s"' %
-                                     (err_msg))
+                                     err_msg)
         else:
             messagebox.showerror('Loading error', 'No save file found!')
 
-    def delete_config(self):
+    @staticmethod
+    def delete_config():
         remove('settings.txt')
