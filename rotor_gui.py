@@ -1,6 +1,6 @@
 from tkinter import Toplevel, Frame, Button
 from misc import get_icon
-from slot import Slot
+from slot import ReflectorSlot, RotorSlot
 
 
 class RotorMenu(Toplevel):
@@ -29,10 +29,8 @@ class RotorMenu(Toplevel):
         self.curr_ring_settings = [0, 0, 0]
 
         # Frames
-        main_frame = Frame(self)
-        main_frame.config(bg='gray85')
-        button_frame = Frame(self)
-        button_frame.config(bg='gray85')
+        main_frame = Frame(self, bg='gray85')
+        button_frame = Frame(self, bg='gray85')
 
         # Buttons
         apply_button = Button(button_frame, text='Apply', width=12,
@@ -48,10 +46,10 @@ class RotorMenu(Toplevel):
         button_frame.pack(side='bottom', fill='x')
 
         # Slots for settings
-        self.reflector = Slot(main_frame, self, self.enigma, kind='reflector')
+        self.reflector = ReflectorSlot(main_frame, self, self.enigma, kind='reflector')
 
         self.rotors = []
-        [self.rotors.append(Slot(main_frame, self, index=index)) for index in range(3)]
+        [self.rotors.append(RotorSlot(main_frame, self, index=index)) for index in range(3)]
 
         self.reflector.pack(side='left', fill='y', padx=(10, 2), pady=5)
         [rotor.pack(side='left', padx=2, pady=5, fill='y') for rotor in self.rotors]
