@@ -1,8 +1,8 @@
 from os import path
 from collections import OrderedDict
+from string import ascii_uppercase
 
-
-alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+alphabet = ascii_uppercase
 
 
 def get_label(wiring):
