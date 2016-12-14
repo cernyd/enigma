@@ -277,17 +277,20 @@ class Root(Tk):
     def autorotate(self):
         return self._autorotate.get()
 
-    def current_status(self):
+    def status(self):
         """Checks for any changes in the entered text length"""
         self.format_entries()
         input_length = len(self.input_box)
         if self.last_len != input_length:
+            len_difference = input_length - self.last_len
+
+
             if self.last_len > input_length:
                 self.last_len = input_length
-                return 'shorter'
+                return ['shorter', len_difference]
             elif self.last_len < input_length:
                 self.last_len = input_length
-                return 'longer'
+                return ['longer', len_difference]
         else:
             return False
 
@@ -305,20 +308,17 @@ class Root(Tk):
         not_keystroke = event.state != 12 and 'Control' not in event.keysym
 
         if correct_widget and not_keystroke:  # Because I can't trace it...
-            length_status = self.current_status()
+            length_status, length_difference = self.status()
 
             if length_status:
                 self.format_entries()
                 if length_status == 'longer':
                     letter = self.button_press(self.input_box[-1])
-                    output_text = self.output_box + letter
-                    self.output_box = output_text
+                    self.output_box = self.output_box + letter
                 elif length_status == 'shorter' and self.autorotate:
                     self.enigma.rotate_primary(-1)
 
-            self.left_indicator.update_indicator()
-            self.mid_indicator.update_indicator()
-            self.right_indicator.update_indicator()
+            self.update_indicators()
 
         if len(self.output_box):
             self.light_up(self.output_box[-1])
