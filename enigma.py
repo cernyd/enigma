@@ -183,7 +183,6 @@ class Enigma:
         """
         self.rotate_primary()
         output = letter
-        print(self.positions)
         output = self.plugboard_route(output)
 
         for rotor in self._rotors:
