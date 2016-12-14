@@ -23,7 +23,6 @@ class Root(Tk):
 
         self.enigma = Enigma('UKW-B', ['III', 'II', 'I'], master=self)
         self.playback = Playback(self)
-        self.last_bulb = None
 
         self.attributes("-alpha", 0.0)
         self.after(0, self.attributes, "-alpha", 1.0)
