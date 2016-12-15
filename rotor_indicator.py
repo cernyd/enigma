@@ -27,15 +27,13 @@ class RotorIndicator(Frame):
 
         self.indicator = Label(self, text='01', bd=1, relief='sunken', width=2)
 
-        self.plus = Button(self, text='+', command=lambda: self.rotate(1),
-                           font=font)
+        Button(self, text='+', command=lambda: self.rotate(1), font=font).pack(
+            side='top')
 
-        self.minus = Button(self, text='-', command=lambda: self.rotate(-1),
-                            font=font)
+        Button(self, text='-', command=lambda: self.rotate(-1), font=font).pack(
+            side='top')
 
-        self.minus.pack(side='top')
         self.indicator.pack(side='top', pady=10, padx=20)
-        self.plus.pack(side='top')
 
         self.playback = playback_instance
         self.enigma = enigma_instance

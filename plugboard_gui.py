@@ -1,17 +1,12 @@
 from tkinter import Toplevel, Frame, Button
-from misc import get_icon, Enigma1
+from misc import get_icon, labels, layout
 from plug_socket import PlugSocket
-
-
-labels = Enigma1.labels
 
 
 class PlugboardMenu(Toplevel):
     """GUI for visual plugboard pairing setup"""
     def __init__(self, enigma_instance, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
-
-        layout = Enigma1.layout
 
         self.enigma = enigma_instance
         self.used = []  # All used letters
