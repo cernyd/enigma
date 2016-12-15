@@ -14,8 +14,7 @@ class BaseSlot(Frame):
         self.choice_var = StringVar()
         self.radio_group = []
 
-        self.choice_var.trace('w', self.update_selected)
-        self.update_selected()
+        self.choice_var.trace('w', self.master.update_all)
 
     def generate_contents(self, contents):
         """
@@ -26,16 +25,9 @@ class BaseSlot(Frame):
             radio.pack(side='top')
             self.radio_group.append(radio)
 
-    def update_selected(self, event=None):
-        """
-        Updates the master buffer
-        :param event: Callback event handling
-        """
-        self.master.update_all()
-
     def update_available(self, type, event=None):
         for radio in self.radio_group:
-            if radio['value'] == type:
+            if radio['value'] in type:
                 if radio['value'] != self.choice_var.get():
                     radio.config(state='disabled')
             else:
@@ -45,14 +37,11 @@ class BaseSlot(Frame):
 class RotorSlot(BaseSlot):
     def __init__(self, master, index, tk_master=None, *args, **kwargs):
         text = ('THIRD', 'SECOND', 'FIRST')[index] + ' ROTOR'
-
         BaseSlot.__init__(self, master, text, tk_master, *args, **kwargs)
 
         self.index = index
 
-        items = []
-        items.extend(list(Enigma1.rotors.keys()))
-        self.generate_contents(items)
+        self.generate_contents(list(Enigma1.rotors.keys()))
 
         # Ring setting indicator
         self.ring_var = StringVar()
@@ -65,17 +54,15 @@ class RotorSlot(BaseSlot):
         curr_setting = labels[setting_idx]
         self.ring_var.set(curr_setting)
 
-        self.choice_var.set(self.master.enigma.rotors[index].get_label())
-        self.ring_var.trace('w', self.update_selected)
+        self.choice_var.set(self.master.enigma.rotors[index].label)
+        self.ring_var.trace('w', self.master.update_all)
 
     def update_selected(self, event=None):
         self.master.curr_rotors[self.index] = self.choice_var.get()
         ring_setting = labels.index(self.ring_var.get())
         self.master.curr_ring_settings[self.index] = ring_setting
 
-        BaseSlot.update_selected(self)
-
-    def update_available(self, event=None):
+    def update_available(self, *event):
         BaseSlot.update_available(self, type=self.master.curr_rotors)
 
 
@@ -83,15 +70,11 @@ class ReflectorSlot(BaseSlot):
     def __init__(self, master, tk_master=None, *args, **kwargs):
         BaseSlot.__init__(self, master, 'REFLECTOR', tk_master, *args, **kwargs)
 
-        items = []
-        items.extend(list(Enigma1.reflectors.keys()))
-        self.generate_contents(items)
-        self.choice_var.set(self.master.enigma.reflector.get_label())
+        self.generate_contents(list(Enigma1.reflectors.keys()))
+        self.choice_var.set(self.master.enigma.reflector.label)
 
-    def update_selected(self, event=None):
+    def update_selected(self, *event):
         self.master.curr_reflector = self.choice_var.get()
 
-        BaseSlot.update_selected(self)
-
-    def update_available(self, event=None):
-        BaseSlot.update_available(self, type=self.master.curr_reflector)
+    def update_available(self, *event):
+        BaseSlot.update_available(self, type=[self.master.curr_reflector])
