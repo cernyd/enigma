@@ -1,6 +1,6 @@
 from tkinter import messagebox
 from misc import Enigma1
-from rotor import Rotor
+from rotor import Reflector, Rotor
 
 
 class Enigma:
@@ -94,9 +94,7 @@ class Enigma:
         rotors turning.
         :return: String showing the rotor wiring
         """
-        output = '%s %s %s' % (self.rotors[2].back_board,
-                               self.rotors[1].back_board,
-                               self.rotors[0].back_board)
+        output = '%s %s %s' % (self.rotors[2], self.rotors[1], self.rotors[0])
 
         if self.last_output != output:  # Wiring only printed if anything changed
             return output
@@ -121,7 +119,7 @@ class Enigma:
         :param reflector: Reflector label for creating a reflector object
         """
         if reflector in Enigma1.reflectors:
-            self._reflector = Rotor(Enigma1.reflectors[reflector])
+            self._reflector = Reflector(Enigma1.reflectors[reflector])
         else:
             messagebox.showwarning('Invalid reflector', 'Invalid reflector,'
                                                         ' please try '

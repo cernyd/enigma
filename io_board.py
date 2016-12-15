@@ -59,7 +59,7 @@ class IOBoard(Frame):
                 self.last_len = input_length
                 return ['longer', len_difference]
         else:
-            return False
+            return [False, 0]
 
     def format_entries(self):
         """Ensures input/output fields have the same length"""

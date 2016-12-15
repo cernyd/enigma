@@ -26,18 +26,13 @@ class RotorBase:
     def dump_config(self):
         """Dumps rotor configuration data"""
         return dict(wiring=self.back_board)
-        # return dict(wiring=self.__back_board,
-        #             ring_setting=self.__ring_setting,
-        #             position=self.__position,
-        #             turnover=self.turnover)
 
     def load_config(self, data):
         """Loads rotor configuration data"""
-        self.back_board = data['wiring']
-        # self.__back_board = data['wiring']
-        # self.turnover = data['turnover']
-        # self.ring_setting = data['ring_setting']
-        # self.position = data['position']
+        self.__init__(data['wiring'])
+
+    def __repr__(self):
+        return self.back_board
 
 
 class Reflector(RotorBase):
@@ -56,7 +51,7 @@ class Rotor(RotorBase):
 
         self.turnover = turnover
         self.position = position
-        self.setting = setting
+        self.ring_setting = setting
         self.last_position = 0
 
         if config_data:
@@ -89,16 +84,7 @@ class Rotor(RotorBase):
 
     # Ring setting property
 
-    @property
-    def ring_setting(self) -> int:
-        """
-        Property returning the private ring setting
-        :return: Ring offset setting
-        """
-        return self.ring_setting
-
-    @ring_setting.setter
-    def ring_setting(self, setting: int):
+    def set_ring_setting(self, setting: int):
         """
         Sets ring setting ( wiring offset relative to the position indicator numbers )
         :param setting: Wiring offset relative to the indicator letters
@@ -110,16 +96,7 @@ class Rotor(RotorBase):
 
     # Position property
 
-    @property
-    def position(self) -> int:
-        """
-        Property returning the private rotor position
-        :return: Current position
-        """
-        return self.position
-
-    @position.setter
-    def position(self, position: int):
+    def set_position(self, position: int):
         """
         Sets rotor to the selected position instantly
         :param position: Target position
@@ -129,3 +106,16 @@ class Rotor(RotorBase):
         position -= self.position
         self.rotate(position)
         self.position = position
+
+    def dump_config(self):
+        config = RotorBase.dump_config(self)
+        config.update(dict(wiring=self.back_board,
+                           ring_setting=self.ring_setting,
+                           position=self.position,
+                           turnover=self.turnover))
+        return config
+
+    def load_config(self, config):
+        RotorBase.load_config(self, config)
+        for key, value in config.items():
+            setattr(self, key, value)

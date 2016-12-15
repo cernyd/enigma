@@ -1,5 +1,5 @@
 from tkinter import Toplevel, Frame, Button
-from misc import get_icon, labels, layout
+from misc import get_icon, labels, layout, baseinit
 from plug_socket import PlugSocket
 
 
@@ -8,18 +8,14 @@ class PlugboardMenu(Toplevel):
     def __init__(self, enigma_instance, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
 
+        baseinit(self)
+
         self.enigma = enigma_instance
         self.used = []  # All used letters
         self._pairs = self.enigma.plugboard  # Pairs to return
 
-        self.attributes("-alpha", 0.0)
-        self.after(0, self.attributes, "-alpha", 1.0)
-        # Load smoothness upgrade ^
-
         # Window config
-        self.grab_set()
         self.iconbitmap(get_icon('plugboard.ico'))
-        self.resizable(False, False)
         self.wm_title("Plugboard")
 
         rows = []

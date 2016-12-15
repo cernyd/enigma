@@ -1,6 +1,5 @@
 from tkinter import Frame, Label, Button
 
-font = ('Arial', 10)
 
 def format_digit(number: int) -> str:
     """Adds returns 01 when 1 entered etc."""
@@ -20,18 +19,17 @@ class RotorIndicator(Frame):
         :param index: Indicator index to show correct values
         """
         Frame.__init__(self, master, bg='gray85')
-
-        self.bind('<Button>', self.update_indicator)
-
         self.index = index
+
+        cfg = dict(font=('Arial', 10), width=1)
+
+        Button(self, text='+', command=lambda: self.rotate(1), **cfg).pack(
+            side='top')
 
         self.indicator = Label(self, text='01', bd=1, relief='sunken', width=2)
 
-        Button(self, text='+', command=lambda: self.rotate(1), font=font).pack(
-            side='top')
-
-        Button(self, text='-', command=lambda: self.rotate(-1), font=font).pack(
-            side='top')
+        Button(self, text='-', command=lambda: self.rotate(-1), **cfg).pack(
+            side='bottom')
 
         self.indicator.pack(side='top', pady=10, padx=20)
 
@@ -49,5 +47,4 @@ class RotorIndicator(Frame):
 
     def update_indicator(self, event=None):
         raw = self.enigma.rotors[self.index].position + 1
-        text = format_digit(raw)
-        self.indicator.config(text=text)
+        self.indicator.config(text=format_digit(raw))

@@ -43,3 +43,11 @@ class Enigma1:
     reflectors = OrderedDict((('UKW-A', 'EJMZALYXVBWFCRQUONTSPIKHGD'),
                              ('UKW-B', 'YRUHQSLDPXNGOKMIEBFZCWVJAT'),
                              ('UKW-C', 'FVPJIAOYEDRZXWGCTKUQSBNMHL')))
+
+
+def baseinit(self):
+    # Load smoothness upgrade
+    self.attributes("-alpha", 0.0)
+    self.after(0, self.attributes, "-alpha", 1.0)
+    self.resizable(False, False)
+    self.grab_set()
