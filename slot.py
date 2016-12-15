@@ -1,7 +1,5 @@
 from tkinter import Frame, Label, StringVar, Radiobutton, OptionMenu
-from misc import Enigma1
-
-ring_labels = Enigma1.labels
+from misc import Enigma1, labels
 
 
 class BaseSlot(Frame):
@@ -61,10 +59,10 @@ class RotorSlot(BaseSlot):
 
         Label(self, text='RING\nSETTING', bd=1, relief='sunken').pack(
             side='top', fill='x', padx=4)
-        OptionMenu(self, self.ring_var, *ring_labels).pack(side='top')
+        OptionMenu(self, self.ring_var, *labels).pack(side='top')
 
         setting_idx = self.master.enigma.rotors[index].ring_setting
-        curr_setting = ring_labels[setting_idx]
+        curr_setting = labels[setting_idx]
         self.ring_var.set(curr_setting)
 
         self.choice_var.set(self.master.enigma.rotors[index].get_label())
@@ -72,13 +70,13 @@ class RotorSlot(BaseSlot):
 
     def update_selected(self, event=None):
         self.master.curr_rotors[self.index] = self.choice_var.get()
-        ring_setting = Enigma1.labels.index(self.ring_var.get())
+        ring_setting = labels.index(self.ring_var.get())
         self.master.curr_ring_settings[self.index] = ring_setting
 
         BaseSlot.update_selected(self)
 
     def update_available(self, event=None):
-        BaseSlot.update_available(type=self.master.curr_rotors)
+        BaseSlot.update_available(self, type=self.master.curr_rotors)
 
 
 class ReflectorSlot(BaseSlot):
@@ -96,4 +94,4 @@ class ReflectorSlot(BaseSlot):
         BaseSlot.update_selected(self)
 
     def update_available(self, event=None):
-        BaseSlot.update_available(type=self.master.curr_reflector)
+        BaseSlot.update_available(self, type=self.master.curr_reflector)

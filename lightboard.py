@@ -1,5 +1,5 @@
 from tkinter import Frame, Label
-from misc import Enigma1
+from misc import labels, layout
 
 
 class Lightboard(Frame):
@@ -9,10 +9,10 @@ class Lightboard(Frame):
         rows = []
         self.bulbs = []
 
-        for row in Enigma1.layout:
+        for row in layout:
             new_row = Frame(self)
             for item in row:
-                text = Enigma1.labels[item][0]
+                text = labels[item][0]
                 self.bulbs.append(
                     Label(new_row, text=text, font=('Arial', 14), bg='gray85',
                           padx=2))

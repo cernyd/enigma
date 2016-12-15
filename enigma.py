@@ -53,8 +53,8 @@ class Enigma:
     @property
     def rotor_labels(self):
         """Returns rotor type ( label ), for the rotor order window."""
-        return_list = [self.reflector.get_label()]
-        return_list.extend([rotor.get_label() for rotor in self._rotors])
+        return_list = [self.reflector.label]
+        return_list.extend([rotor.label for rotor in self._rotors])
         return return_list
 
     @property
