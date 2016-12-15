@@ -7,7 +7,6 @@ from rotor_gui import RotorMenu
 from sound_ctl import Playback
 from rotor_indicator import RotorIndicator
 from glob import glob
-from os import remove
 from io_board import IOBoard
 from lightboard import Lightboard
 from root_menu import RootMenu
@@ -113,8 +112,8 @@ class Root(Tk):
     def rotor_menu(self):
         """Opens the rotor gui and applies new values after closing"""
         self.wait_window(RotorMenu(self.enigma))
-        self.text_input.delete('0.0', 'end')
-        self.format_entries()
+        self.io_board.text_input.delete('0.0', 'end')
+        self.io_board.format_entries()
 
     @property
     def sync_scroll(self):
@@ -158,7 +157,3 @@ class Root(Tk):
                                      err_msg)
         else:
             messagebox.showerror('Loading error', 'No save file found!')
-
-    @staticmethod
-    def delete_config():
-        remove('settings.txt')

@@ -1,5 +1,5 @@
 from tkinter import Toplevel, Frame, Button
-from misc import get_icon
+from misc import get_icon, baseinit
 from slot import ReflectorSlot, RotorSlot
 
 
@@ -12,20 +12,16 @@ class RotorMenu(Toplevel):
         # Superclass constructor call
         Toplevel.__init__(self, bg='gray85', *args, **kwargs)
 
-        self.attributes("-alpha", 0.0)
-        self.after(0, self.attributes, "-alpha", 1.0)
-        # Load smoothness upgrade ^
+        baseinit(self)
 
         # Window config
-        self.grab_set()
         self.iconbitmap(get_icon('rotor.ico'))
-        self.resizable(False, False)
         self.wm_title("Rotor order")
 
         # Enigma settings buffer
         self.enigma = enigma_instance
-        self.curr_rotors = ['', '', '']
-        self.curr_reflector = ''
+        self.curr_rotors = [rotor.label for rotor in self.enigma.rotors]
+        self.curr_reflector = self.enigma.reflector.label
         self.curr_ring_settings = [0, 0, 0]
 
         # Frames
@@ -33,25 +29,20 @@ class RotorMenu(Toplevel):
         button_frame = Frame(self, bg='gray85')
 
         # Buttons
-        apply_button = Button(button_frame, text='Apply', width=12,
-                                   command=self.apply)
+        Button(button_frame, text='Apply', width=12, command=self.apply).pack(
+            side='right', padx=5, pady=5)
 
-        apply_button.pack(side='right', padx=5, pady=5)
 
-        storno_button = Button(button_frame, text='Storno', width=12,
-                                    command=self.destroy)
-
-        storno_button.pack(side='right', padx=5, pady=5)
+        Button(button_frame, text='Storno', width=12,
+               command=self.destroy).pack(side='right', padx=5, pady=5)
 
         button_frame.pack(side='bottom', fill='x')
 
         # Slots for settings
-        self.reflector = ReflectorSlot(main_frame, self, self.enigma, kind='reflector')
-
-        self.rotors = []
-        [self.rotors.append(RotorSlot(main_frame, self, index=index)) for index in range(3)]
-
+        self.reflector = ReflectorSlot(self, main_frame)
         self.reflector.pack(side='left', fill='y', padx=(10, 2), pady=5)
+
+        self.rotors = [RotorSlot(self, index, main_frame) for index in range(3)]
         [rotor.pack(side='left', padx=2, pady=5, fill='y') for rotor in self.rotors]
 
         main_frame.pack(side='top', pady=(5, 0), padx=(0,10))
@@ -65,7 +56,7 @@ class RotorMenu(Toplevel):
         self.enigma.ring_settings = self.curr_ring_settings
         self.destroy()
 
-    def update_all(self):
+    def update_all(self, *event):
         """Updates available radios for all slots"""
         try:
             for rotor in self.rotors:
