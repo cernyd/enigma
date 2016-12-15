@@ -22,7 +22,7 @@ class RotorMenu(Toplevel):
         self.enigma = enigma_instance
         self.curr_rotors = [rotor.label for rotor in self.enigma.rotors]
         self.curr_reflector = self.enigma.reflector.label
-        self.curr_ring_settings = [0, 0, 0]
+        self.curr_ring_settings = self.enigma.ring_settings
 
         # Frames
         main_frame = Frame(self, bg='gray85')
@@ -59,6 +59,8 @@ class RotorMenu(Toplevel):
     def update_all(self, *event):
         """Updates available radios for all slots"""
         try:
+            for rotor in self.rotors:
+                rotor.update_selected()
             for rotor in self.rotors:
                 rotor.update_available()
         except AttributeError: # If the rotor group does not exist yet
