@@ -44,15 +44,13 @@ class RotorSlot(BaseSlot):
         self.generate_contents(list(Enigma1.rotors.keys()))
 
         # Ring setting indicator
-        self.ring_var = StringVar()
+        setting_idx = self.master.enigma.rotors[index].ring_setting
+        curr_setting = labels[setting_idx]
+        self.ring_var = StringVar(value=curr_setting)
 
         Label(self, text='RING\nSETTING', bd=1, relief='sunken').pack(
             side='top', fill='x', padx=4)
         OptionMenu(self, self.ring_var, *labels).pack(side='top')
-
-        setting_idx = self.master.enigma.rotors[index].ring_setting
-        curr_setting = labels[setting_idx]
-        self.ring_var.set(curr_setting)
 
         self.choice_var.set(self.master.enigma.rotors[index].label)
         self.ring_var.trace('w', self.master.update_all)

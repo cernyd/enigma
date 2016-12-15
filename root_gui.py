@@ -49,14 +49,10 @@ class Root(Tk):
         self.right_indicator.pack(side='left')
 
         # Settings vars
-        self._sound_enabled = IntVar()
-        self._sound_enabled.set(1)
-        self._autorotate = IntVar()
-        self._autorotate.set(1)
-        self._rotor_lock = IntVar()
-        self._rotor_lock.set(0)
-        self._sync_scroll = IntVar()
-        self._sync_scroll.set(1)
+        self._sound_enabled = IntVar(value=1)
+        self._autorotate = IntVar(value=1)
+        self._rotor_lock = IntVar(value=0)
+        self._sync_scroll = IntVar(value=1)
 
         self.config(menu=RootMenu(self))
 
@@ -95,9 +91,7 @@ class Root(Tk):
         self._rotor_lock.set(0)
 
         self.update_indicators()
-
         self.light_up('')
-
         self.format_entries()
 
     def update_indicators(self):
