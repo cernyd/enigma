@@ -82,7 +82,7 @@ class Root(Tk):
         self.enigma.reflector = 'UKW-B'
         self.enigma.rotors = ['III', 'II', 'I']
         self.enigma.plugboard = []
-        self.text_input.delete('0.0', 'end')
+        self.io_board.text_input.delete('0.0', 'end')
         self.last_len = 0
 
         self._autorotate.set(1)
@@ -91,8 +91,8 @@ class Root(Tk):
         self._rotor_lock.set(0)
 
         self.update_indicators()
-        self.light_up('')
-        self.format_entries()
+        self.lightboard.light_up('')
+        self.io_board.format_entries()
 
     def update_indicators(self):
         self.left_indicator.update_indicator()
