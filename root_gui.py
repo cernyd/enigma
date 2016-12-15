@@ -1,7 +1,7 @@
 from tkinter import Tk, Frame, Button, IntVar, messagebox
 from config_handler import save_config, load_config
 from enigma import Enigma
-from misc import get_icon
+from misc import get_icon, baseinit
 from plugboard_gui import PlugboardMenu
 from rotor_gui import RotorMenu
 from sound_ctl import Playback
@@ -21,24 +21,21 @@ class Root(Tk):
     def __init__(self, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
 
+        baseinit(self)
+
         self.enigma = Enigma('UKW-B', ['III', 'II', 'I'], master=self)
         self.playback = Playback(self)
 
-        self.attributes("-alpha", 0.0)
-        self.after(0, self.attributes, "-alpha", 1.0)
-        # Load smoothness upgrade ^
-
         # Window config
         self.iconbitmap(get_icon('enigma.ico'))
-        self.resizable(False, False)
         self.wm_title("Enigma")
 
         # Frames
         self.rotor_container = Frame(self, bd=1, relief='raised', bg='gray85')
 
         # Lid
-        self.open_lid = Button(self.rotor_container, text='\n'.join('Rotors'),
-                               command=self.rotor_menu)
+        Button(self.rotor_container, text='\n'.join('Rotors'),
+               command=self.rotor_menu).pack(side='right', pady=5, padx=(15, 4))
 
         # Plugboard
         self.open_plugboard = Button(self, text='Plugboard', command=self.plugboard_menu)
@@ -65,11 +62,10 @@ class Root(Tk):
         self.config(menu=RootMenu(self))
 
         # Plugboard init
-        self.open_plugboard.pack(fill='x', side='bottom')
+        self.open_plugboard.pack(side='bottom', fill='both', padx=3, pady=3)
 
         # Lid init
         self.rowconfigure(index=0, weight=1)
-        self.open_lid.pack(side='right', pady=5, padx=(15, 4))
 
         # Container init
         self.rotor_container.pack(fill='both', padx=5, pady=5, side='top')
@@ -77,7 +73,6 @@ class Root(Tk):
         self.lightboard.pack(side='top', fill='both', padx=5)
         self.io_board = IOBoard(self, self.enigma)
         self.io_board.pack(side='top')
-        self.plugboard.pack(side='bottom', fill='both', padx=3, pady=3)
 
     @property
     def rotor_lock(self):
