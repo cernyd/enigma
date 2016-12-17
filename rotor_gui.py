@@ -3,6 +3,9 @@ from misc import get_icon, baseinit
 from slot import ReflectorSlot, RotorSlot
 
 
+"""Sometimes fails to load selected rotors?"""
+
+
 class RotorMenu(Toplevel):
     """GUI for setting rotor order, reflectors and ring settings"""
     def __init__(self, enigma_instance, *args, **kwargs):

@@ -16,7 +16,7 @@ class PlugEntry(Entry):
 
         self.last_val = ''
 
-    def event(self, event=None):
+    def event(self, event=None):  # Needs some refactoring ( unreliable and confusing )
         new_val = self.validate(self.get())  # Raw new data
         delete = self.last_val and not new_val
         write = not self.last_val and new_val
