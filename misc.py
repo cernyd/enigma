@@ -1,6 +1,7 @@
 from os import path
 from collections import OrderedDict
 from string import ascii_uppercase
+# from rotor import Rotor, Reflector
 
 
 # CONFUSED AS TO WHAT THIS MISC FILE DOES
@@ -47,6 +48,40 @@ class Enigma1:
     reflectors = OrderedDict((('UKW-A', 'EJMZALYXVBWFCRQUONTSPIKHGD'),
                              ('UKW-B', 'YRUHQSLDPXNGOKMIEBFZCWVJAT'),
                              ('UKW-C', 'FVPJIAOYEDRZXWGCTKUQSBNMHL')))
+
+
+class RotorFactory:
+    factory_data = {'Enigma1': {'rotor': [('I', 'EKMFLGDQVZNTOWYHXUSPAIBRCJ', 16),
+                                          ('II', 'AJDKSIRUXBLHWTMCQGZNPYFVOE', 12),
+                                          ('III', 'BDFHJLCPRTXVZNYEIWGAKMUSQO', 3),
+                                          ('IV', 'ESOVPZJAYQUIRHXLNFTGKDCMWB', 17),
+                                          ('I', 'VZBRGITYUPSDNHLXAWMJQOFECK', 7)],
+                               'reflector': [('UKW-A', 'EJMZALYXVBWFCRQUONTSPIKHGD'),
+                                              ('UKW-B', 'YRUHQSLDPXNGOKMIEBFZCWVJAT'),
+                                              ('UKW-C', 'FVPJIAOYEDRZXWGCTKUQSBNMHL')]}}
+
+    def __new__(cls):
+        raise NotImplementedError('This class was not intended for instantiation!')
+
+    @classmethod
+    def produce(cls, model, rotor_type, label):
+        for item in cls.factory_data[model][rotor_type]:
+            if item[0] == label:
+                cfg = cls.create_cfg(*item)
+                break
+
+        if rotor_type == 'rotor':
+            return  # Rotor()
+        elif rotor_type == 'reflector':
+            return  # Reflector()
+
+    @classmethod
+    def create_cfg(cls, label, back_board, turnover=None):
+        """Creates a configuration dictionary"""
+        cfg = dict(label=label, back_board=back_board)
+        if turnover:
+            cfg.update(turnover=turnover)
+        return cfg
 
 
 def baseinit(self):
