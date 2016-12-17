@@ -1,96 +1,89 @@
-from misc import get_label, alphabet
-
-"""Rotorbase class really confusing as to how does it initiate everything."""
+from string import ascii_uppercase as alphabet
 
 
 class RotorBase:
-    def __init__(self):
-        self.valid_config = {'back_board'}
+    """Base class for Rotors and Reflectors"""
+    def __init__(self, label='', back_board='', turnover='', valid_cfg=tuple()):
+        """All parameters except should be passed in **config, valid_cfg is a
+        tuple of additional configuration data for config loading and dumping"""
+        self.valid_cfg = ['back_board', 'label', 'turnover']
+        self.valid_cfg.extend(valid_cfg)
 
-
-
-class RotorBase:
-    def __init__(self, wiring=''):
         self.front_board = alphabet
-        self.back_board = wiring
-        self.label = get_label(wiring)
+        self.back_board = back_board
+        self.turnover = turnover
+        self.label = label
 
-    def forward(self, letter: str) -> str:
-        return self.back_board[alphabet.index(letter)]
+    def forward(self, letter):
+        """Routes letter from front to back"""
+        return self.back_board[self.front_board.index(letter)]
 
-    def backward(self, letter: str) -> str:
-        return alphabet[self.back_board.index(letter)]
+    def backward(self, letter):
+        """Routes letter from back to front"""
+        return self.front_board[self.back_board.index(letter)]
+
+    def config(self, **attrs):
+        """Loads rotor configuration data"""
+        for attr in attrs.keys():
+            if attr not in self.valid_cfg:
+                raise AttributeError('Invalid attribute "%s"!' % (attr))
+            value = attrs.get(attr)
+            if value:
+                setattr(self, attr, value)
 
     def dump_config(self):
         """Dumps rotor configuration data"""
-        return dict(wiring=self.back_board)
-
-    def load_config(self, data):
-        """Loads rotor configuration data"""
-        pass
+        cfg = {}
+        for attr in self.valid_cfg:
+            cfg.update(attr=self.__dict__[attr])
+        return cfg
 
     def __repr__(self):
         return self.back_board
 
 
 class Reflector(RotorBase):
-    pass
+    """Reflector class, does not overload anything from the RotorBase"""
 
 
 class Rotor(RotorBase):
-    def __init__(self, wiring='', turnover=0, position=0, setting=0, config_data=None):
-        RotorBase.__init__(self, wiring)
-
-        self.turnover = turnover
-        self.position = position
-        self.ring_setting = setting
+    """Inherited from RotorBase, adds rotation and ring setting functionality"""
+    def __init__(self, **cfg):
+        RotorBase.__init__(self, **cfg, valid_cfg=('last_position', 'position',
+                                                   'ring_setting'))
         self.last_position = 0
+        self.ring_setting = 0
+        self.position = 0
 
-        if config_data:
-            pass
-
-    def rotate(self, places: int = 1) -> bool:
-        assert (places in range(-25, 26)), 'Can\'t rotate by "%d" places...' % places
+    def rotate(self, places=1):
         self.last_position = self.position
         self.position += places
 
-        return_val = False
         if self.position == 26:
             self.position = 0
-
         elif self.position == -1:
             self.position = 25
 
+        return_val = False
         if self.position == self.turnover:
             return_val = True  # Used to indicate if the next rotor should be moved
 
+        self.set_offset(places)
+        return return_val
+
+    def set_offset(self, places=1):
         self.front_board = self.front_board[places:] + self.front_board[:places]
         self.back_board = self.back_board[places:] + self.back_board[:places]
 
-        return return_val
-
-    def set_ring_setting(self, setting: int):
+    def set_ring_setting(self, setting):
         assert (setting in range(0, 25)), 'Invalid ring setting "%s"...' % str(setting)
         setting -= self.ring_setting
         self.back_board = self.back_board = self.back_board[setting:] + self.back_board[:setting]
         self.ring_setting = setting
 
-    def set_position(self, position: int):
+    def set_position(self, position):
         assert(position in range(0, 26)), 'Invalid position "%d"...' % position
 
         position -= self.position
         self.rotate(position)
         self.position = position
-
-    def dump_config(self):
-        config = RotorBase.dump_config(self)
-        config.update(dict(wiring=self.back_board,
-                           ring_setting=self.ring_setting,
-                           position=self.position,
-                           turnover=self.turnover))
-        return config
-
-    def load_config(self, config):
-        RotorBase.load_config(self, config)
-        for key, value in config.items():
-            setattr(self, key, value)
