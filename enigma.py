@@ -81,7 +81,7 @@ class Enigma:
         temp = []
         if all([rotor in Enigma1.rotors for rotor in rotors]):
             for rotor in rotors:
-                temp.append(Rotor(*Enigma1.rotors[rotor]))
+                temp.append(Rotor(**Enigma1.rotors[rotor]))
         else:
             messagebox.showwarning('Invalid rotor', 'Some of rotors are not \n'
                                                     'valid, please try again...')
@@ -119,7 +119,7 @@ class Enigma:
         :param reflector: Reflector label for creating a reflector object
         """
         if reflector in Enigma1.reflectors:
-            self._reflector = Reflector(Enigma1.reflectors[reflector])
+            self._reflector = Reflector(**Enigma1.reflectors[reflector])
         else:
             messagebox.showwarning('Invalid reflector', 'Invalid reflector,'
                                                         ' please try '
