@@ -39,6 +39,7 @@ class RotorBase:
         return cfg
 
     def __repr__(self):
+        """Visualising wiring made easier"""
         return self.back_board
 
 
@@ -56,6 +57,8 @@ class Rotor(RotorBase):
         self.position = 0
 
     def rotate(self, places=1):
+        """Rotates rotor by one x places, returns True if the next rotor should
+        be turned over"""
         self.last_position = self.position
         self.position += places
 
@@ -72,16 +75,19 @@ class Rotor(RotorBase):
         return return_val
 
     def set_offset(self, places=1):
+        """Sets rotor offset relative to the enigma"""
         self.front_board = self.front_board[places:] + self.front_board[:places]
         self.back_board = self.back_board[places:] + self.back_board[:places]
 
     def set_ring_setting(self, setting):
+        """Sets rotor indicator offset relative to the internal wiring"""
         assert (setting in range(0, 25)), 'Invalid ring setting "%s"...' % str(setting)
         setting -= self.ring_setting
         self.back_board = self.back_board = self.back_board[setting:] + self.back_board[:setting]
         self.ring_setting = setting
 
     def set_position(self, position):
+        """Sets rotor offset position"""
         assert(position in range(0, 26)), 'Invalid position "%d"...' % position
 
         position -= self.position
