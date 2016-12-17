@@ -1,5 +1,4 @@
 from tkinter import messagebox
-from misc import Enigma1
 from rotor import Reflector, Rotor
 
 
