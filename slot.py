@@ -1,5 +1,5 @@
 from tkinter import Frame, Label, StringVar, Radiobutton, OptionMenu
-from misc import Enigma1, labels
+from misc import labels
 
 
 class BaseSlot(Frame):

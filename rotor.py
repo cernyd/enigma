@@ -6,7 +6,7 @@ class RotorBase:
     def __init__(self, label='', back_board='', turnover='', valid_cfg=tuple()):
         """All parameters except should be passed in **config, valid_cfg is a
         tuple of additional configuration data for config loading and dumping"""
-        self.valid_cfg = ['back_board', 'label', 'turnover']
+        self.valid_cfg = ['back_board', 'label', 'turnover', 'front_board']
         self.valid_cfg.extend(valid_cfg)
 
         self.front_board = alphabet
@@ -35,7 +35,7 @@ class RotorBase:
         """Dumps rotor configuration data"""
         cfg = {}
         for attr in self.valid_cfg:
-            cfg.update(attr=self.__dict__[attr])
+            cfg[attr] = self.__dict__[attr]
         return cfg
 
     def __repr__(self):

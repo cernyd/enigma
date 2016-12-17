@@ -22,66 +22,9 @@ layout = [[16, 22, 4, 17, 19, 25, 20, 8, 14],
           [15, 24, 23, 2, 21, 1, 13, 12, 11]]
 
 
-def get_label(wiring):
-    """Finds the rotor label corresponding to the input wiring"""
-    for key, value in dict(**Enigma1.rotors, **Enigma1.reflectors).items():
-        if value[0] == wiring:
-            return key
-        elif value == wiring:
-            return key
-
-
 def get_icon(icon):
     """Gets icon path from the icon folder"""
     return path.join('icons', icon)
-
-
-class Enigma1:
-    """Historically accurate Enigma 1 rotor and reflector wiring, useful position
-    labels are available too"""
-    rotors = OrderedDict((('I', ['EKMFLGDQVZNTOWYHXUSPAIBRCJ', 16]),
-                         ('II', ['AJDKSIRUXBLHWTMCQGZNPYFVOE', 12]),
-                         ('III', ['BDFHJLCPRTXVZNYEIWGAKMUSQO', 3]),
-                         ('IV', ['ESOVPZJAYQUIRHXLNFTGKDCMWB', 17]),
-                         ('V', ['VZBRGITYUPSDNHLXAWMJQOFECK', 7])))
-
-    reflectors = OrderedDict((('UKW-A', 'EJMZALYXVBWFCRQUONTSPIKHGD'),
-                             ('UKW-B', 'YRUHQSLDPXNGOKMIEBFZCWVJAT'),
-                             ('UKW-C', 'FVPJIAOYEDRZXWGCTKUQSBNMHL')))
-
-
-class RotorFactory:
-    factory_data = {'Enigma1': {'rotor': [('I', 'EKMFLGDQVZNTOWYHXUSPAIBRCJ', 16),
-                                          ('II', 'AJDKSIRUXBLHWTMCQGZNPYFVOE', 12),
-                                          ('III', 'BDFHJLCPRTXVZNYEIWGAKMUSQO', 3),
-                                          ('IV', 'ESOVPZJAYQUIRHXLNFTGKDCMWB', 17),
-                                          ('I', 'VZBRGITYUPSDNHLXAWMJQOFECK', 7)],
-                               'reflector': [('UKW-A', 'EJMZALYXVBWFCRQUONTSPIKHGD'),
-                                              ('UKW-B', 'YRUHQSLDPXNGOKMIEBFZCWVJAT'),
-                                              ('UKW-C', 'FVPJIAOYEDRZXWGCTKUQSBNMHL')]}}
-
-    def __new__(cls):
-        raise NotImplementedError('This class was not intended for instantiation!')
-
-    @classmethod
-    def produce(cls, model, rotor_type, label):
-        for item in cls.factory_data[model][rotor_type]:
-            if item[0] == label:
-                cfg = cls.create_cfg(*item)
-                break
-
-        if rotor_type == 'rotor':
-            return  # Rotor()
-        elif rotor_type == 'reflector':
-            return  # Reflector()
-
-    @classmethod
-    def create_cfg(cls, label, back_board, turnover=None):
-        """Creates a configuration dictionary"""
-        cfg = dict(label=label, back_board=back_board)
-        if turnover:
-            cfg.update(turnover=turnover)
-        return cfg
 
 
 def baseinit(self):
