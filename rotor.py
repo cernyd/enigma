@@ -3,6 +3,11 @@ from misc import get_label, alphabet
 """Rotorbase class really confusing as to how does it initiate everything."""
 
 
+class RotorBase:
+    def __init__(self):
+        self.valid_config = {'back_board'}
+
+
 
 class RotorBase:
     def __init__(self, wiring=''):
@@ -22,7 +27,7 @@ class RotorBase:
 
     def load_config(self, data):
         """Loads rotor configuration data"""
-        self.__init__(data['wiring'])
+        pass
 
     def __repr__(self):
         return self.back_board
