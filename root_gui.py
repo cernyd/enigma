@@ -12,7 +12,7 @@ from lightboard import Lightboard
 from root_menu import RootMenu
 
 
-font = ('Arial', 10)
+font = ('Arial', 10)  # Should be transfered somewhere else
 
 
 class Root(Tk):
@@ -77,7 +77,7 @@ class Root(Tk):
     def sound_enabled(self):
         return self._sound_enabled.get()
 
-    def reset_all(self):
+    def reset_all(self):  # A bit too long?
         """Sets all settings to default"""
         self.enigma.reflector = 'UKW-B'
         self.enigma.rotors = ['III', 'II', 'I']
@@ -117,7 +117,7 @@ class Root(Tk):
     def autorotate(self):
         return self._autorotate.get()
 
-    def save_config(self):
+    def save_config(self):  # Not flexible
         choice = True
         if glob('settings.txt'):
             msg = 'Save file detected, do you wish to overwrite with new ' \
@@ -133,7 +133,7 @@ class Root(Tk):
                         enigma=self.enigma.dump_config())
             save_config(data)
 
-    def load_config(self):
+    def load_config(self):  # Not flexible
         if glob('settings.txt'):
             try:
                 data = load_config()

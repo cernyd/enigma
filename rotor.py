@@ -1,5 +1,8 @@
 from misc import get_label, alphabet
 
+"""Rotorbase class really confusing as to how does it initiate everything."""
+
+
 
 class RotorBase:
     def __init__(self, wiring=''):

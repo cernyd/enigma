@@ -29,7 +29,7 @@ class PlugSocket(Frame):
             else:
                 self.plug_socket.set(my_pair[1])
 
-    def link(self, target='', obj=None):
+    def link(self, target='', obj=None):  # This whole class is a mess
         if not obj:  # Link constructed locally
             if target:
                 obj = self.master.get_target(target)
