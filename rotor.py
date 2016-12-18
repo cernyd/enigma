@@ -77,7 +77,7 @@ class Rotor(RotorBase):
 
     def set_offset(self, places=1):
         """Sets rotor offset relative to the enigma"""
-        self.front_board = self.front_board[places:] + self.front_board[:places]
+        # self.front_board = self.front_board[places:] + self.front_board[:places]
         self.back_board = self.back_board[places:] + self.back_board[:places]
 
     def set_ring_setting(self, setting):

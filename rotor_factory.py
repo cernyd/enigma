@@ -17,6 +17,10 @@ class RotorFactory:
         raise NotImplementedError('This class was not intended for instantiation!')
 
     @classmethod
+    def get_info(cls, model, rotor_type):
+        return [config[0] for config in cls.__factory_data[model][rotor_type]]
+
+    @classmethod
     def produce(cls, model, rotor_type, label):
         """Creates and returns new object based on input"""
         cfg = None
