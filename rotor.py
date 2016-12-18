@@ -24,7 +24,7 @@ class RotorBase:
         """Loads rotor configuration data"""
         for attr in attrs.keys():
             if attr not in self.valid_cfg:
-                raise AttributeError('Invalid attribute "%s"!' % (attr))
+                raise AttributeError('Invalid attribute "%s"!' % attr)
             value = attrs.get(attr)
             if value:
                 setattr(self, attr, value)

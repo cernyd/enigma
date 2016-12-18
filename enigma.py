@@ -16,8 +16,6 @@ class Enigma:
 
         if master:
             self.master = master
-        if config_data:
-            self.load_config(config_data)
 
     # Plugboard property
 
@@ -111,11 +109,6 @@ class Enigma:
 
     @reflector.setter
     def reflector(self, label):
-        """
-        Takes a reflector label and gets the reflector from historical reflectors,
-        shows a warning if the rotor label is invalid
-        :param reflector: Reflector label for creating a reflector object
-        """
         try:
             self._reflector = RotorFactory.produce('Enigma1', 'reflector', label)
         except AttributeError:
