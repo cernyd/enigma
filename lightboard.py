@@ -1,5 +1,9 @@
 from tkinter import Frame, Label
-from misc import labels, layout
+from rotor_factory import DataStorage
+
+
+layout = DataStorage.get_info('layout')
+labels = DataStorage.get_info('labels')
 
 
 class Lightboard(Frame):
