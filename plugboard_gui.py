@@ -1,5 +1,5 @@
 from tkinter import Toplevel, Frame, Button
-from misc import get_icon, labels, layout, baseinit
+from misc import get_icon, baseinit
 from plug_socket import PlugSocket
 
 
