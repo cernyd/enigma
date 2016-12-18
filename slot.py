@@ -1,5 +1,6 @@
 from tkinter import Frame, Label, StringVar, Radiobutton, OptionMenu
 from misc import labels
+from rotor_factory import RotorFactory
 
 
 class BaseSlot(Frame):
@@ -41,7 +42,7 @@ class RotorSlot(BaseSlot):
 
         self.index = index
 
-        self.generate_contents(list(Enigma1.rotors.keys()))
+        self.generate_contents(RotorFactory.get_info('Enigma1', 'rotor'))
 
         # Ring setting indicator
         setting_idx = self.master.enigma.rotors[index].ring_setting
@@ -68,7 +69,7 @@ class ReflectorSlot(BaseSlot):
     def __init__(self, master, tk_master=None, *args, **kwargs):
         BaseSlot.__init__(self, master, 'REFLECTOR', tk_master, *args, **kwargs)
 
-        self.generate_contents(list(Enigma1.reflectors.keys()))
+        self.generate_contents(RotorFactory.get_info('Enigma1', 'reflector'))
         self.choice_var.set(self.master.enigma.reflector.label)
 
     def update_selected(self, *event):
