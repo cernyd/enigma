@@ -1,6 +1,11 @@
 from tkinter import Toplevel, Frame, Button
 from misc import get_icon, baseinit
 from plug_socket import PlugSocket
+from rotor_factory import DataStorage
+
+
+layout = DataStorage.get_info('layout')
+labels = DataStorage.get_info('labels')
 
 
 class PlugboardMenu(Toplevel):
