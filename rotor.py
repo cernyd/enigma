@@ -6,21 +6,19 @@ class RotorBase:
     def __init__(self, label='', back_board='', turnover='', valid_cfg=tuple()):
         """All parameters except should be passed in **config, valid_cfg is a
         tuple of additional configuration data for config loading and dumping"""
-        self.valid_cfg = ['back_board', 'label', 'turnover', 'front_board']
+        self.valid_cfg = ['back_board', 'label', 'turnover']
         self.valid_cfg.extend(valid_cfg)
-
-        self.front_board = alphabet
         self.back_board = back_board
         self.turnover = turnover
         self.label = label
 
     def forward(self, letter):
         """Routes letter from front to back"""
-        return self.back_board[self.front_board.index(letter)]
+        return self.back_board[alphabet.index(letter)]
 
     def backward(self, letter):
         """Routes letter from back to front"""
-        return self.front_board[self.back_board.index(letter)]
+        return alphabet[self.back_board.index(letter)]
 
     def config(self, **attrs):
         """Loads rotor configuration data"""
@@ -50,11 +48,10 @@ class Reflector(RotorBase):
 class Rotor(RotorBase):
     """Inherited from RotorBase, adds rotation and ring setting functionality"""
     def __init__(self, **cfg):
-        RotorBase.__init__(self, **cfg, valid_cfg=('last_position', 'position',
-                                                   'ring_setting'))
-        self.last_position = 0
+        RotorBase.__init__(self, **cfg, valid_cfg=('position', 'ring_setting'))
         self.ring_setting = 0
         self.position = 0
+        self.last_position = 0
 
     def rotate(self, places=1):
         """Rotates rotor by one x places, returns True if the next rotor should
@@ -67,12 +64,16 @@ class Rotor(RotorBase):
         elif self.position == -1:
             self.position = 25
 
-        return_val = False
-        if self.position == self.turnover:
-            return_val = True  # Used to indicate if the next rotor should be moved
-
         self.set_offset(places)
-        return return_val
+        return self.did_turnover()
+
+    def did_turnover(self):
+        """Checks if the next position should turn by one place."""
+        if (self.last_position, self.position) == self.turnover:
+            return True
+        elif (self.position, self.last_position) == self.turnover:
+            return True
+        return False
 
     def set_offset(self, places=1):
         """Sets rotor offset relative to the enigma"""

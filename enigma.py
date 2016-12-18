@@ -1,5 +1,5 @@
 from tkinter import messagebox
-from rotor import Reflector, Rotor
+from rotor_factory import RotorFactory
 
 
 class Enigma:
@@ -71,20 +71,19 @@ class Enigma:
         return self._rotors
 
     @rotors.setter
-    def rotors(self, rotors):
+    def rotors(self, labels):
         """
         Takes rotor labels and gets the rotors from historical rotors if possible,
         shows a warning if any rotor is invalid
-        :param rotors: Rotors labels for creating the rotor objects
+        :param labels: Rotors labels for creating the rotor objects
         """
-        temp = []
-        if all([rotor in Enigma1.rotors for rotor in rotors]):
-            for rotor in rotors:
-                temp.append(Rotor(**Enigma1.rotors[rotor]))
-        else:
+        self._rotors = []
+        try:
+            for label in labels:
+                self._rotors.append(RotorFactory.produce('Enigma1', 'rotor', label))
+        except AttributeError:
             messagebox.showwarning('Invalid rotor', 'Some of rotors are not \n'
                                                     'valid, please try again...')
-        self._rotors = temp[:]
 
     @property
     def positions(self):
@@ -111,20 +110,18 @@ class Enigma:
         return self._reflector
 
     @reflector.setter
-    def reflector(self, reflector):
+    def reflector(self, label):
         """
         Takes a reflector label and gets the reflector from historical reflectors,
         shows a warning if the rotor label is invalid
         :param reflector: Reflector label for creating a reflector object
         """
-        if reflector in Enigma1.reflectors:
-            self._reflector = Reflector(**Enigma1.reflectors[reflector])
-        else:
+        try:
+            self._reflector = RotorFactory.produce('Enigma1', 'reflector', label)
+        except AttributeError:
             messagebox.showwarning('Invalid reflector', 'Invalid reflector,'
                                                         ' please try '
                                                         'again...')
-
-    # Rings settings property
 
     @property
     def ring_settings(self):
@@ -194,14 +191,14 @@ class Enigma:
 
         return output
 
-    def dump_config(self):
-        """Dumps the whole enigma data config"""
-        return dict(plugboard=self.__plugboard,
-                    reflector=self.reflector.dump_config(),
-                    rotors=[rotor.dump_config() for rotor in self._rotors])
-
-    def load_config(self, data):
-        """Loads everything from the data config"""
-        self.plugboard = data['plugboard']
-        self._reflector = Rotor(config_data=data['reflector'])
-        self._rotors = [Rotor(config_data=config) for config in data['rotors']]
+    # def dump_config(self):
+    #     """Dumps the whole enigma data config"""
+    #     return dict(plugboard=self.__plugboard,
+    #                 reflector=self.reflector.dump_config(),
+    #                 rotors=[rotor.dump_config() for rotor in self._rotors])
+    #
+    # def load_config(self, data):
+    #     """Loads everything from the data config"""
+    #     self.plugboard = data['plugboard']
+    #     self._reflector = Rotor(config_data=data['reflector'])
+    #     self._rotors = [Rotor(config_data=config) for config in data['rotors']]
