@@ -14,11 +14,11 @@ class DataStorage:
 
     _factory_data = {'Enigma1':
                           {'rotor': [
-                              ('I', 'EKMFLGDQVZNTOWYHXUSPAIBRCJ', (16, 17)),
-                              ('II', 'AJDKSIRUXBLHWTMCQGZNPYFVOE', (12, 13)),
-                              ('III', 'BDFHJLCPRTXVZNYEIWGAKMUSQO', (3, 4)),
-                              ('IV', 'ESOVPZJAYQUIRHXLNFTGKDCMWB', (17, 18)),
-                              ('V', 'VZBRGITYUPSDNHLXAWMJQOFECK', (7, 8))],
+                              ('I', 'EKMFLGDQVZNTOWYHXUSPAIBRCJ', ('Q', 'R')),
+                              ('II', 'AJDKSIRUXBLHWTMCQGZNPYFVOE', ('E', 'F')),
+                              ('III', 'BDFHJLCPRTXVZNYEIWGAKMUSQO', ('V', 'W')),
+                              ('IV', 'ESOVPZJAYQUIRHXLNFTGKDCMWB', ('J', 'K')),
+                              ('V', 'VZBRGITYUPSDNHLXAWMJQOFECK', ('Z', 'A'))],
                            'reflector': [
                                ('UKW-A', 'EJMZALYXVBWFCRQUONTSPIKHGD'),
                                ('UKW-B', 'YRUHQSLDPXNGOKMIEBFZCWVJAT'),
