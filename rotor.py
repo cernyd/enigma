@@ -6,9 +6,10 @@ class RotorBase:
     def __init__(self, label='', back_board='', turnover='', valid_cfg=tuple()):
         """All parameters except should be passed in **config, valid_cfg is a
         tuple of additional configuration data for config loading and dumping"""
-        self.valid_cfg = ['back_board', 'label', 'turnover']
+        self.valid_cfg = ['back_board', 'label', 'turnover', 'relative_board']
         self.valid_cfg.extend(valid_cfg)
         self.back_board = back_board
+        self.relative_board = alphabet
         self.turnover = turnover
         self.label = label
 
@@ -49,9 +50,9 @@ class Rotor(RotorBase):
     """Inherited from RotorBase, adds rotation and ring setting functionality"""
     def __init__(self, **cfg):
         RotorBase.__init__(self, **cfg, valid_cfg=('position', 'ring_setting'))
+        self.last_position = 0
         self.ring_setting = 0
         self.position = 0
-        self.last_position = 0
 
     def change_position(self, places):
         self.position += places
@@ -81,7 +82,7 @@ class Rotor(RotorBase):
 
     def set_offset(self, places=1):
         """Sets rotor offset relative to the enigma"""
-        # self.front_board = self.front_board[places:] + self.front_board[:places]
+        self.relative_board = self.relative_board[places:] + self.relative_board[:places]
         self.back_board = self.back_board[places:] + self.back_board[:places]
 
     def set_ring_setting(self, setting):
@@ -91,7 +92,7 @@ class Rotor(RotorBase):
         self.ring_setting = setting
 
     def set_position(self, position):
-        """Sets rotor offset position"""
+        """Sets rotor indicator"""
         position -= self.position
         self.set_position(position)
         self.position = position
