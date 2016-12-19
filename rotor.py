@@ -53,16 +53,20 @@ class Rotor(RotorBase):
         self.position = 0
         self.last_position = 0
 
-    def rotate(self, places=1):
-        """Rotates rotor by one x places, returns True if the next rotor should
-        be turned over"""
-        self.last_position = self.position
+    def change_position(self, places):
         self.position += places
 
         if self.position == 26:
             self.position = 0
-        elif self.position == -1:
+        elif self.position < 0:
             self.position = 25
+
+    def rotate(self, places=1):
+        """Rotates rotor by one x places, returns True if the next rotor should
+        be turned over"""
+        self.last_position = self.position
+
+        self.change_position(places)
 
         self.set_offset(places)
         return self.did_turnover()
@@ -82,15 +86,12 @@ class Rotor(RotorBase):
 
     def set_ring_setting(self, setting):
         """Sets rotor indicator offset relative to the internal wiring"""
-        assert (setting in range(0, 25)), 'Invalid ring setting "%s"...' % str(setting)
         setting -= self.ring_setting
         self.back_board = self.back_board = self.back_board[setting:] + self.back_board[:setting]
         self.ring_setting = setting
 
     def set_position(self, position):
         """Sets rotor offset position"""
-        assert(position in range(0, 26)), 'Invalid position "%d"...' % position
-
         position -= self.position
-        self.rotate(position)
+        self.set_position(position)
         self.position = position
