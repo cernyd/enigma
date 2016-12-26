@@ -20,9 +20,25 @@ class Enigma:
 
     def print_rotors(self):
         system('cls')
-        print('I\n%s' % (self.rotors[0].back_board))
-        print('II\n%s' % (self.rotors[1].back_board))
-        print('III\n%s' % (self.rotors[2].back_board))
+        length = len(self.rotors[0].relative_board)
+        print('I')
+        print('-' * length)
+        print(self.rotors[0].relative_board)
+        print(self.rotors[0].back_board)
+        print(self.rotors[0].relative_board)
+        print('-' * length)
+        print('II')
+        print('-'*length)
+        print(self.rotors[1].relative_board)
+        print(self.rotors[1].back_board)
+        print(self.rotors[1].relative_board)
+        print('-' * length)
+        print('III')
+        print('-' * length)
+        print(self.rotors[2].relative_board)
+        print(self.rotors[2].back_board)
+        print(self.rotors[2].relative_board)
+        print('-' * length)
 
     @property
     def plugboard(self):
@@ -41,8 +57,6 @@ class Enigma:
             plugboard_pairs.append(pair)
 
         self.__plugboard = plugboard_pairs
-
-    # Rotor property
 
     @property
     def rotor_labels(self):
@@ -79,8 +93,6 @@ class Enigma:
             return output
 
         self.last_output = output
-
-    # Reflector property
 
     @property
     def reflector(self):
