@@ -44,6 +44,8 @@ class RotorBase:
 
 class Reflector(RotorBase):
     """Reflector class, does not overload anything from the RotorBase"""
+
+
 # Refactor this whole thing, search for answers
 # here: http://users.telenet.be/d.rijmenants/en/enigmatech.htm
 
