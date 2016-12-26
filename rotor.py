@@ -44,10 +44,9 @@ class RotorBase:
 
 class Reflector(RotorBase):
     """Reflector class, does not overload anything from the RotorBase"""
+# Refactor this whole thing, search for answers
+# here: http://users.telenet.be/d.rijmenants/en/enigmatech.htm
 
-
-
-# Refactor this whole thing, search for answers here: http://users.telenet.be/d.rijmenants/en/enigmatech.htm
 
 class Rotor(RotorBase):
     """Inherited from RotorBase, adds rotation and ring setting functionality"""
