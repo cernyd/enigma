@@ -26,6 +26,7 @@ class RotorMenu(Toplevel):
         self.curr_rotors = [rotor.label for rotor in self.enigma.rotors]
         self.curr_reflector = self.enigma.reflector.label
         self.curr_ring_settings = self.enigma.ring_settings
+        print(self.curr_ring_settings)
 
         # Frames
         main_frame = Frame(self, bg='gray85')

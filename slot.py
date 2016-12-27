@@ -48,8 +48,8 @@ class RotorSlot(BaseSlot):
 
         # Ring setting indicator
         setting_idx = self.master.enigma.rotors[index].ring_setting
-        curr_setting = labels[setting_idx]
-        self.ring_var = StringVar(value=curr_setting)
+        print(setting_idx)
+        self.ring_var = StringVar(value=labels[setting_idx])
 
         Label(self, text='RING\nSETTING', bd=1, relief='sunken').pack(
             side='top', fill='x', padx=4)

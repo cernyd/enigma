@@ -74,14 +74,11 @@ class Rotor(RotorBase):
     def rotate(self, places=1):
         """Rotates rotor by one x places, returns True if the next rotor should
         be turned over"""
-        self.last_position = self.relative_board[0]
         self.set_offset(places)
-        self.position = self.relative_board[0]
         return self.did_turnover()
 
     def did_turnover(self):
         """Checks if the next position should turn by one place."""
-        print((self.last_position, self.position))
         if (self.last_position, self.position) == self.turnover:
             return True
         elif (self.position, self.last_position) == self.turnover:
@@ -90,14 +87,18 @@ class Rotor(RotorBase):
 
     def set_offset(self, places=1):
         """Sets rotor offset relative to the enigma"""
+        self.last_position = self.relative_board[0]
         self.relative_board = self.relative_board[places:] + \
                               self.relative_board[:places]
         self.position_ring = self.position_ring[places:] + \
                               self.position_ring[:places]
+        self.position = self.relative_board[0]
+
+    def get_ring_setting(self):
+        return self.position_ring[self.relative_board.index('A')] - 1
 
     def set_ring_setting(self, setting):
         """Sets rotor indicator offset relative to the internal wiring"""
-
-    def set_position(self, position):
-        """Sets rotor indicator"""
-        self.position = self.relative_board[0]
+        setting -= self.get_ring_setting()
+        self.relative_board = self.relative_board[setting:] + \
+                              self.relative_board[:setting]
