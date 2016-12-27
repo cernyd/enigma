@@ -112,12 +112,12 @@ class Enigma:
 
     @property
     def ring_settings(self):
-        return [rotor.ring_setting for rotor in self.rotors[::-1]]
+        return [rotor.get_ring_setting() for rotor in self.rotors[::-1]]
 
     @ring_settings.setter
     def ring_settings(self, offsets):
         for rotor, setting in zip(self.rotors, offsets):
-            rotor.ring_setting = setting
+            rotor.set_ring_setting(setting)
 
     def plugboard_route(self, letter):
         neighbour = []
@@ -156,14 +156,15 @@ class Enigma:
 
         return output
 
-    # def dump_config(self):
-    #     """Dumps the whole enigma data config"""
-    #     return dict(plugboard=self.__plugboard,
-    #                 reflector=self.reflector.dump_config(),
-    #                 rotors=[rotor.dump_config() for rotor in self._rotors])
-    #
-    # def load_config(self, data):
-    #     """Loads everything from the data config"""
-    #     self.plugboard = data['plugboard']
-    #     self._reflector = Rotor(config_data=data['reflector'])
-    #     self._rotors = [Rotor(config_data=config) for config in data['rotors']]
+    def dump_config(self):
+        """Dumps the whole enigma data config"""
+        return dict(plugboard=self.__plugboard,
+                    reflector=self.reflector.dump_config(),
+                    rotors=[rotor.dump_config() for rotor in self._rotors])
+
+    def load_config(self, data):
+        """Loads everything from the data config"""
+        self.plugboard = data['plugboard']
+        self._reflector.config(**data['reflector'])
+        for rotor, config in zip(self._rotors, data['rotors']):
+            rotor.config(** config)
