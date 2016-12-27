@@ -76,10 +76,12 @@ class Rotor(RotorBase):
         be turned over"""
         self.last_position = self.relative_board[0]
         self.set_offset(places)
+        self.position = self.relative_board[0]
         return self.did_turnover()
 
     def did_turnover(self):
         """Checks if the next position should turn by one place."""
+        print((self.last_position, self.position))
         if (self.last_position, self.position) == self.turnover:
             return True
         elif (self.position, self.last_position) == self.turnover:
