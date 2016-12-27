@@ -68,5 +68,5 @@ class RotorFactory(DataStorage):
             elif rotor_type == 'reflector':
                 return  Reflector(**cfg)
         else:
-            raise AttributeError('No configuration found for "%s" > "%s" > "%s"!'
-                                 % (model, rotor_type, label))
+            raise AttributeError('No configuration found for "%s" > '
+                                 '"%s" > "%s"!' % (model, rotor_type, label))

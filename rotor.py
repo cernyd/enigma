@@ -6,20 +6,34 @@ class RotorBase:
     def __init__(self, label='', back_board='', turnover='', valid_cfg=tuple()):
         """All parameters except should be passed in **config, valid_cfg is a
         tuple of additional configuration data for config loading and dumping"""
-        self.valid_cfg = ['back_board', 'label', 'turnover', 'relative_board']
+        self.valid_cfg = ['back_board', 'label', 'turnover', 'relative_board',
+                          'position_ring']
         self.valid_cfg.extend(valid_cfg)
+
+        # Necessary config data
+        self.position_ring = list(range(1,27))
         self.back_board = back_board
         self.relative_board = alphabet
         self.turnover = turnover
         self.label = label
 
+    def relative_input(self, letter):
+        return self.relative_board[alphabet.index(letter)]
+
+    def relative_output(self, routed_output):
+        return alphabet[self.relative_board.index(routed_output)]
+
     def forward(self, letter):
         """Routes letter from front to back"""
-        return self.back_board[alphabet.index(letter)]
+        relative_input = self.relative_input(letter)
+        routed_output = self.back_board[alphabet.index(relative_input)]
+        return self.relative_output(routed_output)
 
     def backward(self, letter):
         """Routes letter from back to front"""
-        return alphabet[self.back_board.index(letter)]
+        relative_entry = self.relative_input(letter)
+        routed_output = alphabet[self.back_board.index(relative_entry)]
+        return self.relative_output(routed_output)
 
     def config(self, **attrs):
         """Loads rotor configuration data"""
@@ -46,7 +60,6 @@ class Reflector(RotorBase):
     """Reflector class, does not overload anything from the RotorBase"""
 
 
-# Refactor this whole thing, search for answers
 # here: http://users.telenet.be/d.rijmenants/en/enigmatech.htm
 
 
@@ -54,25 +67,14 @@ class Rotor(RotorBase):
     """Inherited from RotorBase, adds rotation and ring setting functionality"""
     def __init__(self, **cfg):
         RotorBase.__init__(self, **cfg, valid_cfg=('position', 'ring_setting'))
-        self.last_position = 0
+        self.last_position = None
         self.ring_setting = 0
         self.position = 0
-
-    def change_position(self, places):
-        self.position += places
-
-        if self.position == 26:
-            self.position = 0
-        elif self.position < 0:
-            self.position = 25
 
     def rotate(self, places=1):
         """Rotates rotor by one x places, returns True if the next rotor should
         be turned over"""
-        self.last_position = self.position
-
-        self.change_position(places)
-
+        self.last_position = self.relative_board[0]
         self.set_offset(places)
         return self.did_turnover()
 
@@ -86,17 +88,14 @@ class Rotor(RotorBase):
 
     def set_offset(self, places=1):
         """Sets rotor offset relative to the enigma"""
-        self.relative_board = self.relative_board[places:] + self.relative_board[:places]
-        self.back_board = self.back_board[places:] + self.back_board[:places]
+        self.relative_board = self.relative_board[places:] + \
+                              self.relative_board[:places]
+        self.position_ring = self.position_ring[places:] + \
+                              self.position_ring[:places]
 
     def set_ring_setting(self, setting):
         """Sets rotor indicator offset relative to the internal wiring"""
-        setting -= self.ring_setting
-        self.back_board = self.back_board = self.back_board[setting:] + self.back_board[:setting]
-        self.ring_setting = setting
 
     def set_position(self, position):
         """Sets rotor indicator"""
-        position -= self.position
-        self.set_position(position)
-        self.position = position
+        self.position = self.relative_board[0]

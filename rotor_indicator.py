@@ -26,7 +26,7 @@ class RotorIndicator(Frame):
         Button(self, text='+', command=lambda: self.rotate(1), **cfg).pack(
             side='top')
 
-        self.indicator = Label(self, text='01', bd=1, relief='sunken', width=2)
+        self.indicator = Label(self, bd=1, relief='sunken', width=2)
 
         Button(self, text='-', command=lambda: self.rotate(-1), **cfg).pack(
             side='bottom')
@@ -35,6 +35,7 @@ class RotorIndicator(Frame):
 
         self.playback = playback_instance
         self.enigma = enigma_instance
+        self.update_indicator()
 
     def rotate(self, places=0):
         """
@@ -46,5 +47,5 @@ class RotorIndicator(Frame):
         self.update_indicator()
 
     def update_indicator(self, event=None):
-        raw = self.enigma.rotors[self.index].position + 1
+        raw = self.enigma.rotors[self.index].position_ring[0]
         self.indicator.config(text=format_digit(raw))
