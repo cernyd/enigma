@@ -13,10 +13,9 @@ class PlugEntry(Entry):
         internal_tracer.trace('w', self.event)
 
         self.master = master
-
         self.last_val = ''
 
-    def event(self, event=None):  # Needs some refactoring ( unreliable and confusing )
+    def event(self, *event):  # Needs some refactoring ( unreliable and confusing )
         new_val = self.validate(self.get())  # Raw new data
         delete = self.last_val and not new_val
         write = not self.last_val and new_val

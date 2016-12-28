@@ -70,6 +70,7 @@ class PlugSocket(Frame):
 
     def callback(self, event_type):
         """Callback from the plug_entry widget"""
+        print('Event > ', event_type)
         if event_type == 'WRITE':
             self.link(self.plug_socket.get())
         elif event_type == 'DELETE':
