@@ -28,14 +28,18 @@ from os import system
 
 from rotor_factory import RotorFactory
 test = RotorFactory.produce('Enigma1', 'rotor', 'I')
-test.set_ring_setting(2)
+# test.set_ring_setting(5)
+test.set_ring_setting(1)
+test.rotate(24)
+print('Ring setting > ', test.get_ring_setting())
 while True:
-    # system('cls')
+    system('cls')
     print('Output > ', test.forward('A'))
-    # print('Ring setting > ', test.get_ring_setting())
     # print('Position ring  > ', test.position_ring)
     # print('Relative board > ', list(test.relative_board))
     input()
     test.rotate()
+
+# Rotor I, ring setting 6, pos 25, input A, output W!
 
 # -----------------------------------------------------------------------------

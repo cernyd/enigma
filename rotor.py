@@ -26,6 +26,7 @@ class RotorBase:
         return alphabet[self.relative_board.index(routed_output)]
 
     def visualise(self, info, mode='forward'):
+        """Visualises how the rotor works"""
         info = info[::-1]
         boards = [alphabet, self.relative_board, self.relative_board, alphabet]
         index = 0
@@ -36,10 +37,11 @@ class RotorBase:
                     curr_line.append('<- ' + board[index])
                 else:
                     curr_line.append('   ' + board[index])
-            print("{} | {} {} | {}".format(*curr_line))
+            letter = alphabet[self.position_ring[index]-1]
+            indicator = ' %s ' % letter if index != 0 else '[%s]' % letter
+            curr_line.insert(1, indicator)
+            print("{} ||{}||{} {} | {}".format(*curr_line))
             index += 1
-
-
 
     def forward(self, letter):
         """Routes letter from front to back"""
@@ -90,9 +92,8 @@ class Reflector(RotorBase):
 class Rotor(RotorBase):
     """Inherited from RotorBase, adds rotation and ring setting functionality"""
     def __init__(self, **cfg):
-        RotorBase.__init__(self, **cfg, valid_cfg=('position', 'ring_setting'))
+        RotorBase.__init__(self, **cfg, valid_cfg=('position', ))
         self.last_position = None
-        self.ring_setting = 0
         self.position = 0
 
     def rotate(self, places=1):
@@ -123,8 +124,4 @@ class Rotor(RotorBase):
 
     def set_ring_setting(self, setting):
         """Sets rotor indicator offset relative to the internal wiring"""
-        # print('Setting > ', alphabet[self.get_ring_setting()])
-        setting -= self.get_ring_setting() + 1
-        # print('New setting > ', alphabet[setting])
-        self.relative_board = self.relative_board[setting:] + \
-                              self.relative_board[:setting]
+        setting -= 1 # New setting
