@@ -1,6 +1,12 @@
 from os import path
 
 
+font = ('Arial', 10)
+
+
+bg = 'gray85'
+
+
 def get_icon(icon):
     """Gets icon path from the icon folder"""
     return path.join('icons', icon)

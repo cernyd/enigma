@@ -1,4 +1,5 @@
 from tkinter import Frame, Label, Button
+from misc import font, bg
 
 
 def format_digit(number: int) -> str:
@@ -18,10 +19,10 @@ class RotorIndicator(Frame):
         :param playback_instance: Sound playback instance
         :param index: Indicator index to show correct values
         """
-        Frame.__init__(self, master, bg='gray85')
+        Frame.__init__(self, master, bg=bg)
         self.index = index
 
-        cfg = dict(font=('Arial', 10), width=1)
+        cfg = dict(font=font, width=1)
 
         Button(self, text='+', command=lambda: self.rotate(1), **cfg).pack(
             side='top')

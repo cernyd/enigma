@@ -1,7 +1,7 @@
 from tkinter import Tk, Frame, Button, IntVar, messagebox
 from config_handler import save_config, load_config
 from enigma import Enigma
-from misc import get_icon, baseinit
+from misc import get_icon, baseinit, bg
 from plugboard_gui import PlugboardMenu
 from rotor_gui import RotorMenu
 from sound_ctl import Playback
@@ -12,7 +12,7 @@ from lightboard import Lightboard
 from root_menu import RootMenu
 
 
-font = ('Arial', 10)  # Should be transfered somewhere else
+
 
 
 class Root(Tk):
@@ -22,7 +22,7 @@ class Root(Tk):
 
         baseinit(self)
 
-        self.enigma = Enigma('UKW-B', ['III', 'II', 'I'], master=self)
+        self.enigma = Enigma('UKW-B', ['I', 'II', 'III'], master=self)
         self.playback = Playback(self)
 
         # Window config
@@ -30,7 +30,7 @@ class Root(Tk):
         self.wm_title("Enigma")
 
         # Frames
-        self.rotor_container = Frame(self, bd=1, relief='raised', bg='gray85')
+        self.rotor_container = Frame(self, bd=1, relief='raised', bg=bg)
 
         # Lid
         Button(self.rotor_container, text='\n'.join('Rotors'),

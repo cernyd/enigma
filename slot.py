@@ -1,8 +1,6 @@
 from tkinter import Frame, Label, StringVar, Radiobutton, OptionMenu
+from tkinter import Frame, Label, StringVar, Radiobutton, OptionMenu
 from rotor_factory import DataStorage
-
-
-labels = DataStorage.get_info('labels')
 
 
 class BaseSlot(Frame):
@@ -39,7 +37,7 @@ class BaseSlot(Frame):
 
 class RotorSlot(BaseSlot):
     def __init__(self, master, index, tk_master=None, *args, **kwargs):
-        text = ('THIRD', 'SECOND', 'FIRST')[index] + ' ROTOR'
+        text = ('SLOW', 'MEDIUM', 'FAST')[index] + ' ROTOR'
         BaseSlot.__init__(self, master, text, tk_master, *args, **kwargs)
 
         self.index = index
@@ -47,6 +45,8 @@ class RotorSlot(BaseSlot):
         self.generate_contents(DataStorage.get_info('Enigma1', 'rotor'))
 
         # Ring setting indicator
+        labels = DataStorage.get_info('labels')
+
         setting_idx = self.master.enigma.ring_settings[index]
         self.ring_var = StringVar(value=labels[setting_idx])
 

@@ -1,47 +1,18 @@
 from tkinter import messagebox
 from rotor_factory import RotorFactory
-from os import system
 
 
 class Enigma:
     """Enigma machine object emulating all mechanical processes in the real enigma machine"""
     def __init__(self, reflector=None, rotors=None, master=None, config_data=None):
-        """
-        :param reflector: Reflector label, reflector object will be created automatically
-        :param rotors: Three rotor labels, objects will be created automatically
-        """
         self.reflector = reflector
+        self._rotors = []
         self.rotors = rotors  # Calling property
         self.__plugboard = []
         self.last_output = ''  # To avoid sending the same data from rotor position class
 
         if master:
             self.master = master
-
-    def print_rotors(self):
-        system('cls')
-        length = len(self.rotors[0].relative_board)
-        print('I')
-        print('-' * length)
-        print(self.rotors[0].position_ring)
-        print(self.rotors[0].relative_board)
-        print(self.rotors[0].back_board)
-        print(self.rotors[0].relative_board)
-        print('-' * length)
-        print('II')
-        print('-'*length)
-        print(self.rotors[1].position_ring)
-        print(self.rotors[1].relative_board)
-        print(self.rotors[1].back_board)
-        print(self.rotors[1].relative_board)
-        print('-' * length)
-        print('III')
-        print('-' * length)
-        print(self.rotors[2].position_ring)
-        print(self.rotors[2].relative_board)
-        print(self.rotors[2].back_board)
-        print(self.rotors[2].relative_board)
-        print('-' * length)
 
     @property
     def plugboard(self):
@@ -65,7 +36,7 @@ class Enigma:
     def rotor_labels(self):
         """Returns rotor type ( label ), for the rotor order window."""
         return_list = [self.reflector.label]
-        return_list.extend([rotor.label for rotor in self._rotors])
+        return_list.extend([rotor.label for rotor in reversed(self._rotors)])
         return return_list
 
     @property
@@ -80,9 +51,10 @@ class Enigma:
 
     @rotors.setter
     def rotors(self, labels):
-        self._rotors = []
+        """Sets rotors
+        REMEMBER! SLOW - MEDIUM - FAST"""
         try:
-            for label in labels:
+            for label in reversed(labels):
                 self._rotors.append(RotorFactory.produce('Enigma1', 'rotor', label))
         except AttributeError:
             messagebox.showwarning('Invalid rotor', 'Some of rotors are not \n'
@@ -90,12 +62,7 @@ class Enigma:
 
     @property
     def positions(self):
-        output = '%s %s %s' % (self.rotors[2], self.rotors[1], self.rotors[0])
-
-        if self.last_output != output:  # Wiring only printed if anything changed
-            return output
-
-        self.last_output = output
+        return [rotor.back_board for rotor in self._rotors]
 
     @property
     def reflector(self):
@@ -112,7 +79,7 @@ class Enigma:
 
     @property
     def ring_settings(self):
-        return [rotor.get_ring_setting() for rotor in self.rotors]
+        return [rotor.get_ring_setting() for rotor in reversed(self.rotors)]
 
     @ring_settings.setter
     def ring_settings(self, offsets):
@@ -129,18 +96,22 @@ class Enigma:
         return letter  # If no connection found
 
     def rotate_primary(self, places=1):
-        if self.master:
-            if not self.master.rotor_lock:
-                rotate_next = False
-                index = 0
-                for rotor in self._rotors:
-                    if rotate_next or index == 0:
-                        rotate_next = rotor.rotate(places)
-                    index += 1
+        if hasattr(self, 'master'):
+            rotor_lock = self.master.rotor_lock
+        else:
+            rotor_lock = False
+
+        if not rotor_lock:
+            rotate_next = False
+            index = 0
+            for rotor in self._rotors:
+                print('ROTATE')
+                if rotate_next or index == 0:
+                    rotate_next = rotor.rotate(places)
+                index += 1
 
     def button_press(self, letter):
         self.rotate_primary()
-        self.print_rotors()
         output = letter
         output = self.plugboard_route(output)
 

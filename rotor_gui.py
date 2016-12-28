@@ -1,5 +1,5 @@
 from tkinter import Toplevel, Frame, Button
-from misc import get_icon, baseinit
+from misc import get_icon, baseinit, bg
 from slot import ReflectorSlot, RotorSlot
 
 
@@ -13,7 +13,7 @@ class RotorMenu(Toplevel):
         :param enigma_instance: Global enigma instance
         """
         # Superclass constructor call
-        Toplevel.__init__(self, bg='gray85', *args, **kwargs)
+        Toplevel.__init__(self, bg=bg, *args, **kwargs)
 
         baseinit(self)
 
@@ -29,8 +29,8 @@ class RotorMenu(Toplevel):
         print(self.curr_ring_settings)
 
         # Frames
-        main_frame = Frame(self, bg='gray85')
-        button_frame = Frame(self, bg='gray85')
+        main_frame = Frame(self, bg=bg)
+        button_frame = Frame(self, bg=bg)
 
         # Buttons
         Button(button_frame, text='Apply', width=12, command=self.apply).pack(
