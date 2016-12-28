@@ -18,22 +18,24 @@ class RotorBase:
         self.label = label
 
     def relative_input(self, letter):
+        """Convert absolute input to relative input"""
         return self.relative_board[alphabet.index(letter)]
 
-    def relative_output(self, routed_output):
+    def absolute_output(self, routed_output):
+        """Relative output to absolute output"""
         return alphabet[self.relative_board.index(routed_output)]
 
     def forward(self, letter):
         """Routes letter from front to back"""
         relative_input = self.relative_input(letter)
         routed_output = self.back_board[alphabet.index(relative_input)]
-        return self.relative_output(routed_output)
+        return self.absolute_output(routed_output)
 
     def backward(self, letter):
         """Routes letter from back to front"""
         relative_entry = self.relative_input(letter)
         routed_output = alphabet[self.back_board.index(relative_entry)]
-        return self.relative_output(routed_output)
+        return self.absolute_output(routed_output)
 
     def config(self, **attrs):
         """Loads rotor configuration data"""
@@ -95,7 +97,7 @@ class Rotor(RotorBase):
         self.position = self.relative_board[0]
 
     def get_ring_setting(self):
-        return self.position_ring[self.relative_board.index('A')] - 1
+        return alphabet.index(self.relative_board[0])
 
     def set_ring_setting(self, setting):
         """Sets rotor indicator offset relative to the internal wiring"""
