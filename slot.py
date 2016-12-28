@@ -47,8 +47,7 @@ class RotorSlot(BaseSlot):
         self.generate_contents(DataStorage.get_info('Enigma1', 'rotor'))
 
         # Ring setting indicator
-        setting_idx = self.master.enigma.rotors[index].ring_setting
-        print(setting_idx)
+        setting_idx = self.master.enigma.ring_settings[index]
         self.ring_var = StringVar(value=labels[setting_idx])
 
         Label(self, text='RING\nSETTING', bd=1, relief='sunken').pack(

@@ -112,7 +112,7 @@ class Enigma:
 
     @property
     def ring_settings(self):
-        return [rotor.get_ring_setting() for rotor in self.rotors[::-1]]
+        return [rotor.get_ring_setting() for rotor in self.rotors]
 
     @ring_settings.setter
     def ring_settings(self, offsets):
