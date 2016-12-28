@@ -1,6 +1,6 @@
 from tkinter import Tk, Frame, Button, IntVar, messagebox
 from config_handler import save_config, load_config
-from enigma import Enigma
+from enigma import TkEnigma
 from misc import get_icon, baseinit, bg, select_all
 from plugboard_gui import PlugboardMenu
 from rotor_gui import RotorMenu
@@ -22,7 +22,7 @@ class Root(Tk):
 
         baseinit(self)
 
-        self.enigma = Enigma('UKW-B', ['I', 'II', 'III'], master=self)
+        self.enigma = TkEnigma(self, 'UKW-B', ['I', 'II', 'III'], )
         self.playback = Playback(self)
 
         # Window config

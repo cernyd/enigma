@@ -2,17 +2,16 @@ from tkinter import messagebox
 from rotor_factory import RotorFactory
 
 
+
+
 class Enigma:
     """Enigma machine object emulating all mechanical processes in the real enigma machine"""
-    def __init__(self, reflector=None, rotors=None, master=None, config_data=None):
+    def __init__(self, reflector=None, rotors=None, config_data=None):
         self.reflector = reflector
         self._rotors = []
         self.rotors = rotors  # Calling property
         self.__plugboard = []
         self.last_output = ''  # To avoid sending the same data from rotor position class
-
-        if master:
-            self.master = master
 
     @property
     def plugboard(self):
@@ -99,18 +98,12 @@ class Enigma:
         return letter  # If no connection found
 
     def rotate_primary(self, places=1):
-        if hasattr(self, 'master'):
-            rotor_lock = self.master.rotor_lock
-        else:
-            rotor_lock = False
-
-        if not rotor_lock:
-            rotate_next = False
-            index = 0
-            for rotor in self._rotors:
-                if rotate_next or index == 0:
-                    rotate_next = rotor.rotate(places)
-                index += 1
+        rotate_next = False
+        index = 0
+        for rotor in self._rotors:
+            if rotate_next or index == 0:
+                rotate_next = rotor.rotate(places)
+            index += 1
 
     def button_press(self, letter):
         self.rotate_primary()
@@ -141,3 +134,14 @@ class Enigma:
         self._reflector.config(**data['reflector'])
         for rotor, config in zip(self._rotors, data['rotors']):
             rotor.config(** config)
+
+
+class TkEnigma(Enigma):
+    """Enigma adjusted for Tk rotor lock"""
+    def __init__(self, master, *config):
+        Enigma.__init__(self, *config)
+        self.master = master
+
+    def rotate_primary(self, places=1):
+        if not self.master.rotor_lock:
+            Enigma.rotate_primary(self, places)
