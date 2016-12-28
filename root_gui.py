@@ -1,7 +1,7 @@
 from tkinter import Tk, Frame, Button, IntVar, messagebox
 from config_handler import save_config, load_config
 from enigma import Enigma
-from misc import get_icon, baseinit, bg
+from misc import get_icon, baseinit, bg, select_all
 from plugboard_gui import PlugboardMenu
 from rotor_gui import RotorMenu
 from sound_ctl import Playback
@@ -82,7 +82,7 @@ class Root(Tk):
         self.enigma.reflector = 'UKW-B'
         self.enigma.rotors = ['III', 'II', 'I']
         self.enigma.plugboard = []
-        self.io_board.text_input.delete('0.0', 'end')
+        self.io_board.text_input.delete(*select_all)
         self.last_len = 0
 
         self._autorotate.set(1)
@@ -106,7 +106,7 @@ class Root(Tk):
     def rotor_menu(self):
         """Opens the rotor gui and applies new values after closing"""
         self.wait_window(RotorMenu(self.enigma))
-        self.io_board.text_input.delete('0.0', 'end')
+        self.io_board.text_input.delete(*select_all)
         self.io_board.format_entries()
 
     @property

@@ -25,10 +25,32 @@ class RotorBase:
         """Relative output to absolute output"""
         return alphabet[self.relative_board.index(routed_output)]
 
+    def visualise(self, info, mode='forward'):
+        info = info[::-1]
+        boards = [alphabet, self.relative_board, self.relative_board, alphabet]
+        index = 0
+        for _ in alphabet:
+            curr_line = []
+            for symb, board in zip(info, boards):
+                if symb == board[index]:
+                    curr_line.append('<- ' + board[index])
+                else:
+                    curr_line.append('   ' + board[index])
+            print("{} | {} {} | {}".format(*curr_line))
+            index += 1
+
+
+
     def forward(self, letter):
         """Routes letter from front to back"""
+        info = []
+        info.append(letter)
         relative_input = self.relative_input(letter)
+        info.append(relative_input)
         routed_output = self.back_board[alphabet.index(relative_input)]
+        info.append(routed_output)
+        info.append(self.absolute_output(routed_output))
+        self.visualise(info)
         return self.absolute_output(routed_output)
 
     def backward(self, letter):
@@ -97,10 +119,12 @@ class Rotor(RotorBase):
         self.position = self.relative_board[0]
 
     def get_ring_setting(self):
-        return alphabet.index(self.relative_board[0])
+        return self.position_ring[self.relative_board.index('A')] - 1
 
     def set_ring_setting(self, setting):
         """Sets rotor indicator offset relative to the internal wiring"""
-        setting -= self.get_ring_setting()
+        # print('Setting > ', alphabet[self.get_ring_setting()])
+        setting -= self.get_ring_setting() + 1
+        # print('New setting > ', alphabet[setting])
         self.relative_board = self.relative_board[setting:] + \
                               self.relative_board[:setting]

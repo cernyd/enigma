@@ -7,6 +7,9 @@ font = ('Arial', 10)
 bg = 'gray85'
 
 
+select_all = '0.0', 'end'
+
+
 def get_icon(icon):
     """Gets icon path from the icon folder"""
     return path.join('icons', icon)
