@@ -4,10 +4,6 @@ from plug_socket import PlugSocket
 from rotor_factory import DataStorage
 
 
-layout = DataStorage.get_info('layout')
-labels = DataStorage.get_info('labels')
-
-
 class PlugboardMenu(Toplevel):
     """GUI for visual plugboard pairing setup"""
     def __init__(self, enigma_instance, *args, **kwargs):
@@ -26,10 +22,11 @@ class PlugboardMenu(Toplevel):
         rows = []
         self.plug_sockets = []
 
-        for row in layout:
+        for row in DataStorage.get_info('layout'):
             new_row = Frame(self)
             for item in row:
-                self.plug_sockets.append(PlugSocket(new_row, self, labels[item]))
+                self.plug_sockets.append(PlugSocket(new_row, self,
+                                                    DataStorage.get_info('labels')[item]))
             rows.append(new_row)
 
         for row in rows:

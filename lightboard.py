@@ -1,24 +1,21 @@
 from tkinter import Frame, Label
 from rotor_factory import DataStorage
-
-
-layout = DataStorage.get_info('layout')
-labels = DataStorage.get_info('labels')
+from misc import bg
 
 
 class Lightboard(Frame):
     def __init__(self, master, *args, **kwargs):
-        Frame.__init__(self, master, bd=1, relief='raised', bg='gray85', *args, *kwargs)
+        Frame.__init__(self, master, bd=1, relief='raised', bg=bg, *args, *kwargs)
 
         rows = []
         self.bulbs = []
 
-        for row in layout:
+        for row in DataStorage.get_info('layout'):
             new_row = Frame(self)
             for item in row:
-                text = labels[item][0]
+                text = DataStorage.get_info('labels')[item][0]
                 self.bulbs.append(
-                    Label(new_row, text=text, font=('Arial', 14), bg='gray85',
+                    Label(new_row, text=text, font=('Arial', 14), bg=bg,
                           padx=2))
             rows.append(new_row)
 

@@ -1,5 +1,6 @@
 from tkinter import Frame, Scrollbar, Text, Label
 from re import sub
+from misc import font
 
 
 class IOBoard(Frame):
@@ -17,14 +18,14 @@ class IOBoard(Frame):
         self.output_scrollbar = Scrollbar(self)
 
         # IO init
-        Label(self, text='Input', font=('Arial', 12)).grid(row=0, column=0)
+        Label(self, text='Input', font=font).grid(row=0, column=0)
 
         self.text_input = Text(self, width=25, height=5,
                                yscrollcommand=self.input_scrollbar_wrapper)
 
         self.text_input.is_input_widget = True
 
-        Label(self, text='Output', font=('Arial', 12)).grid(row=2, column=0)
+        Label(self, text='Output', font=font).grid(row=2, column=0)
 
         self.text_output = Text(self, width=25, height=5,
                                 yscrollcommand=self.output_scrollbar_wrapper,
