@@ -43,8 +43,6 @@ class IOBoard(Frame):
 
         self.last_len = 0  # Last input string length
 
-        # self.press_event()
-
     def status(self):
         """Checks for any changes in the entered text length"""
         self.format_entries()

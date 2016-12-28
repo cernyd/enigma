@@ -105,7 +105,6 @@ class Enigma:
             rotate_next = False
             index = 0
             for rotor in self._rotors:
-                print('ROTATE')
                 if rotate_next or index == 0:
                     rotate_next = rotor.rotate(places)
                 index += 1
