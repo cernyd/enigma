@@ -11,7 +11,7 @@ class RotorBase:
         self.valid_cfg.extend(valid_cfg)
 
         # Necessary config data
-        self.position_ring = list(range(1,27))
+        self.position_ring = alphabet # list(range(1,27))
         self.back_board = back_board
         self.relative_board = alphabet
         self.turnover = turnover
@@ -37,7 +37,7 @@ class RotorBase:
                     curr_line.append('<- ' + board[index])
                 else:
                     curr_line.append('   ' + board[index])
-            letter = alphabet[self.position_ring[index]-1]
+            letter = self.position_ring[index]
             indicator = ' %s ' % letter if index != 0 else '[%s]' % letter
             curr_line.insert(1, indicator)
             print("{} ||{}||{} {} | {}".format(*curr_line))
@@ -99,7 +99,7 @@ class Rotor(RotorBase):
     def rotate(self, places=1):
         """Rotates rotor by one x places, returns True if the next rotor should
         be turned over"""
-        self.set_offset(places)
+        self.change_offset(places)
         return self.did_turnover()
 
     def did_turnover(self):
@@ -110,7 +110,7 @@ class Rotor(RotorBase):
             return True
         return False
 
-    def set_offset(self, places=1):
+    def change_offset(self, places=1):
         """Sets rotor offset relative to the enigma"""
         self.last_position = self.relative_board[0]
         self.relative_board = self.relative_board[places:] + \
@@ -119,9 +119,15 @@ class Rotor(RotorBase):
                               self.position_ring[:places]
         self.position = self.relative_board[0]
 
+    def set_position(self, position):
+        while self.position_ring[0] != position:
+            self.change_offset()
+
     def get_ring_setting(self):
-        return self.position_ring[self.relative_board.index('A')] - 1
+        return self.position_ring[self.relative_board.index('A')]
 
     def set_ring_setting(self, setting):
         """Sets rotor indicator offset relative to the internal wiring"""
-        setting -= 1 # New setting
+        while self.position_ring.index(setting) != self.relative_board.index('A'):
+            self.relative_board = self.relative_board[1:] + \
+                                  self.relative_board[:1]
