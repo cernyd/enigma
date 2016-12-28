@@ -41,9 +41,7 @@ class Enigma:
 
     @property
     def rotor_turnovers(self):
-        return_list = [self.reflector.turnover]
-        return_list.extend([rotor.turnover for rotor in self._rotors])
-        return return_list
+        return [rotor.turnover for rotor in self._rotors[::-1]]
 
     @property
     def rotors(self):
@@ -62,7 +60,12 @@ class Enigma:
 
     @property
     def positions(self):
-        return [rotor.back_board for rotor in self._rotors]
+        return [rotor.position for rotor in self._rotors[::-1]]
+
+    @positions.setter
+    def positions(self, positions):
+        for position, rotor in zip(positions, self._rotors):
+            rotor.set_position(position)
 
     @property
     def reflector(self):
@@ -79,7 +82,7 @@ class Enigma:
 
     @property
     def ring_settings(self):
-        return [rotor.get_ring_setting() for rotor in reversed(self.rotors)]
+        return [rotor.get_ring_setting() for rotor in self.rotors]
 
     @ring_settings.setter
     def ring_settings(self, offsets):

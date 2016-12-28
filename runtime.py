@@ -1,22 +1,23 @@
 from root_gui import Root
 
 
-if __name__ == '__main__':
-    root = Root()
-    root.mainloop()
+# if __name__ == '__main__':
+#     root = Root()
+#     root.mainloop()
 
 
 # ----------------------------------- Debug part ------------------------------
 
 from os import system
+from enigma import Enigma
 
-# from enigma import Enigma
-# test = Enigma('UKW-B', ['I', 'II', 'III'])
-# test.ring_settings = 1,2,3
+test = Enigma('UKW-B', ['I', 'II', 'III'])
+
+# test.ring_settings = 'A', 'B', 'C'
 # try:
 #     while True:
 #         system('cls')
-#         data = [test.rotor_labels[1:], test.positions, test.rotor_turnovers[1:],
+#         data = [test.rotor_labels[1:], test.positions, test.rotor_turnovers,
 #                 test.ring_settings]
 #         print('SLOW - MEDIUM - FAST')
 #         for item in data:
