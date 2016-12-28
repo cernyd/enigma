@@ -94,7 +94,7 @@ class Rotor(RotorBase):
     def __init__(self, **cfg):
         RotorBase.__init__(self, **cfg, valid_cfg=('position', ))
         self.last_position = None
-        self.position = 0
+        self.position = self.position_ring[0]
 
     def rotate(self, places=1):
         """Rotates rotor by one x places, returns True if the next rotor should
