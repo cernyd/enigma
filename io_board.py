@@ -1,6 +1,6 @@
 from tkinter import Frame, Scrollbar, Text, Label
 from re import sub
-from misc import font
+from misc import font, select_all
 
 
 class IOBoard(Frame):
@@ -120,24 +120,24 @@ class IOBoard(Frame):
     @property
     def input_box(self):
         """Gets the value of the input field"""
-        return self.text_input.get('0.0', 'end').upper().replace('\n', '')
+        return self.text_input.get(*select_all).upper().replace('\n', '')
 
     @property
     def output_box(self):
         """Gets the value of the output field"""
-        return self.text_output.get('0.0', 'end').upper().replace('\n', '')
+        return self.text_output.get(*select_all).upper().replace('\n', '')
 
     @input_box.setter
     def input_box(self, string):
         """Sets input field to the value of string"""
-        self.text_input.delete('0.0', 'end')
+        self.text_input.delete(*select_all)
         self.text_input.insert('0.0', string)
 
     @output_box.setter
     def output_box(self, string):
         """Sets output field to the value of string"""
         self.text_output.config(state='normal')
-        self.text_output.delete('0.0', 'end')
+        self.text_output.delete(*select_all)
         self.text_output.insert('0.0', string)
         self.text_output.config(state='disabled')
 

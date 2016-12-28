@@ -1,0 +1,5 @@
+1. Rotor order is reversed when retrieving from enigma instance
+2. Fix plugboard
+3. Decrease entropy and refactor
+
+SLOW 0 - MEDIUM 1 - FAST 2

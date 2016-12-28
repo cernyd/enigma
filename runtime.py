@@ -1,14 +1,16 @@
 from root_gui import Root
 
-
+"""
 if __name__ == '__main__':
     root = Root()
     root.mainloop()
+"""
 
+# ----------------------------------- Debug part ------------------------------
 
-# Debug part
+from os import system
+
 # from enigma import Enigma
-# from os import system
 # test = Enigma('UKW-B', ['I', 'II', 'III'])
 # test.ring_settings = 1,2,3
 # try:
@@ -19,16 +21,21 @@ if __name__ == '__main__':
 #         print('SLOW - MEDIUM - FAST')
 #         for item in data:
 #             print('{} - {} - {}'.format(*item))
-#         # eval(input("enter command > "))
 #         input()
 #         test.rotate_primary()
 # except Exception as err:
 #     input(err)
 
-# from rotor_factory import RotorFactory
-# test = RotorFactory.produce('Enigma1', 'rotor', 'I')
-# test.set_ring_setting(2)
-# print('Forwarded > ', test.forward('A'))
-# print('Ring setting > ', test.get_ring_setting())
-# print('Position ring  > ', test.position_ring)
-# print('Relative board > ', list(test.relative_board))
+from rotor_factory import RotorFactory
+test = RotorFactory.produce('Enigma1', 'rotor', 'I')
+test.set_ring_setting(2)
+while True:
+    # system('cls')
+    print('Output > ', test.forward('A'))
+    # print('Ring setting > ', test.get_ring_setting())
+    # print('Position ring  > ', test.position_ring)
+    # print('Relative board > ', list(test.relative_board))
+    input()
+    test.rotate()
+
+# -----------------------------------------------------------------------------
