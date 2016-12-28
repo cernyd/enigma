@@ -49,4 +49,4 @@ class RotorIndicator(Frame):
 
     def update_indicator(self, event=None):
         raw = self.enigma.rotors[self.index].position_ring[0]
-        self.indicator.config(text=format_digit(raw))
+        self.indicator.config(text=raw)
