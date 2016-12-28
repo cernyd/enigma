@@ -6,12 +6,11 @@ class RotorBase:
     def __init__(self, label='', back_board='', turnover='', valid_cfg=tuple()):
         """All parameters except should be passed in **config, valid_cfg is a
         tuple of additional configuration data for config loading and dumping"""
-        self.valid_cfg = ['back_board', 'label', 'turnover', 'relative_board',
-                          'position_ring']
+        self.valid_cfg = ['back_board', 'label', 'turnover', 'relative_board']
         self.valid_cfg.extend(valid_cfg)
 
         # Necessary config data
-        self.position_ring = alphabet # list(range(1,27))
+
         self.back_board = back_board
         self.relative_board = alphabet
         self.turnover = turnover
@@ -25,34 +24,10 @@ class RotorBase:
         """Relative output to absolute output"""
         return alphabet[self.relative_board.index(routed_output)]
 
-    def visualise(self, info, mode='forward'):
-        """Visualises how the rotor works"""
-        info = info[::-1]
-        boards = [alphabet, self.relative_board, self.relative_board, alphabet]
-        index = 0
-        for _ in alphabet:
-            curr_line = []
-            for symb, board in zip(info, boards):
-                if symb == board[index]:
-                    curr_line.append('<- ' + board[index])
-                else:
-                    curr_line.append('   ' + board[index])
-            letter = self.position_ring[index]
-            indicator = ' %s ' % letter if index != 0 else '[%s]' % letter
-            curr_line.insert(1, indicator)
-            print("{} ||{}||{} {} | {}".format(*curr_line))
-            index += 1
-
     def forward(self, letter):
         """Routes letter from front to back"""
-        info = []
-        info.append(letter)
         relative_input = self.relative_input(letter)
-        info.append(relative_input)
         routed_output = self.back_board[alphabet.index(relative_input)]
-        info.append(routed_output)
-        info.append(self.absolute_output(routed_output))
-        self.visualise(info)
         return self.absolute_output(routed_output)
 
     def backward(self, letter):
@@ -78,8 +53,7 @@ class RotorBase:
         return cfg
 
     def __repr__(self):
-        """Visualising wiring made easier"""
-        return self.back_board
+        return 'Label: %s' % self.label
 
 
 class Reflector(RotorBase):
@@ -92,8 +66,9 @@ class Reflector(RotorBase):
 class Rotor(RotorBase):
     """Inherited from RotorBase, adds rotation and ring setting functionality"""
     def __init__(self, **cfg):
-        RotorBase.__init__(self, **cfg, valid_cfg=('position', ))
+        RotorBase.__init__(self, **cfg, valid_cfg=('position', 'position_ring'))
         self.last_position = None
+        self.position_ring = alphabet
         self.position = self.position_ring[0]
 
     def rotate(self, places=1):
@@ -131,3 +106,21 @@ class Rotor(RotorBase):
         while self.position_ring.index(setting) != self.relative_board.index('A'):
             self.relative_board = self.relative_board[1:] + \
                                   self.relative_board[:1]
+
+    def visualise(self, info, mode='forward'):
+        """Visualises how the rotor works"""
+        info = info[::-1]
+        boards = [alphabet, self.relative_board, self.relative_board, alphabet]
+        index = 0
+        for _ in alphabet:
+            curr_line = []
+            for symb, board in zip(info, boards):
+                if symb == board[index]:
+                    curr_line.append('<- ' + board[index])
+                else:
+                    curr_line.append('   ' + board[index])
+            letter = self.position_ring[index]
+            indicator = ' %s ' % letter if index != 0 else '[%s]' % letter
+            curr_line.insert(1, indicator)
+            print("{} ||{}||{} {} | {}".format(*curr_line))
+            index += 1
