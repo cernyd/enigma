@@ -48,8 +48,6 @@ class Reflector(RotorBase):
 # here: http://users.telenet.be/d.rijmenants/en/enigmatech.htm
 
 
-
-
 class Rotor(RotorBase):
     """Inherited from RotorBase, adds rotation and ring setting functionality"""
 
@@ -119,7 +117,7 @@ class Rotor(RotorBase):
             self.relative_board = self.relative_board[1:] + \
                                   self.relative_board[:1]
 
-    def visualise(self, info, mode='forward'):
+    def visualise(self, info):
         """Visualises how the rotor works"""
         info = info[::-1]
         boards = [alphabet, self.relative_board, self.relative_board, alphabet]
