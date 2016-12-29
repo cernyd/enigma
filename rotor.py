@@ -59,6 +59,12 @@ class RotorBase:
 class Reflector(RotorBase):
     """Reflector class, does not overload anything from the RotorBase"""
 
+    def forward(self, letter):
+        return RotorBase.absolute_output(self, letter)
+
+    def backward(self, letter):
+        return
+
 
 # here: http://users.telenet.be/d.rijmenants/en/enigmatech.htm
 
