@@ -1,4 +1,3 @@
-from functools import wraps
 from string import ascii_uppercase as alphabet
 
 
@@ -67,13 +66,11 @@ class Rotor(RotorBase):
         """Routes letters from back board to front board"""
         return alphabet[self.back_board.index(letter)]
 
-    def _compensate(func):  # Please ignore pycharm warnings!
-        @wraps(func)
+    def _compensate(func):
         def wrapper(self, letter):
             relative_input = self.relative_board[alphabet.index(letter)]
             return alphabet[
                 self.relative_board.index(func(self, relative_input))]
-
         return wrapper
 
     @_compensate
