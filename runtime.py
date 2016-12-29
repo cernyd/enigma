@@ -1,17 +1,13 @@
 from root_gui import Root
 
-
-# if __name__ == '__main__':
-#     root = Root()
-#     root.mainloop()
+if __name__ == '__main__':
+    root = Root()
+    root.mainloop()
 
 
 # ----------------------------------- Debug part ------------------------------
 
-from os import system
-from enigma import Enigma
-
-test = Enigma('UKW-B', ['I', 'II', 'III'])
+# test = Enigma('UKW-B', ['I', 'II', 'III'])
 
 # test.ring_settings = 'A', 'B', 'C'
 # try:

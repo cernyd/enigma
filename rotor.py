@@ -1,40 +1,22 @@
+from functools import wraps
 from string import ascii_uppercase as alphabet
 
 
 class RotorBase:
     """Base class for Rotors and Reflectors"""
-    def __init__(self, label='', back_board='', turnover='', valid_cfg=tuple()):
+
+    def __init__(self, label='', back_board='', valid_cfg=tuple()):
         """All parameters except should be passed in **config, valid_cfg is a
         tuple of additional configuration data for config loading and dumping"""
-        self.valid_cfg = ['back_board', 'label', 'turnover', 'relative_board']
+        self.valid_cfg = ['back_board', 'label']
         self.valid_cfg.extend(valid_cfg)
 
-        # Necessary config data
-
         self.back_board = back_board
-        self.relative_board = alphabet
-        self.turnover = turnover
         self.label = label
 
-    def relative_input(self, letter):
-        """Convert absolute input to relative input"""
-        return self.relative_board[alphabet.index(letter)]
-
-    def absolute_output(self, routed_output):
-        """Relative output to absolute output"""
-        return alphabet[self.relative_board.index(routed_output)]
-
-    def forward(self, letter):
-        """Routes letter from front to back"""
-        relative_input = self.relative_input(letter)
-        routed_output = self.back_board[alphabet.index(relative_input)]
-        return self.absolute_output(routed_output)
-
-    def backward(self, letter):
-        """Routes letter from back to front"""
-        relative_entry = self.relative_input(letter)
-        routed_output = alphabet[self.back_board.index(relative_entry)]
-        return self.absolute_output(routed_output)
+    def _route_forward(self, letter):
+        """Routes letters from front board to back board"""
+        return self.back_board[alphabet.index(letter)]
 
     def config(self, **attrs):
         """Loads rotor configuration data"""
@@ -53,37 +35,64 @@ class RotorBase:
         return cfg
 
     def __repr__(self):
-        return 'Label: %s' % self.label
+        return 'Label: {self.label}'
 
 
 class Reflector(RotorBase):
-    """Reflector class, does not overload anything from the RotorBase"""
+    """Reflector class, used to """
 
-    def forward(self, letter):
-        return RotorBase.absolute_output(self, letter)
-
-    def backward(self, letter):
-        return
+    def reflect(self, letter):
+        """Reflects letter back"""
+        return self._route_forward(letter)
 
 
 # here: http://users.telenet.be/d.rijmenants/en/enigmatech.htm
 
 
+
+
 class Rotor(RotorBase):
     """Inherited from RotorBase, adds rotation and ring setting functionality"""
-    def __init__(self, **cfg):
-        RotorBase.__init__(self, **cfg, valid_cfg=('position', 'position_ring'))
-        self.last_position = None
-        self.position_ring = alphabet
-        self.position = self.position_ring[0]
+
+    def __init__(self, turnover=tuple(), **cfg):
+        RotorBase.__init__(self, **cfg, valid_cfg=('position', 'position_ring',
+                                                   'turnover',
+                                                   'relative_board'))
+        self.position_ring, self.relative_board = [alphabet] * 2
+        self.turnover = turnover
+        self.last_position = ''
+        self.position = 'A'
+
+    def _route_backward(self, letter):
+        """Routes letters from back board to front board"""
+        return alphabet[self.back_board.index(letter)]
+
+    def _compensate(func):  # Please ignore pycharm warnings!
+        @wraps(func)
+        def wrapper(self, letter):
+            relative_input = self.relative_board[alphabet.index(letter)]
+            return alphabet[
+                self.relative_board.index(func(self, relative_input))]
+
+        return wrapper
+
+    @_compensate
+    def forward(self, letter):
+        """Routes letter from front to back"""
+        return self._route_forward(letter)
+
+    @_compensate
+    def backward(self, letter):
+        """Routes letter from back to front"""
+        return self._route_backward(letter)
 
     def rotate(self, places=1):
         """Rotates rotor by one x places, returns True if the next rotor should
         be turned over"""
         self.change_offset(places)
-        return self.did_turnover()
+        return self._did_turnover()
 
-    def did_turnover(self):
+    def _did_turnover(self):
         """Checks if the next position should turn by one place."""
         if (self.last_position, self.position) == self.turnover:
             return True

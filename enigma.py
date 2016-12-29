@@ -1,7 +1,6 @@
 from tkinter import messagebox
+
 from rotor_factory import RotorFactory
-
-
 
 
 class Enigma:
@@ -113,7 +112,7 @@ class Enigma:
         for rotor in self._rotors:
             output = rotor.forward(output)
 
-        output = self.reflector.forward(output)
+        output = self.reflector.reflect(output)
 
         for rotor in reversed(self._rotors):
             output = rotor.backward(output)
