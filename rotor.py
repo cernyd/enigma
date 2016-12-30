@@ -50,15 +50,12 @@ class Reflector(RotorBase):
 
 class Rotor(RotorBase):
     """Inherited from RotorBase, adds rotation and ring setting functionality"""
-
     def __init__(self, turnover=tuple(), **cfg):
-        RotorBase.__init__(self, **cfg, valid_cfg=('position', 'position_ring',
-                                                   'turnover',
+        RotorBase.__init__(self, **cfg, valid_cfg=('position_ring', 'turnover',
                                                    'relative_board'))
         self.position_ring, self.relative_board = [alphabet] * 2
         self.turnover = turnover
-        self.last_position = ''
-        self.position = 'A'
+        self._last_position = ''
 
     def _route_backward(self, letter):
         """Routes letters from back board to front board"""
@@ -89,33 +86,44 @@ class Rotor(RotorBase):
 
     def _did_turnover(self):
         """Checks if the next position should turn by one place."""
-        if (self.last_position, self.position) == self.turnover:
+        if (self._last_position, self.position) == self.turnover:
             return True
-        elif (self.position, self.last_position) == self.turnover:
+        elif (self.position, self._last_position) == self.turnover:
             return True
         return False
 
+    def change_board_offset(self, board, places=1):
+        """Changes offset of a specified board."""
+        print(board)
+        print(places)
+        old_val = getattr(self, board)
+        new_val = old_val[places:] + old_val[:places]
+        setattr(self, board, new_val)
+
     def change_offset(self, places=1):
         """Sets rotor offset relative to the enigma"""
-        self.last_position = self.relative_board[0]
-        self.relative_board = self.relative_board[places:] + \
-                              self.relative_board[:places]
-        self.position_ring = self.position_ring[places:] + \
-                              self.position_ring[:places]
-        self.position = self.relative_board[0]
+        self._last_position = self.position
+        map(lambda board: self.change_board_offset(board, places),
+            ['relative_board', 'position_ring'])
 
-    def set_position(self, position):
+    @property
+    def position(self):
+        return self.relative_board[0]
+
+    @position.setter
+    def position(self, position):
         while self.position_ring[0] != position:
             self.change_offset()
 
-    def get_ring_setting(self):
+    @property
+    def ring_setting(self):
         return self.position_ring[self.relative_board.index('A')]
 
-    def set_ring_setting(self, setting):
+    @ring_setting.setter
+    def ring_setting(self, setting):
         """Sets rotor indicator offset relative to the internal wiring"""
-        while self.position_ring.index(setting) != self.relative_board.index('A'):
-            self.relative_board = self.relative_board[1:] + \
-                                  self.relative_board[:1]
+        while self.ring_setting != setting:
+            self.change_board_offset('relative_board')
 
     def visualise(self, info):
         """Visualises how the rotor works"""
