@@ -6,6 +6,7 @@ from rotor_factory import RotorFactory
 class Enigma:
     """Enigma machine object emulating all mechanical processes in the real enigma machine"""
     def __init__(self, reflector=None, rotors=None, config_data=None):
+        self._reflector = None
         self.reflector = reflector
         self._rotors = []
         self.rotors = rotors  # Calling property
@@ -31,15 +32,17 @@ class Enigma:
         self.__plugboard = plugboard_pairs
 
     @property
+    def reflector_label(self):
+        return self.reflector.label
+
+    @property
     def rotor_labels(self):
         """Returns rotor type ( label ), for the rotor order window."""
-        return_list = [self.reflector.label]
-        return_list.extend([rotor.label for rotor in reversed(self._rotors)])
-        return return_list
+        return [rotor.label for rotor in self._rotors]
 
     @property
     def rotor_turnovers(self):
-        return [rotor.turnover for rotor in self._rotors[::-1]]
+        return [rotor.turnover for rotor in self._rotors]
 
     @property
     def rotors(self):
@@ -49,8 +52,9 @@ class Enigma:
     def rotors(self, labels):
         """Sets rotors
         REMEMBER! SLOW - MEDIUM - FAST"""
+        self._rotors = []
         try:
-            for label in reversed(labels):
+            for label in labels:
                 self._rotors.append(RotorFactory.produce('Enigma1', 'rotor', label))
         except AttributeError:
             messagebox.showwarning('Invalid rotor', 'Some of rotors are not \n'
@@ -58,12 +62,12 @@ class Enigma:
 
     @property
     def positions(self):
-        return [rotor.position for rotor in self._rotors[::-1]]
+        return [rotor.position for rotor in self._rotors]
 
     @positions.setter
     def positions(self, positions):
         for position, rotor in zip(positions, self._rotors):
-            rotor.set_position(position)
+            rotor.position = position
 
     @property
     def reflector(self):
@@ -80,14 +84,14 @@ class Enigma:
 
     @property
     def ring_settings(self):
-        return [rotor.get_ring_setting() for rotor in self.rotors]
+        return [rotor.ring_setting for rotor in self.rotors]
 
     @ring_settings.setter
     def ring_settings(self, offsets):
         for rotor, setting in zip(self.rotors, offsets):
-            rotor.set_ring_setting(setting)
+            rotor.ring_setting = setting
 
-    def plugboard_route(self, letter):
+    def _plugboard_route(self, letter):
         neighbour = []
         for pair in self.__plugboard:
             if letter in pair:
@@ -99,25 +103,24 @@ class Enigma:
     def rotate_primary(self, places=1):
         rotate_next = False
         index = 0
-        for rotor in self._rotors:
+        for rotor in reversed(self._rotors):
             if rotate_next or index == 0:
                 rotate_next = rotor.rotate(places)
             index += 1
 
     def button_press(self, letter):
         self.rotate_primary()
-        output = letter
-        output = self.plugboard_route(output)
+        output = self._plugboard_route(letter)
 
-        for rotor in self._rotors:
+        for rotor in reversed(self._rotors):
             output = rotor.forward(output)
 
         output = self.reflector.reflect(output)
 
-        for rotor in reversed(self._rotors):
+        for rotor in self._rotors:
             output = rotor.backward(output)
 
-        output = self.plugboard_route(output)
+        output = self._plugboard_route(output)
 
         return output
 

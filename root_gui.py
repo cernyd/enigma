@@ -1,18 +1,16 @@
+from glob import glob
 from tkinter import Tk, Frame, Button, IntVar, messagebox
+
 from config_handler import save_config, load_config
 from enigma import TkEnigma
-from misc import get_icon, baseinit, bg, select_all
-from plugboard_gui import PlugboardMenu
-from rotor_gui import RotorMenu
-from sound_ctl import Playback
-from rotor_indicator import RotorIndicator
-from glob import glob
 from io_board import IOBoard
 from lightboard import Lightboard
+from misc import get_icon, baseinit, bg, select_all
+from plugboard_gui import PlugboardMenu
 from root_menu import RootMenu
-
-
-
+from rotor_gui import RotorMenu
+from rotor_indicator import RotorIndicator
+from sound_ctl import Playback
 
 
 class Root(Tk):
@@ -22,7 +20,7 @@ class Root(Tk):
 
         baseinit(self)
 
-        self.enigma = TkEnigma(self, 'UKW-B', ['I', 'II', 'III'], )
+        self.enigma = TkEnigma(self, 'UKW-B', ['I', 'II', 'III'])
         self.playback = Playback(self)
 
         # Window config
@@ -40,9 +38,12 @@ class Root(Tk):
         self.open_plugboard = Button(self, text='Plugboard', command=self.plugboard_menu)
 
         # Rotor
-        self.left_indicator = RotorIndicator(self.rotor_container, self.enigma, self.playback, 2)
-        self.mid_indicator = RotorIndicator(self.rotor_container, self.enigma, self.playback, 1)
-        self.right_indicator = RotorIndicator(self.rotor_container, self.enigma, self.playback, 0)
+        self.left_indicator = RotorIndicator(self.rotor_container, self.enigma,
+                                             0)
+        self.mid_indicator = RotorIndicator(self.rotor_container, self.enigma,
+                                            1)
+        self.right_indicator = RotorIndicator(self.rotor_container, self.enigma,
+                                              2)
 
         self.left_indicator.pack(side='left')
         self.mid_indicator.pack(side='left')
@@ -144,10 +145,9 @@ class Root(Tk):
                 self.reset_all()
                 self.enigma.load_config(data['enigma'])
                 self.update_indicators()
-            except Exception as err_msg:
+            except Exception as err:
                 messagebox.showerror('Loading error', 'Failed to load '
                                                       'configuration,'
-                                                      'Error message:"%s"' %
-                                     err_msg)
+                                                      'Error message:"%s"' % err)
         else:
             messagebox.showerror('Loading error', 'No save file found!')

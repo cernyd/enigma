@@ -1,9 +1,9 @@
+from functools import wraps
 from string import ascii_uppercase as alphabet
 
 
 class RotorBase:
     """Base class for Rotors and Reflectors"""
-
     def __init__(self, label='', back_board='', valid_cfg=tuple()):
         """All parameters except should be passed in **config, valid_cfg is a
         tuple of additional configuration data for config loading and dumping"""
@@ -33,9 +33,6 @@ class RotorBase:
             cfg[attr] = self.__dict__[attr]
         return cfg
 
-    def __repr__(self):
-        return 'Label: {self.label}'
-
 
 class Reflector(RotorBase):
     """Reflector class, used to """
@@ -46,6 +43,16 @@ class Reflector(RotorBase):
 
 
 # here: http://users.telenet.be/d.rijmenants/en/enigmatech.htm
+
+
+def compensate(func):
+    @wraps(func)
+    def wrapper(self, letter):
+        relative_input = self.relative_board[alphabet.index(letter)]
+        return alphabet[
+            self.relative_board.index(func(self, relative_input))]
+
+    return wrapper
 
 
 class Rotor(RotorBase):
@@ -61,19 +68,12 @@ class Rotor(RotorBase):
         """Routes letters from back board to front board"""
         return alphabet[self.back_board.index(letter)]
 
-    def _compensate(func):
-        def wrapper(self, letter):
-            relative_input = self.relative_board[alphabet.index(letter)]
-            return alphabet[
-                self.relative_board.index(func(self, relative_input))]
-        return wrapper
-
-    @_compensate
+    @compensate
     def forward(self, letter):
         """Routes letter from front to back"""
         return self._route_forward(letter)
 
-    @_compensate
+    @compensate
     def backward(self, letter):
         """Routes letter from back to front"""
         return self._route_backward(letter)
@@ -81,7 +81,7 @@ class Rotor(RotorBase):
     def rotate(self, places=1):
         """Rotates rotor by one x places, returns True if the next rotor should
         be turned over"""
-        self.change_offset(places)
+        self.change_rotor_offset(places)
         return self._did_turnover()
 
     def _did_turnover(self):
@@ -94,17 +94,15 @@ class Rotor(RotorBase):
 
     def change_board_offset(self, board, places=1):
         """Changes offset of a specified board."""
-        print(board)
-        print(places)
         old_val = getattr(self, board)
         new_val = old_val[places:] + old_val[:places]
         setattr(self, board, new_val)
 
-    def change_offset(self, places=1):
+    def change_rotor_offset(self, places=1):
         """Sets rotor offset relative to the enigma"""
         self._last_position = self.position
-        map(lambda board: self.change_board_offset(board, places),
-            ['relative_board', 'position_ring'])
+        for board in 'relative_board', 'position_ring':
+            self.change_board_offset(board, places)
 
     @property
     def position(self):
@@ -113,7 +111,7 @@ class Rotor(RotorBase):
     @position.setter
     def position(self, position):
         while self.position_ring[0] != position:
-            self.change_offset()
+            self.change_rotor_offset()
 
     @property
     def ring_setting(self):

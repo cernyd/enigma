@@ -1,4 +1,5 @@
 from tkinter import Frame, Label, Button
+
 from misc import font, bg
 
 
@@ -12,7 +13,8 @@ def format_digit(number: int) -> str:
 
 class RotorIndicator(Frame):
     """Rotor indicator for indicating or rotating a rotor"""
-    def __init__(self, master, enigma_instance, playback_instance, index):
+
+    def __init__(self, master, enigma_instance, index):
         """
         :param master: Master for tkinter
         :param enigma_instance: Global enigma instance
@@ -34,7 +36,6 @@ class RotorIndicator(Frame):
 
         self.indicator.pack(side='top', pady=10, padx=20)
 
-        self.playback = playback_instance
         self.enigma = enigma_instance
         self.update_indicator()
 
@@ -43,7 +44,7 @@ class RotorIndicator(Frame):
         Rotates the rotor with the selected index backward
         :param places: How many places to rotate ( negative = backwards )
         """
-        self.playback.play('click')
+        self.master.master.playback.play('click')
         self.enigma.rotors[self.index].rotate(places)
         self.update_indicator()
 
