@@ -1,7 +1,6 @@
 from tkinter import Frame, Label, StringVar, Radiobutton, OptionMenu
-from tkinter import Frame, Label, StringVar, Radiobutton, OptionMenu
-from rotor_factory import DataStorage
 
+from rotor_factory import DataStorage
 
 labels = DataStorage.get_info('labels')
 
