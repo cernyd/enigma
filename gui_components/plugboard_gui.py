@@ -1,8 +1,8 @@
 from re import sub
 from tkinter import Frame, Label, Entry, StringVar, Button, Toplevel
 
+from enigma_components.rotor_factory import DataStorage
 from misc import get_icon, baseinit
-from rotor_factory import DataStorage
 
 
 class PlugboardMenu(Toplevel):

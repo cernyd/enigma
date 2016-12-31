@@ -1,4 +1,4 @@
-from root_gui import Root
+from gui_components.root_gui import Root
 from unit_tests import unittest
 
 # Main unittest before running, could warn about potential flaws

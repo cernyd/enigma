@@ -1,6 +1,6 @@
 from tkinter import messagebox
 
-from rotor_factory import RotorFactory
+from enigma_components.rotor_factory import RotorFactory
 
 
 class Enigma:

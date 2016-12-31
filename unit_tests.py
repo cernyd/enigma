@@ -1,7 +1,7 @@
 import unittest
 from functools import wraps
 
-from enigma import Enigma
+from enigma_components.enigma import Enigma
 
 
 def reset_subject(func):

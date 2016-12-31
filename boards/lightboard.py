@@ -1,5 +1,6 @@
 from tkinter import Frame, Label
-from rotor_factory import DataStorage
+
+from enigma_components.rotor_factory import DataStorage
 from misc import bg
 
 

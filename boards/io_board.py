@@ -1,5 +1,6 @@
-from tkinter import Frame, Scrollbar, Text, Label
 from re import sub
+from tkinter import Frame, Scrollbar, Text, Label
+
 from misc import font, select_all
 
 
