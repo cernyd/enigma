@@ -1,6 +1,6 @@
+from os import remove
 from tkinter import Menu
 from webbrowser import open as open_browser
-from os import remove
 
 
 class RootMenu(Menu):

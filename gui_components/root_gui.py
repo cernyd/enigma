@@ -1,15 +1,15 @@
 from glob import glob
 from tkinter import Tk, Frame, Button, IntVar, messagebox
 
+from boards.indicator_board import IndicatorBoard
+from boards.io_board import IOBoard
+from boards.lightboard import Lightboard
 from config_handler import save_config, load_config
-from enigma import TkEnigma
-from indicator_board import IndicatorBoard
-from io_board import IOBoard
-from lightboard import Lightboard
+from enigma_components.enigma import TkEnigma
+from gui_components.plugboard_gui import PlugboardMenu
+from gui_components.root_menu import RootMenu
+from gui_components.rotor_gui import RotorMenu
 from misc import get_icon, baseinit, bg, select_all
-from plugboard_gui import PlugboardMenu
-from root_menu import RootMenu
-from rotor_gui import RotorMenu
 from sound_ctl import Playback
 
 

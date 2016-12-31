@@ -1,7 +1,7 @@
 from tkinter import Toplevel, Frame, Button
-from misc import get_icon, baseinit, bg
-from slot import ReflectorSlot, RotorSlot
 
+from gui_components.slot import ReflectorSlot, RotorSlot
+from misc import get_icon, baseinit, bg
 
 """Sometimes fails to load selected rotors?"""
 

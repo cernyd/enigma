@@ -1,6 +1,6 @@
 from tkinter import Frame, Label, StringVar, Radiobutton, OptionMenu
 
-from rotor_factory import DataStorage
+from enigma_components.rotor_factory import DataStorage
 
 labels = DataStorage.get_info('labels')
 
