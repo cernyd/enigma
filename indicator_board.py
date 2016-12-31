@@ -3,6 +3,23 @@ from tkinter import Frame, Label, Button
 from misc import font, bg
 
 
+class IndicatorBoard(Frame):
+    def __init__(self, master, *args, **kwargs):
+        Frame.__init__(self, master, *args, **kwargs)
+
+        self.master = master
+        self.enigma = self.master.enigma
+
+        self.indicators = []
+        for index in range(3):
+            indicator = RotorIndicator(self, index)
+            self.indicators.append(indicator)
+            indicator.pack(side='left')
+
+    def update_indicators(self):
+        [indicator.update_indicator() for indicator in self.indicators]
+
+
 def format_digit(number: int) -> str:
     """Adds returns 01 when 1 entered etc."""
     number = str(number)
@@ -14,15 +31,11 @@ def format_digit(number: int) -> str:
 class RotorIndicator(Frame):
     """Rotor indicator for indicating or rotating a rotor"""
 
-    def __init__(self, master, enigma_instance, index):
-        """
-        :param master: Master for tkinter
-        :param enigma_instance: Global enigma instance
-        :param playback_instance: Sound playback instance
-        :param index: Indicator index to show correct values
-        """
-        Frame.__init__(self, master, bg=bg)
+    def __init__(self, master, index):
+        Frame.__init__(self, self, bg=bg)
         self.index = index
+
+        self.enigma = master.enigma
 
         cfg = dict(font=font, width=1)
 

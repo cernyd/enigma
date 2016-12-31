@@ -3,13 +3,13 @@ from tkinter import Tk, Frame, Button, IntVar, messagebox
 
 from config_handler import save_config, load_config
 from enigma import TkEnigma
+from indicator_board import IndicatorBoard
 from io_board import IOBoard
 from lightboard import Lightboard
 from misc import get_icon, baseinit, bg, select_all
 from plugboard_gui import PlugboardMenu
 from root_menu import RootMenu
 from rotor_gui import RotorMenu
-from rotor_indicator import RotorIndicator
 from sound_ctl import Playback
 
 
@@ -30,24 +30,15 @@ class Root(Tk):
         # Frames
         self.rotor_container = Frame(self, bd=1, relief='raised', bg=bg)
 
+        self.indicator_board = IndicatorBoard(self.rotor_container)
+
         # Lid
         Button(self.rotor_container, text='\n'.join('Rotors'),
                command=self.rotor_menu).pack(side='right', pady=5, padx=(15, 4))
 
         # Plugboard
-        self.open_plugboard = Button(self, text='Plugboard', command=self.plugboard_menu)
-
-        # Rotor
-        self.left_indicator = RotorIndicator(self.rotor_container, self.enigma,
-                                             0)
-        self.mid_indicator = RotorIndicator(self.rotor_container, self.enigma,
-                                            1)
-        self.right_indicator = RotorIndicator(self.rotor_container, self.enigma,
-                                              2)
-
-        self.left_indicator.pack(side='left')
-        self.mid_indicator.pack(side='left')
-        self.right_indicator.pack(side='left')
+        self.open_plugboard = Button(self, text='Plugboard',
+                                     command=self.plugboard_menu)
 
         # Settings vars
         self._sound_enabled = IntVar(value=1)
@@ -64,6 +55,7 @@ class Root(Tk):
         self.rowconfigure(index=0, weight=1)
 
         # Container init
+        self.indicator_board.pack()
         self.rotor_container.pack(fill='both', padx=5, pady=5, side='top')
         self.lightboard = Lightboard(self)
         self.lightboard.pack(side='top', fill='both', padx=5)
@@ -94,11 +86,6 @@ class Root(Tk):
         self.update_indicators()
         self.lightboard.light_up('')
         self.io_board.format_entries()
-
-    def update_indicators(self):
-        self.left_indicator.update_indicator()
-        self.mid_indicator.update_indicator()
-        self.right_indicator.update_indicator()
 
     def plugboard_menu(self):
         """Opens the plugboard GUI"""
