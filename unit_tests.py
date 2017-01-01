@@ -1,4 +1,5 @@
 import unittest
+from itertools import permutations
 
 from enigma_components.enigma import Enigma
 
@@ -7,28 +8,23 @@ class TestEnigma(unittest.TestCase):
     """Used to test if enigma class behaves like the real life counterpart"""
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
-        self.subject = Enigma('UKW-B', ['I', 'II', 'III'])
+        self.default_cfg = 'UKW-B', ['I', 'II', 'III']
+        self.subject = Enigma(*self.default_cfg)
+        self.encrypted = 'FQGAHWLMJAMTJAANUNPDY'
+        self.decrypted = 'ENIGMAUNITTESTMESSAGE'
 
     def reset_subject(self):
-        self.subject = Enigma('UKW-B', ['I', 'II', 'III'])
+        self.subject = Enigma(*self.default_cfg)
 
-    def test_encryption(self):
-        """Tests if encryption is done properly"""
-        self.reset_subject()
-        encrypted = ''
-        for letter in 'ENIGMAUNITTESTMESSAGE':
-            encrypted += self.subject.button_press(letter)
-        self.assertEqual('FQGAHWLMJAMTJAANUNPDY', encrypted,
-                         'Encryption test failed!')
-
-    def test_decryption(self):
-        """Tests if decryption is done properly"""
-        self.reset_subject()
-        decrypted = ''
-        for letter in 'FQGAHWLMJAMTJAANUNPDY':
-            decrypted += self.subject.button_press(letter)
-        self.assertEqual('ENIGMAUNITTESTMESSAGE', decrypted,
-                         'Decryption test failed!')
+    def test_encrypt_decrypt(self):
+        """Tests if encryption and decryption are working properly"""
+        for test in permutations(['encrypted', 'decrypted']):
+            self.reset_subject()
+            output = ''
+            for letter in getattr(self, test[0]):
+                output += self.subject.button_press(letter)
+            self.assertEqual(output, getattr(self, test[1]), f'Failed to '
+                                                             f'{test[1][:-2]}!')
 
     def test_rotors(self):
         """Tests if rotors are assigned properly"""
@@ -50,7 +46,7 @@ class TestEnigma(unittest.TestCase):
         """Tests if the reflector is set properly"""
         self.reset_subject()
         reflector = 'UKW-A'
-        self.subject.reflector = 'UKW-A'
+        self.subject.reflector = reflector
         self.assertEqual(self.subject.reflector_label, reflector,
                          'Invalid rotor assigned!')
 

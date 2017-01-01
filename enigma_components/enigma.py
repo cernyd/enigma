@@ -10,12 +10,12 @@ class Enigma:
         self.reflector = reflector
         self._rotors = []
         self.rotors = rotors  # Calling property
-        self.__plugboard = []
+        self._plugboard = []
         self.last_output = ''  # To avoid sending the same data from rotor position class
 
     @property
     def plugboard(self):
-        return self.__plugboard
+        return self._plugboard
 
     @plugboard.setter
     def plugboard(self, pairs):
@@ -29,7 +29,7 @@ class Enigma:
                 used.append(letter)
             plugboard_pairs.append(pair)
 
-        self.__plugboard = plugboard_pairs
+        self._plugboard = plugboard_pairs
 
     @property
     def reflector_label(self):
@@ -93,7 +93,7 @@ class Enigma:
 
     def _plugboard_route(self, letter):
         neighbour = []
-        for pair in self.__plugboard:
+        for pair in self._plugboard:
             if letter in pair:
                 neighbour.extend(pair)
                 neighbour.remove(letter)
@@ -126,7 +126,7 @@ class Enigma:
 
     def dump_config(self):
         """Dumps the whole enigma data config"""
-        return dict(plugboard=self.__plugboard,
+        return dict(plugboard=self._plugboard,
                     reflector=self.reflector.dump_config(),
                     rotors=[rotor.dump_config() for rotor in self._rotors])
 
