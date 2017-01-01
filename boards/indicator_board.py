@@ -4,7 +4,9 @@ from misc import font, bg
 
 
 class IndicatorBoard(Frame):
-    def __init__(self, master, *args, **kwargs):
+    """Contains all rotor indicators"""
+
+    def __init__(self, master, tk_master=None, *args, **kwargs):
         Frame.__init__(self, master, *args, **kwargs)
 
         self.master = master
@@ -17,20 +19,12 @@ class IndicatorBoard(Frame):
             indicator.pack(side='left')
 
     def update_indicators(self):
+        """Update all indicators"""
         [indicator.update_indicator() for indicator in self.indicators]
-
-
-def format_digit(number: int) -> str:
-    """Adds returns 01 when 1 entered etc."""
-    number = str(number)
-    if len(number) != 2:
-        number = '0' + number
-    return number
 
 
 class RotorIndicator(Frame):
     """Rotor indicator for indicating or rotating a rotor"""
-
     def __init__(self, master, index):
         Frame.__init__(self, self, bg=bg)
         self.index = index
@@ -53,14 +47,12 @@ class RotorIndicator(Frame):
         self.update_indicator()
 
     def rotate(self, places=0):
-        """
-        Rotates the rotor with the selected index backward
-        :param places: How many places to rotate ( negative = backwards )
-        """
+        """Rotates the rotor with the selected index backward"""
         self.master.master.playback.play('click')
         self.enigma.rotors[self.index].rotate(places)
         self.update_indicator()
 
     def update_indicator(self, event=None):
-        raw = self.enigma.rotors[self.index].position_ring[0]
+        """Updates what is displayed on the indicator"""
+        raw = self.enigma.rotors[self.index].position
         self.indicator.config(text=raw)

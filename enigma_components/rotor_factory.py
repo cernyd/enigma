@@ -192,21 +192,3 @@ class Rotor(RotorBase):
         """Sets rotor indicator offset relative to the internal wiring"""
         while self.ring_setting != setting:
             self.change_board_offset('relative_board')
-
-    def visualise(self, info):
-        """Visualises how the rotor works"""
-        info = info[::-1]
-        boards = [alphabet, self.relative_board, self.relative_board, alphabet]
-        index = 0
-        for _ in alphabet:
-            curr_line = []
-            for symb, board in zip(info, boards):
-                if symb == board[index]:
-                    curr_line.append('<- ' + board[index])
-                else:
-                    curr_line.append('   ' + board[index])
-            letter = self.position_ring[index]
-            indicator = ' %s ' % letter if index != 0 else '[%s]' % letter
-            curr_line.insert(1, indicator)
-            print("{} ||{}||{} {} | {}".format(*curr_line))
-            index += 1
