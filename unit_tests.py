@@ -1,22 +1,10 @@
 import unittest
-from functools import wraps
 
 from enigma_components.enigma import Enigma
 
 
-def reset_subject(func):
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        self.reset_subject()
-        func(self, *args, **kwargs)
-
-    return wrapper
-
-
-@reset_subject
 class TestEnigma(unittest.TestCase):
     """Used to test if enigma class behaves like the real life counterpart"""
-
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
         self.subject = Enigma('UKW-B', ['I', 'II', 'III'])
@@ -42,35 +30,48 @@ class TestEnigma(unittest.TestCase):
         self.assertEqual('ENIGMAUNITTESTMESSAGE', decrypted,
                          'Decryption test failed!')
 
-    def test_settings(self):
-        """Tests if all settings are assigned correctly"""
+    def test_rotors(self):
+        """Tests if rotors are assigned properly"""
         self.reset_subject()
-
-        # Test data
-        ring_settings = ['C', 'B', 'A']
         rotors = ['III', 'I', 'II']
-        positions = ['A', 'B', 'C']
-        reflector = 'UKW-A'
+        self.subject.rotors = rotors
+        self.assertEqual(self.subject.rotor_labels, rotors,
+                         'Invalid rotor order assigned!')
 
+    def test_positions(self):
+        """Tests if rotor positions are set properly"""
+        self.reset_subject()
+        positions = ['A', 'B', 'C']
         self.subject.positions = positions
         self.assertEqual(self.subject.positions, positions,
                          'Positions assigned in wrong order!')
 
-        self.subject.reflector = reflector
+    def test_reflector(self):
+        """Tests if the reflector is set properly"""
+        self.reset_subject()
+        reflector = 'UKW-A'
+        self.subject.reflector = 'UKW-A'
         self.assertEqual(self.subject.reflector_label, reflector,
                          'Invalid rotor assigned!')
 
+    def test_ring_settings(self):
+        """Tests if ring settings are set properly"""
+        self.reset_subject()
+        ring_settings = ['C', 'B', 'A']
         self.subject.ring_settings = ring_settings
         self.assertEqual(self.subject.ring_settings, ring_settings,
                          'Invalid ring settings assigned!')
 
-        self.subject.rotors = rotors
-        self.assertEqual(self.subject.rotor_labels, rotors,
-                         'Invalid rotor order assigned!')
+    def test_plugboard(self):
+        """Checks if plugboard pairs are set propertly"""
+        self.reset_subject()
+        plug_pairs = [['A', 'Q'], ['X', 'P'], ['F', 'G'], ['D', 'R']]
+        self.subject.plugboard = plug_pairs
+        self.assertEqual(self.subject.plugboard, plug_pairs, 'Invalid plugboard'
+                                                             ' pairs assigned!')
 
     def test_cfg_io(self):
         """Tests if rotor data is dumped and loaded correctly"""
 
     def test_enigma_cfg_io(self):
         """Tests if enigma data is dumped and loaded correctly"""
-        pass

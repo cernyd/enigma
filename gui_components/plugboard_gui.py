@@ -15,7 +15,7 @@ class PlugboardMenu(Toplevel):
         self.enigma = enigma_instance
         self.used = []  # All used letters
         self._pairs = self.enigma.plugboard  # Pairs to return
-        print(self._pairs)
+
         # Window config
         self.iconbitmap(get_icon('plugboard.ico'))
         self.wm_title("Plugboard")
