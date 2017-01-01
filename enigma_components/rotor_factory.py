@@ -1,33 +1,9 @@
+import xml.etree.ElementTree as ET
 from functools import wraps
 from string import ascii_uppercase as alphabet
 
 
 class DataStorage:
-    _labels = ('A-01', 'B-02', 'C-03', 'D-04', 'E-05', 'F-06',
-                'G-07', 'H-08', 'I-09', 'J-10', 'K-11', 'L-12',
-                'M-13', 'N-14', 'O-15', 'P-16', 'Q-17', 'R-18',
-                'S-19', 'T-20', 'U-21', 'V-22', 'W-23', 'X-24',
-                'Y-25', 'Z-26')
-
-    _layout = ((16, 22, 4, 17, 19, 25, 20, 8, 14),
-               (0, 18, 3, 5, 6, 7, 9, 10),
-               (15, 24, 23, 2, 21, 1, 13, 12, 11))
-
-    _factory_data = {'Enigma1':
-                          {'rotor': [
-                              ('I', 'EKMFLGDQVZNTOWYHXUSPAIBRCJ', ('Q', 'R')),
-                              ('II', 'AJDKSIRUXBLHWTMCQGZNPYFVOE', ('E', 'F')),
-                              ('III', 'BDFHJLCPRTXVZNYEIWGAKMUSQO', ('V', 'W')),
-                              ('IV', 'ESOVPZJAYQUIRHXLNFTGKDCMWB', ('J', 'K')),
-                              ('V', 'VZBRGITYUPSDNHLXAWMJQOFECK', ('Z', 'A'))],
-                           'reflector': [
-                               ('UKW-A', 'EJMZALYXVBWFCRQUONTSPIKHGD'),
-                               ('UKW-B', 'YRUHQSLDPXNGOKMIEBFZCWVJAT'),
-                               ('UKW-C', 'FVPJIAOYEDRZXWGCTKUQSBNMHL')]}}
-
-    _factory_data.update(labels=_labels)
-    _factory_data.update(layout=_layout)
-
     def __new__(cls):
         raise NotImplementedError('This class was not intended for instantiation!')
 
@@ -46,6 +22,22 @@ class DataStorage:
         if turnover:
             cfg.update(turnover=turnover)
         return cfg
+
+
+class DataHandler:
+    tree = ET.parse('historical_data.xml')
+    root = tree.getroot()
+
+    def __new__(cls, *args, **kwargs):
+        raise NotImplementedError('Not meant for instantiation!')
+
+    @classmethod
+    def get_info(cls, data_type, rotor_type=None):
+        if rotor_type:
+            return [config[0] for config in
+                    cls._factory_data[data_type][rotor_type]]
+        else:
+            return cls._factory_data[data_type]
 
 
 class RotorFactory(DataStorage):
