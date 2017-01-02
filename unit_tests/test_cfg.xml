@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<cfg>
+    <default_cfg reflector="UKW-B" rotors="I II III"/>
+    <test_encrypt_decrypt encrypted="FQGAHWLMJAMTJAANUNPDY"
+                          decrypted="ENIGMAUNITTESTMESSAGE"/>
+    <test_rotors rotors="III I II"/>
+    <test_positions positions="A B C"/>
+    <test_reflector reflector="UKW-A"/>
+    <test_ring_settings ring_settings="C B A"/>
+    <test_plugboard pairs="AQ XP FG DR"/>
+</cfg>

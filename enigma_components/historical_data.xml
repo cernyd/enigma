@@ -1,48 +1,34 @@
 <?xml version='1.0' encoding='utf-8' ?>
 <data>
     <labels>
-        A-01, B-02, C-03, D-04, E-05, F-06, G-07, H-08, I-09, J-10, K-11, L-12,
-        M-13, N-14, O-15, P-16, Q-17, R-18, S-19, T-20, U-21, V-22, W-23, X-24,
-        Y-25, Z-26
+        <row id="0" type="list"
+             values="A-01 B-02 C-03 D-04 E-05 F-06 G-07 H-08 I-09 J-10 K-11 L-12"/>
+        <row id="1" type="list"
+             values="M-13 N-14 O-15 P-16 Q-17 R-18 S-19 T-20 U-21 V-22 W-23 X-24"/>
+        <row id="2" type="list" values="Y-25 Z-26"/>
     </labels>
     <layout>
-        <row id="0">16, 22, 4, 17, 19, 25, 20, 8, 14</row>
-        <row id="1">0, 18, 3, 5, 6, 7, 9, 10</row>
-        <row id="2">15, 24, 23, 2, 21, 1, 13, 12, 11</row>
+        <row id="0" values="16 22 4 17 19 25 20 8 14"/>
+        <row id="1" values="18 3 5 6 7 9 10"/>
+        <row id="2" values="15 24 23 2 21 1 13 12 11"/>
     </layout>
     <enigma model="Enigma1">
         <rotors>
-            <rotor label="I">
-                <wiring>EKMFLGDQVZNTOWYHXUSPAIBRCJ</wiring>
-                <turnover>QR</turnover>
-            </rotor>
-            <rotor label="II">
-                <wiring>AJDKSIRUXBLHWTMCQGZNPYFVOE</wiring>
-                <turnover>EF</turnover>
-            </rotor>
-            <rotor label="III">
-                <wiring>BDFHJLCPRTXVZNYEIWGAKMUSQO</wiring>
-                <turnover>VW</turnover>
-            </rotor>
-            <rotor label="IV">
-                <wiring>ESOVPZJAYQUIRHXLNFTGKDCMWB</wiring>
-                <turnover>JK</turnover>
-            </rotor>
-            <rotor label="V">
-                <wiring>VZBRGITYUPSDNHLXAWMJQOFECK</wiring>
-                <turnover>ZA</turnover>
-            </rotor>
+            <rotor label="I" back_board="EKMFLGDQVZNTOWYHXUSPAIBRCJ"
+                   turnover="QR"/>
+            <rotor label="II" back_board="AJDKSIRUXBLHWTMCQGZNPYFVOE"
+                   turonver="EF"/>
+            <rotor label="III" back_board="BDFHJLCPRTXVZNYEIWGAKMUSQO"
+                   turnover="VW"/>
+            <rotor label="IV" back_board="ESOVPZJAYQUIRHXLNFTGKDCMWB"
+                   turnover="JK"/>
+            <rotor label="V" back_board="VZBRGITYUPSDNHLXAWMJQOFECK"
+                   turnover="ZA"/>
         </rotors>
         <reflectors>
-            <reflector label="UKW-A">
-                <wiring>EJMZALYXVBWFCRQUONTSPIKHGD</wiring>
-            </reflector>
-            <reflector label="UKW-B">
-                <wiring>YRUHQSLDPXNGOKMIEBFZCWVJAT</wiring>
-            </reflector>
-            <reflector label="UKW-C">
-                <wiring>FVPJIAOYEDRZXWGCTKUQSBNMHL</wiring>
-            </reflector>
+            <reflector label="UKW-A" back_board="EJMZALYXVBWFCRQUONTSPIKHGD"/>
+            <reflector label="UKW-B" back_board="YRUHQSLDPXNGOKMIEBFZCWVJAT"/>
+            <reflector label="UKW-C" back_board="FVPJIAOYEDRZXWGCTKUQSBNMHL"/>
         </reflectors>
     </enigma>
 </data>

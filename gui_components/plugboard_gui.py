@@ -1,7 +1,7 @@
 from re import sub
 from tkinter import Frame, Label, Entry, StringVar, Button, Toplevel
 
-from enigma_components.rotor_factory import DataStorage
+from enigma_components.rotor_factory import data_interface
 from misc import get_icon, baseinit
 
 
@@ -23,11 +23,12 @@ class PlugboardMenu(Toplevel):
         rows = []
         self.plug_sockets = []
 
-        for row in DataStorage.get_info('layout'):
+        for row in data_interface('layout'):
             new_row = Frame(self)
             for item in row:
                 self.plug_sockets.append(PlugSocket(new_row, self,
-                                                    DataStorage.get_info('labels')[item]))
+                                                    data_interface('labels')[
+                                                        item]))
             rows.append(new_row)
 
         for row in rows:

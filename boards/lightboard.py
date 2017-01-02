@@ -1,6 +1,6 @@
 from tkinter import Frame, Label
 
-from enigma_components.rotor_factory import DataStorage
+from enigma_components.rotor_factory import data_interface
 from misc import bg
 
 
@@ -11,10 +11,10 @@ class Lightboard(Frame):
         rows = []
         self.bulbs = []
 
-        for row in DataStorage.get_info('layout'):
+        for row in data_interface('layout'):
             new_row = Frame(self)
             for item in row:
-                text = DataStorage.get_info('labels')[item][0]
+                text = data_interface('labels')[item][0]
                 self.bulbs.append(
                     Label(new_row, text=text, font=('Arial', 14), bg=bg,
                           padx=2))

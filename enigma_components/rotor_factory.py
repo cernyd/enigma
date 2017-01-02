@@ -1,46 +1,24 @@
 import xml.etree.ElementTree as ET
 from functools import wraps
+from os import getcwd
 from string import ascii_uppercase as alphabet
 
 
-class DataStorage:
-    def __new__(cls):
-        raise NotImplementedError('This class was not intended for instantiation!')
-
-    @classmethod
-    def get_info(cls, data_type, rotor_type=None):
-        if rotor_type:
-            return [config[0] for config in
-                    cls._factory_data[data_type][rotor_type]]
-        else:
-            return cls._factory_data[data_type]
-
-    @classmethod
-    def _create_cfg(cls, label, back_board, turnover=None):
-        """Creates a configuration dictionary"""
-        cfg = dict(label=label, back_board=back_board)
-        if turnover:
-            cfg.update(turnover=turnover)
-        return cfg
+def data_interface(data_type, rotor_type=None, label=None):
+    print(getcwd())
+    extra_info = rotor_type, label
+    data = ET.parse('enigma_components\historical_data.xml').getroot().find(
+        data_type)
+    if all(extra_info):
+        for rotor in data.find(rotor_type):
+            if rotor.attrib['label'] == label:
+                return rotor.attrib
+    else:
+        assert (not any(extra_info)), 'Not enough data to return rotor cfg!'
+        return data
 
 
-class DataHandler:
-    tree = ET.parse('historical_data.xml')
-    root = tree.getroot()
-
-    def __new__(cls, *args, **kwargs):
-        raise NotImplementedError('Not meant for instantiation!')
-
-    @classmethod
-    def get_info(cls, data_type, rotor_type=None):
-        if rotor_type:
-            return [config[0] for config in
-                    cls._factory_data[data_type][rotor_type]]
-        else:
-            return cls._factory_data[data_type]
-
-
-class RotorFactory(DataStorage):
+class RotorFactory:
     """Factory for creating various enigma Rotor/Reflector objects"""
     def __new__(cls):
         raise NotImplementedError('This class was not intended for instantiation!')
@@ -48,12 +26,7 @@ class RotorFactory(DataStorage):
     @classmethod
     def produce(cls, model, rotor_type, label):
         """Creates and returns new object based on input"""
-        cfg = None
-
-        for item in cls._factory_data[model][rotor_type]:
-            if item[0] == label:
-                cfg = cls._create_cfg(*item)
-                break
+        cfg = data_interface(model, rotor_type, label)
 
         if cfg:
             if rotor_type == 'rotor':
