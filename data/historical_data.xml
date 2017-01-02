@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8' ?>
+<?xml version='1.0' encoding='UTF-8' ?>
 <data>
     <labels>
         <row id="0" type="list"
@@ -12,6 +12,7 @@
         <row id="1" values="18 3 5 6 7 9 10"/>
         <row id="2" values="15 24 23 2 21 1 13 12 11"/>
     </layout>
+    <!--Historical enigma data-->
     <enigma model="Enigma1">
         <rotors>
             <rotor label="I" back_board="EKMFLGDQVZNTOWYHXUSPAIBRCJ"

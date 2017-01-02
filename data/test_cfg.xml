@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--Data for enigma unit tests-->
 <cfg>
     <default_cfg reflector="UKW-B" rotors="I II III"/>
     <test_encrypt_decrypt encrypted="FQGAHWLMJAMTJAANUNPDY"

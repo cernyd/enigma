@@ -6,12 +6,13 @@ from enigma_components.enigma import Enigma
 
 
 def cfg_interface(category):
-    tree = ET.parse('test_cfg.xml')
+    tree = ET.parse('data\test_cfg.xml')
     if type(category) == 'class':
         category = category.__name__
     data = tree.getroot()[category]
     if len(data) == 1:
         return data.keys()[0].split()
+
 
 class TestEnigma(unittest.TestCase):
     """Used to test if enigma class behaves like the real life counterpart"""

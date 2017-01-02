@@ -4,7 +4,7 @@ from tkinter import Tk, Frame, Button, IntVar, messagebox
 from boards.indicator_board import IndicatorBoard
 from boards.io_board import IOBoard
 from boards.lightboard import Lightboard
-from config_handler import save_config, load_config
+from data_handlers import save_config, load_config
 from enigma_components.enigma import TkEnigma
 from gui_components.plugboard_gui import PlugboardMenu
 from gui_components.root_menu import RootMenu
