@@ -7,7 +7,7 @@ from string import ascii_uppercase as alphabet
 def data_interface(data_type, rotor_type=None, label=None):
     print(getcwd())
     extra_info = rotor_type, label
-    data = ET.parse('enigma_components\historical_data.xml').getroot().find(
+    data = ET.parse('data\historical_data.xml').getroot().find(
         data_type)
     if all(extra_info):
         for rotor in data.find(rotor_type):
