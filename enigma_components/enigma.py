@@ -56,9 +56,7 @@ class Enigma:
         try:
             for label in labels:
                 self._rotors.append(RotorFactory.produce('Enigma1', 'rotor', label))
-        except AttributeError:
-            messagebox.showwarning('Invalid rotor', 'Some of rotors are not \n'
-                                                    'valid, please try again...')
+
 
     @property
     def positions(self):
@@ -75,12 +73,8 @@ class Enigma:
 
     @reflector.setter
     def reflector(self, label):
-        try:
-            self._reflector = RotorFactory.produce('Enigma1', 'reflector', label)
-        except AttributeError:
-            messagebox.showwarning('Invalid reflector', 'Invalid reflector,'
-                                                        ' please try '
-                                                        'again...')
+        self._reflector = RotorFactory.produce('Enigma1', 'reflector', label)
+
 
     @property
     def ring_settings(self):
@@ -147,3 +141,19 @@ class TkEnigma(Enigma):
     def rotate_primary(self, places=1):
         if not self.master.rotor_lock:
             Enigma.rotate_primary(self, places)
+
+    #
+    # def reflector(self):
+    #     try:
+    #         pass
+    #     except AttributeError:
+    #         messagebox.showwarning('Invalid reflector', 'Invalid reflector,'
+    #                                                     ' please try '
+    #                                                     'again...')
+    #
+    # def rotors(self):
+    #     try:
+    #         pass
+    #     except AttributeError:
+    #         messagebox.showwarning('Invalid rotor', 'Some of rotors are not \n'
+    #                                                 'valid, please try again...')
