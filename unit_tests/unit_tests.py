@@ -1,17 +1,21 @@
 import unittest
 import xml.etree.ElementTree as ET
 from itertools import permutations
+from os import path
 
 from enigma_components.enigma import Enigma
 
 
 def cfg_interface(category):
-    tree = ET.parse('data\test_cfg.xml')
+    tree = ET.parse(path.join('unit_tests', 'test_cfg.xml'))
     if type(category) == 'class':
         category = category.__name__
-    data = tree.getroot()[category]
+    data = tree.getroot().find(category).attrib
+
     if len(data) == 1:
         return data.keys()[0].split()
+    else:
+        return data
 
 
 class TestEnigma(unittest.TestCase):
@@ -19,6 +23,7 @@ class TestEnigma(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
         self.subject: Enigma
+        print('Got here')
         self.reset_subject()
 
     def reset_subject(self):
