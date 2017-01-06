@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<data>
+    <labels>
+        <row id="0" split="values" values="A-01 B-02 C-03 D-04 E-05 F-06 G-07 H-08 I-09 J-10 K-11 L-12"/>
+        <row id="1" split="values" values="M-13 N-14 O-15 P-16 Q-17 R-18 S-19 T-20 U-21 V-22 W-23 X-24"/>
+        <row id="2" split="values" values="Y-25 Z-26"/>
+    </labels>
+    <layout>
+        <row id="0" values="16 22 4 17 19 25 20 8 14"/>
+        <row id="1" values="18 3 5 6 7 9 10"/>
+        <row id="2" values="15 24 23 2 21 1 13 12 11"/>
+    </layout>
+    <!--Historical enigma data-->
+    <enigma model="Enigma1">
+        <rotors>
+            <rotor label="I" back_board="EKMFLGDQVZNTOWYHXUSPAIBRCJ" turnover="QR"/>
+            <rotor label="II" back_board="AJDKSIRUXBLHWTMCQGZNPYFVOE" turonver="EF"/>
+            <rotor label="III" back_board="BDFHJLCPRTXVZNYEIWGAKMUSQO" turnover="VW"/>
+            <rotor label="IV" back_board="ESOVPZJAYQUIRHXLNFTGKDCMWB" turnover="JK"/>
+            <rotor label="V" back_board="VZBRGITYUPSDNHLXAWMJQOFECK" turnover="ZA"/>
+        </rotors>
+        <reflectors>
+            <reflector label="UKW-A" back_board="EJMZALYXVBWFCRQUONTSPIKHGD"/>
+            <reflector label="UKW-B" back_board="YRUHQSLDPXNGOKMIEBFZCWVJAT"/>
+            <reflector label="UKW-C" back_board="FVPJIAOYEDRZXWGCTKUQSBNMHL"/>
+        </reflectors>
+    </enigma>
+</data>
