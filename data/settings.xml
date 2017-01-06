@@ -1,2 +1,11 @@
 <?xml version='1.0' encoding='UTF-8' ?>
-<cfg></cfg>
+<cfg>
+    <globals>
+        <font style="Arial" size="10"/>
+        <select_all command="0.0 end"/>
+        <bg color="gray85"/>
+    </globals>
+    <saved>
+        <!--Save config here!-->
+    </saved>
+</cfg>

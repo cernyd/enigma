@@ -4,7 +4,10 @@ from string import ascii_uppercase as alphabet
 
 
 def data_interface(data_type, rotor_type=None, label=None):
+    print(data_type)
     data = ET.parse('data\historical_data.xml').getroot().find(data_type)
+    print(data)
+    input()
     if rotor_type and label:
         for rotor in data.find(rotor_type):
             if rotor.attrib['label'] == label:

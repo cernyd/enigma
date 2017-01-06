@@ -23,7 +23,6 @@ class TestEnigma(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
         self.subject: Enigma
-        print('Got here')
         self.reset_subject()
 
     def reset_subject(self):
