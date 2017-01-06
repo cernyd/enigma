@@ -1,6 +1,0 @@
-<?xml version='1.0' encoding='UTF-8' ?>
-<cfg>
-    <font style="Arial" size="10"/>
-    <select_all command="0.0 end"/>
-    <bg color="gray85"/>
-</cfg>

@@ -50,13 +50,10 @@ class Enigma:
 
     @rotors.setter
     def rotors(self, labels):
-        """Sets rotors
-        REMEMBER! SLOW - MEDIUM - FAST"""
+        """Sets rotors"""
         self._rotors = []
-        try:
-            for label in labels:
-                self._rotors.append(RotorFactory.produce('Enigma1', 'rotor', label))
-
+        for label in labels:
+            self._rotors.append(RotorFactory.produce('Enigma1', 'rotor', label))
 
     @property
     def positions(self):
@@ -73,8 +70,8 @@ class Enigma:
 
     @reflector.setter
     def reflector(self, label):
+        print('Base called!')
         self._reflector = RotorFactory.produce('Enigma1', 'reflector', label)
-
 
     @property
     def ring_settings(self):
@@ -142,18 +139,21 @@ class TkEnigma(Enigma):
         if not self.master.rotor_lock:
             Enigma.rotate_primary(self, places)
 
-    #
-    # def reflector(self):
-    #     try:
-    #         pass
-    #     except AttributeError:
-    #         messagebox.showwarning('Invalid reflector', 'Invalid reflector,'
-    #                                                     ' please try '
-    #                                                     'again...')
-    #
-    # def rotors(self):
-    #     try:
-    #         pass
-    #     except AttributeError:
-    #         messagebox.showwarning('Invalid rotor', 'Some of rotors are not \n'
-    #                                                 'valid, please try again...')
+    @Enigma.reflector.setter
+    def reflector(self, label):
+        try:
+            Enigma.reflector.fset(self, label)
+        except AttributeError as err:
+            print(err)
+            messagebox.showwarning('Invalid reflector', 'Invalid reflector,'
+                                                        ' please try '
+                                                        'again...')
+    @Enigma.rotors.setter
+    def rotors(self, labels):
+        """Adds a visual error feedback ( used only in the tk implementation"""
+        try:
+            Enigma.rotors.fset(self, labels)
+        except AttributeError as err:
+            print(err)
+            messagebox.showwarning('Invalid rotor', 'Some of rotors are not \n'
+                                                    'valid, please try again...')
