@@ -1,33 +1,37 @@
 from functools import wraps
 from string import ascii_uppercase as alphabet
 from tkinter import messagebox
+import xml.etree.ElementTree as ET
 
 
 class RotorFactory:
     """Factory for creating various enigma Rotor/Reflector objects"""
+    def __init__(self, cfg_path):
+        self.xml_tree = ET.parse(cfg_path).getroot()
 
-    def __new__(cls):
-        raise NotImplementedError(
-            'This class was not intended for instantiation!')
-
-    @classmethod
-    def produce(cls, model, rotor_type, label):
+    def produce(self, model, rotor_type, label):
         """Creates and returns new object based on input"""
-        cfg = None  # data_interface(model, rotor_type, label)
+        for enigma in self.xml_tree.findall('enigma'):
+            if enigma.attrib['model'] == model:
+                model = enigma
+                break
+        cfg = None
+        for item in model.find(rotor_type):
+            if item.attrib['label'] == label:
+                cfg = item.attrib
+                cfg.update(label=label)
+                break
 
-        if cfg:
-            if rotor_type == 'rotor':
-                return Rotor(**cfg)
-            elif rotor_type == 'reflector':
-                return Reflector(**cfg)
-        else:
-            raise AttributeError('No configuration found for "%s" > '
-                                 '"%s" > "%s"!' % (model, rotor_type, label))
+        assert cfg, "No configuration found!"
+        if rotor_type == 'rotors':
+            return Rotor(**cfg)
+        elif rotor_type == 'reflectors':
+            return Reflector(**cfg)
 
 
 class Enigma:
     """Enigma machine object emulating all mechanical processes in the real enigma machine"""
-    def __init__(self, reflector=None, rotors=None, config_data=None):
+    def __init__(self, reflector=None, rotors=None):
         self._reflector = None
         self.reflector = reflector
         self._rotors = []
@@ -63,10 +67,6 @@ class Enigma:
         return [rotor.label for rotor in self._rotors]
 
     @property
-    def rotor_turnovers(self):
-        return [rotor.turnover for rotor in self._rotors]
-
-    @property
     def rotors(self):
         return self._rotors
 
@@ -92,7 +92,6 @@ class Enigma:
 
     @reflector.setter
     def reflector(self, label):
-        print('Base called!')
         self._reflector = RotorFactory.produce('Enigma1', 'reflector', label)
 
     @property
@@ -113,7 +112,7 @@ class Enigma:
                 return neighbour[0]
         return letter  # If no connection found
 
-    def rotate_primary(self, places=1):
+    def _rotate_primary(self, places=1):
         rotate_next = False
         index = 0
         for rotor in reversed(self._rotors):
@@ -122,7 +121,7 @@ class Enigma:
             index += 1
 
     def button_press(self, letter):
-        self.rotate_primary()
+        self._rotate_primary()
         output = self._plugboard_route(letter)
 
         for rotor in reversed(self._rotors):
@@ -151,7 +150,36 @@ class Enigma:
             rotor.config(**config)
 
 
-class RotorBase:
+class TkEnigma(Enigma):
+    """Enigma adjusted for Tk rotor lock"""
+    def __init__(self, master, *config):
+        Enigma.__init__(self, *config)
+        self.master = master
+
+    def _rotate_primary(self, places=1):
+        if not self.master.rotor_lock:
+            Enigma._rotate_primary(self, places)
+
+    @Enigma.reflector.setter
+    def reflector(self, label):
+        try:
+            Enigma.reflector.fset(self, label)
+        except AttributeError as err:
+            messagebox.showwarning('Invalid reflector', 'Invalid reflector,'
+                                                        ' please try '
+                                                        'again...')
+
+    @Enigma.rotors.setter
+    def rotors(self, labels):
+        """Adds a visual error feedback ( used only in the tk implementation"""
+        try:
+            Enigma.rotors.fset(self, labels)
+        except AttributeError as err:
+            messagebox.showwarning('Invalid rotor', 'Some of rotors are not \n'
+                                                    'valid, please try again...')
+
+
+class _RotorBase:
     """Base class for Rotors and Reflectors"""
 
     def __init__(self, label='', back_board='', valid_cfg=tuple()):
@@ -166,15 +194,6 @@ class RotorBase:
     def _route_forward(self, letter):
         """Routes letters from front board to back board"""
         return self.back_board[alphabet.index(letter)]
-
-    def _compensate(func):
-        @wraps(func)
-        def wrapper(self, letter):
-            relative_input = self.relative_board[alphabet.index(letter)]
-            return alphabet[
-                self.relative_board.index(func(self, relative_input))]
-
-        return wrapper
 
     def config(self, **attrs):
         """Loads rotor configuration data"""
@@ -193,7 +212,7 @@ class RotorBase:
         return cfg
 
 
-class Reflector(RotorBase):
+class Reflector(_RotorBase):
     """Reflector class, used to """
 
     def reflect(self, letter):
@@ -201,11 +220,20 @@ class Reflector(RotorBase):
         return self._route_forward(letter)
 
 
-class Rotor(RotorBase):
-    """Inherited from RotorBase, adds rotation and ring setting functionality"""
+def _compensate(func):
+    """Converts input to relative input and
+    relative output to absolute output."""
+    @wraps(func)
+    def wrapper(self, letter):
+        relative_input = self.relative_board[alphabet.index(letter)]
+        return alphabet[self.relative_board.index(func(self, relative_input))]
+    return wrapper
 
-    def __init__(self, turnover=tuple(), **cfg):
-        RotorBase.__init__(self, **cfg, valid_cfg=('position_ring', 'turnover',
+
+class Rotor(_RotorBase):
+    """Inherited from RotorBase, adds rotation and ring setting functionality"""
+    def __init__(self, turnover: str, **cfg):
+        _RotorBase.__init__(self, **cfg, valid_cfg=('position_ring', 'turnover',
                                                    'relative_board'))
         self.position_ring, self.relative_board = [alphabet] * 2
         self.turnover = turnover
@@ -269,35 +297,3 @@ class Rotor(RotorBase):
         """Sets rotor indicator offset relative to the internal wiring"""
         while self.ring_setting != setting:
             self.change_board_offset('relative_board')
-
-
-class TkEnigma(Enigma):
-    """Enigma adjusted for Tk rotor lock"""
-
-    def __init__(self, master, *config):
-        Enigma.__init__(self, *config)
-        self.master = master
-
-    def rotate_primary(self, places=1):
-        if not self.master.rotor_lock:
-            Enigma.rotate_primary(self, places)
-
-    @Enigma.reflector.setter
-    def reflector(self, label):
-        try:
-            Enigma.reflector.fset(self, label)
-        except AttributeError as err:
-            print(err)
-            messagebox.showwarning('Invalid reflector', 'Invalid reflector,'
-                                                        ' please try '
-                                                        'again...')
-
-    @Enigma.rotors.setter
-    def rotors(self, labels):
-        """Adds a visual error feedback ( used only in the tk implementation"""
-        try:
-            Enigma.rotors.fset(self, labels)
-        except AttributeError as err:
-            print(err)
-            messagebox.showwarning('Invalid rotor', 'Some of rotors are not \n'
-                                                    'valid, please try again...')
