@@ -1,12 +1,13 @@
 from functools import wraps
 from string import ascii_uppercase as alphabet
 import xml.etree.ElementTree as ET
+from os import path
 
 
 class RotorFactory:
     """Factory for creating various enigma Rotor/Reflector objects"""
     def __init__(self, cfg_path):
-        self.xml_tree = ET.parse(cfg_path).getroot()
+        self.xml_tree = ET.parse(path.join(*cfg_path)).getroot()
 
     def produce(self, model, rotor_type, label):
         """Creates and returns new object based on input"""
@@ -38,6 +39,7 @@ class Enigma:
         self.rotors = rotors  # Calling property
         self._plugboard = []
         self.last_output = ''  # To avoid sending the same data from rotor position class
+        self.rotor_factory = RotorFactory(['enigma', 'historical_data.xml'])
 
     @property
     def plugboard(self):
@@ -75,7 +77,7 @@ class Enigma:
         """Sets rotors"""
         self._rotors = []
         for label in labels:
-            self._rotors.append(RotorFactory.produce('Enigma1', 'rotors', label))
+            self._rotors.append(self.rotor_factory.produce('Enigma1', 'rotors', label))
 
     @property
     def positions(self):
@@ -92,7 +94,7 @@ class Enigma:
 
     @reflector.setter
     def reflector(self, label):
-        self._reflector = RotorFactory.produce('Enigma1', 'reflectors', label)
+        self._reflector = self.rotor_factory.produce('Enigma1', 'reflectors', label)
 
     @property
     def ring_settings(self):

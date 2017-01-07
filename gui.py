@@ -23,6 +23,7 @@ def get_data(file_path, kind):
             output.append(item.attrib['label'])
     return output
 
+
 file = path.join('enigma', 'historical_data.xml')
 layout, labels = map(lambda kind: get_data(file, kind),
                      ['layout', 'labels'])
@@ -204,12 +205,12 @@ class Root(Tk, Base):
                                   rotor_lock=self._rotor_lock.get(),
                                   synchronised_scrolling=self._sync_scroll.get()),
                         enigma=self.enigma.dump_config())
-            save_config(data)
+            # save_config(data)
 
     def load_config(self):  # Not flexible
         if glob('settings.txt'):
             try:
-                data = load_config()
+                data = None  # load_config()
                 self._sound_enabled.set(data['root']['sound_enabled'])
                 self._autorotate.set(data['root']['autorotate'])
                 self._rotor_lock.set(data['root']['rotor_lock'])
@@ -567,7 +568,7 @@ class ReflectorSlot(BaseSlot):
     def __init__(self, master, tk_master=None, *args, **kwargs):
         BaseSlot.__init__(self, master, 'REFLECTOR', tk_master, *args, **kwargs)
 
-        self.generate_contents(data_interface('Enigma1', 'reflectors'))
+        self.generate_contents(reflectors)
         self.choice_var.set(self.master.enigma.reflector.label)
 
     def update_selected(self, *event):
