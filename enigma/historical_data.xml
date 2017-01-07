@@ -14,7 +14,7 @@
     <enigma model="Enigma1">
         <rotors>
             <rotor label="I" back_board="EKMFLGDQVZNTOWYHXUSPAIBRCJ" turnover="QR"/>
-            <rotor label="II" back_board="AJDKSIRUXBLHWTMCQGZNPYFVOE" turonver="EF"/>
+            <rotor label="II" back_board="AJDKSIRUXBLHWTMCQGZNPYFVOE" turnover="EF"/>
             <rotor label="III" back_board="BDFHJLCPRTXVZNYEIWGAKMUSQO" turnover="VW"/>
             <rotor label="IV" back_board="ESOVPZJAYQUIRHXLNFTGKDCMWB" turnover="JK"/>
             <rotor label="V" back_board="VZBRGITYUPSDNHLXAWMJQOFECK" turnover="ZA"/>

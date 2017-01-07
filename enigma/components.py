@@ -15,6 +15,7 @@ class RotorFactory:
             if enigma.attrib['model'] == model:
                 model = enigma
                 break
+
         cfg = None
         for item in model.find(rotor_type):
             if item.attrib['label'] == label:
@@ -33,13 +34,13 @@ class Enigma:
     """Enigma machine object emulating all mechanical processes in the real
     enigma machine"""
     def __init__(self, reflector=None, rotors=None):
+        self.rotor_factory = RotorFactory(['enigma', 'historical_data.xml'])
         self._reflector = None
         self.reflector = reflector
         self._rotors = []
         self.rotors = rotors  # Calling property
         self._plugboard = []
         self.last_output = ''  # To avoid sending the same data from rotor position class
-        self.rotor_factory = RotorFactory(['enigma', 'historical_data.xml'])
 
     @property
     def plugboard(self):
@@ -154,7 +155,6 @@ class Enigma:
 
 class _RotorBase:
     """Base class for Rotors and Reflectors"""
-
     def __init__(self, label='', back_board='', valid_cfg=tuple()):
         """All parameters except should be passed in **config, valid_cfg is a
         tuple of additional configuration data for config loading and dumping"""
@@ -207,9 +207,9 @@ class Rotor(_RotorBase):
     """Inherited from RotorBase, adds rotation and ring setting functionality"""
     def __init__(self, turnover: str, **cfg):
         _RotorBase.__init__(self, **cfg, valid_cfg=('position_ring', 'turnover',
-                                                   'relative_board'))
-        self.position_ring, self.relative_board = [alphabet] * 2
+                                                    'relative_board'))
         self.turnover = turnover
+        self.position_ring, self.relative_board = [alphabet] * 2
         self._last_position = ''
 
     def _route_backward(self, letter):
