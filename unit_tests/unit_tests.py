@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 from itertools import permutations
 from os import path
 
-from enigma.enigma import Enigma
+from enigma.components import Enigma
 
 
 def cfg_interface(category):

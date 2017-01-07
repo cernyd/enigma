@@ -1,25 +1,25 @@
-from tkinter import messagebox
-from string import ascii_uppercase as alphabet
-import xml.etree.ElementTree as ET
 from functools import wraps
 from string import ascii_uppercase as alphabet
+from tkinter import messagebox
 
 
 class RotorFactory:
     """Factory for creating various enigma Rotor/Reflector objects"""
+
     def __new__(cls):
-        raise NotImplementedError('This class was not intended for instantiation!')
+        raise NotImplementedError(
+            'This class was not intended for instantiation!')
 
     @classmethod
     def produce(cls, model, rotor_type, label):
         """Creates and returns new object based on input"""
-        cfg = None # data_interface(model, rotor_type, label)
+        cfg = None  # data_interface(model, rotor_type, label)
 
         if cfg:
             if rotor_type == 'rotor':
-                return  Rotor(**cfg)
+                return Rotor(**cfg)
             elif rotor_type == 'reflector':
-                return  Reflector(**cfg)
+                return Reflector(**cfg)
         else:
             raise AttributeError('No configuration found for "%s" > '
                                  '"%s" > "%s"!' % (model, rotor_type, label))
@@ -41,13 +41,13 @@ class Enigma:
 
     @plugboard.setter
     def plugboard(self, pairs):
-        assert(len(pairs) <= 13), "Invalid number of pairs!"
+        assert (len(pairs) <= 13), "Invalid number of pairs!"
 
         used = []
         plugboard_pairs = []
         for pair in pairs:
             for letter in pair:
-                assert(letter not in used), "A letter can only be wired once!"
+                assert (letter not in used), "A letter can only be wired once!"
                 used.append(letter)
             plugboard_pairs.append(pair)
 
@@ -148,37 +148,7 @@ class Enigma:
         self.plugboard = data['plugboard']
         self._reflector.config(**data['reflector'])
         for rotor, config in zip(self._rotors, data['rotors']):
-            rotor.config(** config)
-
-
-class TkEnigma(Enigma):
-    """Enigma adjusted for Tk rotor lock"""
-    def __init__(self, master, *config):
-        Enigma.__init__(self, *config)
-        self.master = master
-
-    def rotate_primary(self, places=1):
-        if not self.master.rotor_lock:
-            Enigma.rotate_primary(self, places)
-
-    @Enigma.reflector.setter
-    def reflector(self, label):
-        try:
-            Enigma.reflector.fset(self, label)
-        except AttributeError as err:
-            print(err)
-            messagebox.showwarning('Invalid reflector', 'Invalid reflector,'
-                                                        ' please try '
-                                                        'again...')
-    @Enigma.rotors.setter
-    def rotors(self, labels):
-        """Adds a visual error feedback ( used only in the tk implementation"""
-        try:
-            Enigma.rotors.fset(self, labels)
-        except AttributeError as err:
-            print(err)
-            messagebox.showwarning('Invalid rotor', 'Some of rotors are not \n'
-                                                    'valid, please try again...')
+            rotor.config(**config)
 
 
 class RotorBase:
@@ -196,6 +166,15 @@ class RotorBase:
     def _route_forward(self, letter):
         """Routes letters from front board to back board"""
         return self.back_board[alphabet.index(letter)]
+
+    def _compensate(func):
+        @wraps(func)
+        def wrapper(self, letter):
+            relative_input = self.relative_board[alphabet.index(letter)]
+            return alphabet[
+                self.relative_board.index(func(self, relative_input))]
+
+        return wrapper
 
     def config(self, **attrs):
         """Loads rotor configuration data"""
@@ -222,16 +201,6 @@ class Reflector(RotorBase):
         return self._route_forward(letter)
 
 
-def compensate(func):
-    @wraps(func)
-    def wrapper(self, letter):
-        relative_input = self.relative_board[alphabet.index(letter)]
-        return alphabet[
-            self.relative_board.index(func(self, relative_input))]
-
-    return wrapper
-
-
 class Rotor(RotorBase):
     """Inherited from RotorBase, adds rotation and ring setting functionality"""
 
@@ -246,12 +215,12 @@ class Rotor(RotorBase):
         """Routes letters from back board to front board"""
         return alphabet[self.back_board.index(letter)]
 
-    @compensate
+    @_compensate
     def forward(self, letter):
         """Routes letter from front to back"""
         return self._route_forward(letter)
 
-    @compensate
+    @_compensate
     def backward(self, letter):
         """Routes letter from back to front"""
         return self._route_backward(letter)
@@ -300,3 +269,35 @@ class Rotor(RotorBase):
         """Sets rotor indicator offset relative to the internal wiring"""
         while self.ring_setting != setting:
             self.change_board_offset('relative_board')
+
+
+class TkEnigma(Enigma):
+    """Enigma adjusted for Tk rotor lock"""
+
+    def __init__(self, master, *config):
+        Enigma.__init__(self, *config)
+        self.master = master
+
+    def rotate_primary(self, places=1):
+        if not self.master.rotor_lock:
+            Enigma.rotate_primary(self, places)
+
+    @Enigma.reflector.setter
+    def reflector(self, label):
+        try:
+            Enigma.reflector.fset(self, label)
+        except AttributeError as err:
+            print(err)
+            messagebox.showwarning('Invalid reflector', 'Invalid reflector,'
+                                                        ' please try '
+                                                        'again...')
+
+    @Enigma.rotors.setter
+    def rotors(self, labels):
+        """Adds a visual error feedback ( used only in the tk implementation"""
+        try:
+            Enigma.rotors.fset(self, labels)
+        except AttributeError as err:
+            print(err)
+            messagebox.showwarning('Invalid rotor', 'Some of rotors are not \n'
+                                                    'valid, please try again...')
