@@ -10,6 +10,24 @@ from os import path
 import xml.etree.ElementTree as ET
 
 
+def get_layout(file_path, kind):
+    error_msg = f'Invalid requested layout kind "{kind}"!'
+    assert kind in ['layout', 'labels'], error_msg
+
+    data = ET.parse(file_path).find(kind)
+    output = []
+    for row in data:
+        if kind == 'labels':
+            output.extend(row.split())
+        elif kind == 'layout':
+            output.append(row.split())
+    return output
+
+
+layout, labels = map(lambda kind: get_layout('historical_data.xml', kind),
+                     ['layout', 'labels'])
+
+
 class Config:
     """Handles any type of config"""
     def __init__(self, buffer_path=None):
@@ -167,9 +185,9 @@ class Root(Tk, Base):
                 self.enigma.load_config(data['enigma'])
                 self.update_indicators()
             except Exception as err:
-                messagebox.showerror('Loading error', 'Failed to load '
+                messagebox.showerror('Loading error', f'Failed to load '
                                                       'configuration,'
-                                                      'Error message:"%s"' % err)
+                                                      'Error message:"{err}"')
         else:
             messagebox.showerror('Loading error', 'No save file found!')
 
@@ -731,10 +749,10 @@ class Lightboard(Frame):
         rows = []
         self.bulbs = []
 
-        for row in data_interface('layout'):
+        for row in layout:
             new_row = Frame(self)
             for item in row:
-                text = data_interface('labels')[item][0]
+                text = labels[item][0]
                 self.bulbs.append(
                     Label(new_row, text=text, font=('Arial', 14), bg=bg,
                           padx=2))
