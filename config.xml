@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8' ?>
 <cfg>
-    <!--"split" parameters tell the config handler what string data to split
-    to lists before returning-->
+    <!--"split" parameters tell the config handler what string data to split to
+    lists before returning-->
     <globals>
         <font style="Arial" size="10"/>
         <select_all split="command" command="0.0 end"/>

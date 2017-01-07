@@ -3,29 +3,40 @@ from os import remove
 from re import sub
 from tkinter import *
 from webbrowser import open as open_browser
-from enigma.components import TkEnigma
+from enigma.components import Enigma
 from sound_ctl import Playback
 from tkinter import messagebox
 from os import path
 import xml.etree.ElementTree as ET
 
 
-def get_layout(file_path, kind):
-    error_msg = f'Invalid requested layout kind "{kind}"!'
-    assert kind in ['layout', 'labels'], error_msg
-
+def get_data(file_path, kind):
+    """Gets historical data from the xml configuration file"""
     data = ET.parse(file_path).find(kind)
     output = []
-    for row in data:
+    for item in data:
         if kind == 'labels':
-            output.extend(row.split())
+            output.extend(item.attrib['values'].split())
         elif kind == 'layout':
-            output.append(row.split())
+            output.append(item.attrib['values'].split())
+        else:
+            output.append(item.attrib['label'])
     return output
 
-
-layout, labels = map(lambda kind: get_layout('historical_data.xml', kind),
+file = path.join('enigma', 'historical_data.xml')
+layout, labels = map(lambda kind: get_data(file, kind),
                      ['layout', 'labels'])
+rotors = get_data(file, "./enigma[@model='Enigma1']/rotors")
+reflectors = get_data(file, "./enigma[@model='Enigma1']/reflectors")
+
+
+font = ('Arial', 10)
+
+
+bg = 'gray85'
+
+
+select_all = '0.0', 'end'
 
 
 class Config:
@@ -50,13 +61,33 @@ class Config:
         return self.__config_buffer[item]
 
 
-font = ('Arial', 10)
+class TkEnigma(Enigma):
+    """Enigma adjusted for Tk rotor lock"""
+    def __init__(self, master, *config):
+        Enigma.__init__(self, *config)
+        self.master = master
 
+    def _rotate_primary(self, places=1):
+        if not self.master.rotor_lock:
+            Enigma._rotate_primary(self, places)
 
-bg = 'gray85'
+    @Enigma.reflector.setter
+    def reflector(self, label):
+        try:
+            Enigma.reflector.fset(self, label)
+        except AttributeError as err:
+            messagebox.showwarning('Invalid reflector', 'Invalid reflector,'
+                                                        ' please try '
+                                                        'again...')
 
-
-select_all = '0.0', 'end'
+    @Enigma.rotors.setter
+    def rotors(self, labels):
+        """Adds a visual error feedback ( used only in the tk implementation"""
+        try:
+            Enigma.rotors.fset(self, labels)
+        except AttributeError as err:
+            messagebox.showwarning('Invalid rotor', 'Some of rotors are not \n'
+                                                    'valid, please try again...')
 
 
 class Base:
@@ -113,6 +144,8 @@ class Root(Tk, Base):
         self.lightboard.pack(side='top', fill='both', padx=5)
         self.io_board = IOBoard(self, self.enigma)
         self.io_board.pack(side='top')
+
+        self.last_len = 0
 
     @property
     def rotor_lock(self):
@@ -205,12 +238,10 @@ class PlugboardMenu(Toplevel, Base):
         rows = []
         self.plug_sockets = []
 
-        for row in data_interface('layout'):
+        for row in layout:
             new_row = Frame(self)
             for item in row:
-                self.plug_sockets.append(PlugSocket(new_row, self,
-                                                    data_interface('labels')[
-                                                        item]))
+                self.plug_sockets.append(PlugSocket(new_row, self,labels[item]))
             rows.append(new_row)
 
         for row in rows:
@@ -509,7 +540,7 @@ class RotorSlot(BaseSlot):
 
         self.index = index
 
-        self.generate_contents(rotors)
+        self.generate_contents()
 
         # Ring setting indicator
         setting_idx = self.master.enigma.ring_settings[index]
