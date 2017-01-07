@@ -1,9 +1,8 @@
 import unittest
 import xml.etree.ElementTree as ET
 from itertools import permutations
-from os import path
-
 from enigma.components import Enigma
+from os import path
 
 
 def cfg_interface(category):

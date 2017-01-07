@@ -1,6 +1,5 @@
 from functools import wraps
 from string import ascii_uppercase as alphabet
-from tkinter import messagebox
 import xml.etree.ElementTree as ET
 
 
@@ -149,35 +148,6 @@ class Enigma:
         self._reflector.config(**data['reflector'])
         for rotor, config in zip(self._rotors, data['rotors']):
             rotor.config(**config)
-
-
-class TkEnigma(Enigma):
-    """Enigma adjusted for Tk rotor lock"""
-    def __init__(self, master, *config):
-        Enigma.__init__(self, *config)
-        self.master = master
-
-    def _rotate_primary(self, places=1):
-        if not self.master.rotor_lock:
-            Enigma._rotate_primary(self, places)
-
-    @Enigma.reflector.setter
-    def reflector(self, label):
-        try:
-            Enigma.reflector.fset(self, label)
-        except AttributeError as err:
-            messagebox.showwarning('Invalid reflector', 'Invalid reflector,'
-                                                        ' please try '
-                                                        'again...')
-
-    @Enigma.rotors.setter
-    def rotors(self, labels):
-        """Adds a visual error feedback ( used only in the tk implementation"""
-        try:
-            Enigma.rotors.fset(self, labels)
-        except AttributeError as err:
-            messagebox.showwarning('Invalid rotor', 'Some of rotors are not \n'
-                                                    'valid, please try again...')
 
 
 class _RotorBase:
