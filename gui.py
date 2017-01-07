@@ -1,16 +1,16 @@
-from glob import glob
 from os import remove
 from re import sub
 from tkinter import *
 from webbrowser import open as open_browser
 from enigma.components import Enigma
-from sound_ctl import Playback
 from tkinter import messagebox
-from os import path
 import xml.etree.ElementTree as ET
+from winsound import PlaySound, SND_ASYNC
+from glob import glob
+from os import path
 
 
-def get_data(file_path, kind):
+def get_enigma_data(file_path, kind):
     """Gets historical data from the xml configuration file"""
     data = ET.parse(file_path).find(kind)
     output = []
@@ -25,10 +25,10 @@ def get_data(file_path, kind):
 
 
 file = path.join('enigma', 'historical_data.xml')
-layout, labels = map(lambda kind: get_data(file, kind),
+layout, labels = map(lambda kind: get_enigma_data(file, kind),
                      ['layout', 'labels'])
-rotors = get_data(file, "./enigma[@model='Enigma1']/rotors")
-reflectors = get_data(file, "./enigma[@model='Enigma1']/reflectors")
+rotors = get_enigma_data(file, "./enigma[@model='Enigma1']/rotors")
+reflectors = get_enigma_data(file, "./enigma[@model='Enigma1']/reflectors")
 
 
 font = ('Arial', 10)
@@ -38,6 +38,22 @@ bg = 'gray85'
 
 
 select_all = '0.0', 'end'
+
+
+class Playback:
+    """Module for playing sounds from the sounds folder"""
+
+    def __init__(self, master_instance):
+        self.sounds = list(
+            map(lambda snd: snd[7:], glob(path.join('sounds', '*.wav'))))
+        self.master_instance = master_instance
+
+    def play(self, sound_name):
+        """Plays a sound based on the entered sound name"""
+        sound_name += '.wav'
+
+        if sound_name in self.sounds and self.master_instance.sound_enabled:
+            PlaySound(path.join('sounds', sound_name), SND_ASYNC)
 
 
 class Config:
