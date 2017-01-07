@@ -661,7 +661,7 @@ class IOBoard(Frame):
                     letter = self.button_press(self.input_box[-1])
                     self.output_box = self.output_box + letter
                 elif length_status == 'shorter' and self.master.autorotate:
-                    self.enigma.rotate_primary(-1)
+                    self.enigma._rotate_primary(-1)
 
             self.master.update_indicators()
 
