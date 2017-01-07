@@ -30,7 +30,8 @@ class RotorFactory:
 
 
 class Enigma:
-    """Enigma machine object emulating all mechanical processes in the real enigma machine"""
+    """Enigma machine object emulating all mechanical processes in the real
+    enigma machine"""
     def __init__(self, reflector=None, rotors=None):
         self._reflector = None
         self.reflector = reflector
@@ -75,7 +76,7 @@ class Enigma:
         """Sets rotors"""
         self._rotors = []
         for label in labels:
-            self._rotors.append(RotorFactory.produce('Enigma1', 'rotor', label))
+            self._rotors.append(RotorFactory.produce('Enigma1', 'rotors', label))
 
     @property
     def positions(self):
@@ -92,7 +93,7 @@ class Enigma:
 
     @reflector.setter
     def reflector(self, label):
-        self._reflector = RotorFactory.produce('Enigma1', 'reflector', label)
+        self._reflector = RotorFactory.produce('Enigma1', 'reflectors', label)
 
     @property
     def ring_settings(self):
@@ -199,7 +200,7 @@ class _RotorBase:
         """Loads rotor configuration data"""
         for attr in attrs.keys():
             if attr not in self.valid_cfg:
-                raise AttributeError('Invalid attribute "%s"!' % attr)
+                raise AttributeError(f'Invalid attribute "{attr}"!')
             value = attrs.get(attr)
             if value:
                 setattr(self, attr, value)
