@@ -1,13 +1,35 @@
 from glob import glob
-from os import path, remove
+from os import remove
 from re import sub
 from tkinter import *
 from webbrowser import open as open_browser
-from enigma.enigma import TkEnigma
+from enigma.components import TkEnigma
 from sound_ctl import Playback
-
-
+from tkinter import messagebox
 from os import path
+import xml.etree.ElementTree as ET
+
+
+class Config:
+    """Handles any type of config"""
+    def __init__(self, buffer_path=None):
+        if buffer_path:
+            self.buffer_path = buffer_path
+            self.__config_buffer = ET.parse(buffer_path)
+        else:
+            self.__config_buffer = {'font':('Arial', 10),
+                                    'select_all':('0.0', 'end'),
+                                    'bg':'gray85'}
+
+    def load_cfg(self):
+        pass
+
+    def save_cfg(self):
+        """Saves current configuration to the cfg file"""
+        pass
+
+    def __getitem__(self, item):
+        return self.__config_buffer[item]
 
 
 font = ('Arial', 10)
@@ -19,32 +41,25 @@ bg = 'gray85'
 select_all = '0.0', 'end'
 
 
-def get_icon(icon):
-    """Gets icon path from the icon folder"""
-    return path.join('icons', icon)
+class Base:
+    """Base initiation class for Tk and TopLevel derivatives"""
+    def __init__(self, icon:str, wm_title:str):
+        self.attributes("-alpha", 0.0)
+        self.after(0, self.attributes, "-alpha", 1.0)
+        self.resizable(False, False)
+        self.iconbitmap(path.join('icons', icon))
+        self.wm_title(wm_title)
+        self.grab_set()
 
 
-def baseinit(self):
-    # Load smoothness upgrade
-    self.attributes("-alpha", 0.0)
-    self.after(0, self.attributes, "-alpha", 1.0)
-    self.resizable(False, False)
-    self.grab_set()
-
-
-class Root(Tk):
+class Root(Tk, Base):
     """Root GUI class with enigma entry field, plugboard button, rotor button"""
     def __init__(self, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
-
-        baseinit(self)
+        Base.__init__(self, 'enigma.ico', 'Enigma')
 
         self.enigma = TkEnigma(self, 'UKW-B', ['I', 'II', 'III'])
         self.playback = Playback(self)
-
-        # Window config
-        self.iconbitmap(get_icon('enigma.ico'))
-        self.wm_title("Enigma")
 
         # Frames
         self.rotor_container = Frame(self, bd=1, relief='raised', bg=bg)
@@ -159,20 +174,15 @@ class Root(Tk):
             messagebox.showerror('Loading error', 'No save file found!')
 
 
-class PlugboardMenu(Toplevel):
+class PlugboardMenu(Toplevel, Base):
     """GUI for visual plugboard pairing setup"""
     def __init__(self, enigma_instance, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
-
-        baseinit(self)
+        Base.__init__(self, 'plugboard.ico', 'Plugboard')
 
         self.enigma = enigma_instance
         self.used = []  # All used letters
         self._pairs = self.enigma.plugboard  # Pairs to return
-
-        # Window config
-        self.iconbitmap(get_icon('plugboard.ico'))
-        self.wm_title("Plugboard")
 
         rows = []
         self.plug_sockets = []
@@ -387,27 +397,17 @@ class RootMenu(Menu):
         settings_menu.add_command(label='Reset all', command=self.master.reset_all)
 
 
-class RotorMenu(Toplevel):
+class RotorMenu(Toplevel, Base):
     """GUI for setting rotor order, reflectors and ring settings"""
     def __init__(self, enigma_instance, *args, **kwargs):
-        """
-        :param enigma_instance: Global enigma instance
-        """
-        # Superclass constructor call
         Toplevel.__init__(self, bg=bg, *args, **kwargs)
-
-        baseinit(self)
-
-        # Window config
-        self.iconbitmap(get_icon('rotor.ico'))
-        self.wm_title("Rotor order")
+        Base.__init__(self, 'rotor.ico', 'Rotor order')
 
         # Enigma settings buffer
         self.enigma = enigma_instance
         self.curr_rotors = [rotor.label for rotor in self.enigma.rotors]
         self.curr_reflector = self.enigma.reflector.label
         self.curr_ring_settings = self.enigma.ring_settings
-        print(self.curr_ring_settings)
 
         # Frames
         main_frame = Frame(self, bg=bg)
@@ -530,7 +530,6 @@ class ReflectorSlot(BaseSlot):
 
 class IndicatorBoard(Frame):
     """Contains all rotor indicators"""
-
     def __init__(self, master, tk_master=None, *args, **kwargs):
         Frame.__init__(self, master, *args, **kwargs)
 

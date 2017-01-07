@@ -1,6 +1,5 @@
 from unit_tests.unit_tests import TestEnigma, unittest
-from enigma.enigma import TkEnigma
-from config_handler import Config
+from enigma.components import TkEnigma
 
 
 # test = Config('config.xml')
