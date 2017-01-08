@@ -10,27 +10,6 @@ from glob import glob
 from os import path
 
 
-def get_enigma_data(file_path, kind):
-    """Gets historical data from the xml configuration file"""
-    data = ET.parse(file_path).find(kind)
-    output = []
-    for item in data:
-        if kind == 'labels':
-            output.extend(item.attrib['values'].split())
-        elif kind == 'layout':
-            output.append(item.attrib['values'].split())
-        else:
-            output.append(item.attrib['label'])
-    return output
-
-
-file = path.join('enigma', 'historical_data.xml')
-layout, labels = map(lambda kind: get_enigma_data(file, kind),
-                     ['layout', 'labels'])
-rotors = get_enigma_data(file, "./enigma[@model='Enigma1']/rotors")
-reflectors = get_enigma_data(file, "./enigma[@model='Enigma1']/reflectors")
-
-
 font = ('Arial', 10)
 
 
@@ -55,17 +34,6 @@ class Playback:
         if sound_name in self.sounds and self.master_instance.sound_enabled:
             PlaySound(path.join('sounds', sound_name), SND_ASYNC)
 
-
-class Config:
-    """Handles any type of config"""
-    def __init__(self, buffer_path=None):
-        if buffer_path:
-            self.buffer_path = buffer_path
-            self.__config_buffer = ET.parse(buffer_path)
-        else:
-            self.__config_buffer = {'font':('Arial', 10),
-                                    'select_all':('0.0', 'end'),
-                                    'bg':'gray85'}
 
     def load_cfg(self):
         pass

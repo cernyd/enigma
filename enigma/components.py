@@ -1,24 +1,23 @@
 from functools import wraps
 from string import ascii_uppercase as alphabet
-import xml.etree.ElementTree as ET
-from os import path
+from cfg_handler import Config
 
 
 class RotorFactory:
     """Factory for creating various enigma Rotor/Reflector objects"""
     def __init__(self, cfg_path):
-        self.xml_tree = ET.parse(path.join(*cfg_path)).getroot()
+        self.cfg = Config(cfg_path)
 
     def produce(self, model, rotor_type, label):
         """Creates and returns new object based on input"""
-        for enigma in self.xml_tree.findall('enigma'):
-            if enigma.attrib['model'] == model:
+        for enigma in [self.cfg.get_data('enigma')]:
+            if enigma['model'] == model:
                 model = enigma
                 break
 
         cfg = None
-        for item in model.find(rotor_type):
-            if item.attrib['label'] == label:
+        for item in model.find(rotor_type, 'SUBATTRS'):
+            if item['label'] == label:
                 cfg = item.attrib
                 cfg.update(label=label)
                 break

@@ -1,30 +1,24 @@
 import unittest
-import xml.etree.ElementTree as ET
 from itertools import permutations
 from enigma.components import Enigma
-from os import path
-
-
-def cfg_interface(category):
-    tree = ET.parse(path.join('unit_tests', 'test_cfg.xml'))
-    data = tree.getroot().find(category).attrib
-    return data
+from cfg_handler import Config
 
 
 class TestEnigma(unittest.TestCase):
     """Used to test if enigma class behaves like the real life counterpart"""
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
+        self.cfg = Config(['unit_tests', 'test_cfg.xml'])
         self.subject: Enigma
         self.reset_subject()
 
     def reset_subject(self):
-        buffer = cfg_interface('default_cfg')
-        self.subject = Enigma(buffer['reflector'], buffer['rotors'].split())
+        buffer = self.cfg.get_data('default_cfg')
+        self.subject = Enigma(buffer['reflector'], buffer['rotors'])
 
     def test_encrypt_decrypt(self):
         """Tests if encryption and decryption are working properly"""
-        buffer = cfg_interface('test_encrypt_decrypt')
+        buffer = self.cfg.get_data('test_encrypt_decrypt')
         for test in permutations(['encrypted', 'decrypted']):
             self.reset_subject()
             output = ''
@@ -36,7 +30,7 @@ class TestEnigma(unittest.TestCase):
     def test_rotors(self):
         """Tests if rotors are assigned properly"""
         self.reset_subject()
-        rotors = cfg_interface('test_rotors')['rotors'].split()
+        rotors = self.cfg.get_data('test_rotors')['rotors']
         self.subject.rotors = rotors
         self.assertEqual(self.subject.rotor_labels, rotors,
                          'Invalid rotor order assigned!')
@@ -44,7 +38,7 @@ class TestEnigma(unittest.TestCase):
     def test_positions(self):
         """Tests if rotor positions are set properly"""
         self.reset_subject()
-        positions = cfg_interface('test_positions')['positions'].split()
+        positions = self.cfg.get_data('test_positions')['positions']
         self.subject.positions = positions
         self.assertEqual(self.subject.positions, positions,
                          'Positions assigned in wrong order!')
@@ -52,7 +46,7 @@ class TestEnigma(unittest.TestCase):
     def test_reflector(self):
         """Tests if the reflector is set properly"""
         self.reset_subject()
-        reflector = cfg_interface('test_reflector')['reflector']
+        reflector = self.cfg.get_data('test_reflector')['reflector']
         self.subject.reflector = reflector
         self.assertEqual(self.subject.reflector_label, reflector,
                          'Invalid rotor assigned!')
@@ -60,7 +54,7 @@ class TestEnigma(unittest.TestCase):
     def test_ring_settings(self):
         """Tests if ring settings are set properly"""
         self.reset_subject()
-        ring_settings = cfg_interface('test_ring_settings')['ring_settings'].split()
+        ring_settings = self.cfg.get_data('test_ring_settings')['ring_settings']
         self.subject.ring_settings = ring_settings
         self.assertEqual(self.subject.ring_settings, ring_settings,
                          'Invalid ring settings assigned!')
@@ -68,7 +62,7 @@ class TestEnigma(unittest.TestCase):
     def test_plugboard(self):
         """Checks if plugboard pairs are set propertly"""
         self.reset_subject()
-        plug_pairs = cfg_interface('test_plugboard')['pairs'].split()
+        plug_pairs = self.cfg.get_data('test_plugboard')['pairs']
         self.subject.plugboard = plug_pairs
         self.assertEqual(self.subject.plugboard, plug_pairs, 'Invalid plugboard'
                                                              ' pairs assigned!')
