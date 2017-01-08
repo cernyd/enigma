@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--Data for enigma unit tests-->
 <cfg>
-    <default_cfg reflector="UKW-B" rotors="I II III"/>
+    <default_cfg split="rotors" reflector="UKW-B" rotors="I II III"/>
     <test_encrypt_decrypt encrypted="FQGAHWLMJAMTJAANUNPDY"
                           decrypted="ENIGMAUNITTESTMESSAGE"/>
-    <test_rotors rotors="III I II"/>
-    <test_positions positions="A B C"/>
+    <test_rotors split="rotors" rotors="III I II"/>
+    <test_positions split="positions" positions="A B C"/>
     <test_reflector reflector="UKW-A"/>
-    <test_ring_settings ring_settings="C B A"/>
-    <test_plugboard pairs="AQ XP FG DR"/>
+    <test_ring_settings split="ring_settings" ring_settings="C B A"/>
+    <test_plugboard split="pairs" pairs="AQ XP FG DR"/>
 </cfg>
