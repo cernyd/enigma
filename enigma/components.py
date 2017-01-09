@@ -6,20 +6,15 @@ from cfg_handler import Config
 class RotorFactory:
     """Factory for creating various enigma Rotor/Reflector objects"""
     def __init__(self, cfg_path):
-        self.cfg = Config(cfg_path)
+        self.cfg = Config(['enigma', 'historical_data.xml'])
 
     def produce(self, model, rotor_type, label):
         """Creates and returns new object based on input"""
-        for enigma in [self.cfg.get_data('enigma')]:
-            if enigma['model'] == model:
-                model = enigma
-                break
+        cfg = self.cfg.get_data(f".//enigma[@model='{model}']/{rotor_type}", 'SUBATTRS')
 
-        cfg = None
-        for item in model.find(rotor_type, 'SUBATTRS'):
+        for item in cfg:
             if item['label'] == label:
-                cfg = item.attrib
-                cfg.update(label=label)
+                cfg = item
                 break
 
         assert cfg, "No configuration found!"
