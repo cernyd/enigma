@@ -9,12 +9,6 @@ from glob import glob
 from os import path
 
 
-font = ('Arial', 10)
-
-
-bg = 'gray85'
-
-
 class Playback:
     """Module for playing sounds from the sounds folder"""
 
@@ -208,7 +202,7 @@ class Root(Tk, Base):
 
 class PlugboardMenu(Toplevel, Base):
     """GUI for visual plugboard pairing setup"""
-    def __init__(self, enigma, layout, labels, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
         Base.__init__(self, 'plugboard.ico', 'Plugboard')
 
@@ -278,7 +272,7 @@ class PlugboardMenu(Toplevel, Base):
 class PlugSocket(Frame):
     """Custom made socket class"""
 
-    def __init__(self, tk_master, master, label, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         Frame.__init__(self, tk_master, *args, **kwargs)
 
         self._label = label
@@ -352,7 +346,7 @@ class PlugSocket(Frame):
 
 
 class PlugEntry(Entry):
-    def __init__(self, tk_master, master, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         # Superclass constructor call
         internal_tracer = StringVar()
 
@@ -395,7 +389,7 @@ class PlugEntry(Entry):
 
 
 class RootMenu(Menu):
-    def __init__(self, master, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         Menu.__init__(self, master, *args, **kwargs)
 
         settings_menu = Menu(self, tearoff=0)
@@ -429,7 +423,7 @@ class RootMenu(Menu):
 
 class RotorMenu(Toplevel, Base):
     """GUI for setting rotor order, reflectors and ring settings"""
-    def __init__(self, enigma_instance, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         Toplevel.__init__(self, bg=bg, *args, **kwargs)
         Base.__init__(self, 'rotor.ico', 'Rotor order')
 
@@ -483,7 +477,7 @@ class RotorMenu(Toplevel, Base):
 
 
 class BaseSlot(Frame):
-    def __init__(self, master, text, tk_master=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         tk_master = tk_master if tk_master else master
         Frame.__init__(self, tk_master, bd=1, relief='raised', *args, **kwargs)
 
@@ -515,7 +509,7 @@ class BaseSlot(Frame):
 
 
 class RotorSlot(BaseSlot):
-    def __init__(self, master, index, tk_master=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         text = ('SLOW', 'MEDIUM', 'FAST')[index] + ' ROTOR'
         BaseSlot.__init__(self, master, text, tk_master, *args, **kwargs)
 
@@ -545,7 +539,7 @@ class RotorSlot(BaseSlot):
 
 
 class ReflectorSlot(BaseSlot):
-    def __init__(self, master, tk_master=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         BaseSlot.__init__(self, master, 'REFLECTOR', tk_master, *args, **kwargs)
 
         self.generate_contents(reflectors)
@@ -560,7 +554,7 @@ class ReflectorSlot(BaseSlot):
 
 class IndicatorBoard(Frame):
     """Contains all rotor indicators"""
-    def __init__(self, master, enigma, tk_master=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         Frame.__init__(self, master, *args, **kwargs)
 
         self.master = master
@@ -579,7 +573,7 @@ class IndicatorBoard(Frame):
 
 class RotorIndicator(Frame):
     """Rotor indicator for indicating or rotating a rotor"""
-    def __init__(self, master, index, playback, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         Frame.__init__(self, master, bg=bg, *args, **kwargs)
         self.index = index
 
@@ -612,12 +606,10 @@ class RotorIndicator(Frame):
 
 
 class IOBoard(Frame):
-    def __init__(self, enigma_instance, master,  tk_master=None, *args, **kwargs):
-        tk_master = tk_master if tk_master else master
+    def __init__(self, enigma, tk_master, font, sync_scroll, *args, **kwargs):
         Frame.__init__(self, tk_master, *args, *kwargs)
-
-        self.master = master
-        self.enigma = enigma_instance
+        self.enigma = enigma
+        self.sync_scroll = sync_scroll
 
         self.master.bind('<Key>', self.press_event)
 
@@ -754,7 +746,7 @@ class IOBoard(Frame):
 
 
 class Lightboard(Frame):
-    def __init__(self, tk_master, layout, labels, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         Frame.__init__(self, tk_master, bd=1, relief='raised', bg=bg, *args, *kwargs)
 
         rows = []
