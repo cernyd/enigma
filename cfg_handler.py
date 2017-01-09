@@ -16,12 +16,12 @@ class Config:
     @staticmethod
     def __split_attribs(attribs: dict):
         """Splits attributes if they have the 'split' flag set."""
-        to_split = attribs.get('split', None)
+        to_split = attribs.pop('split', None)
 
         if to_split:
             to_split = to_split.split()
             for key, value in attribs.items():
-                if key in to_split and type(value) == str:
+                if key in to_split:
                     value = value.split()
                 attribs[key] = value
 
