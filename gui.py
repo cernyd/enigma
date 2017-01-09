@@ -4,7 +4,6 @@ from tkinter import *
 from webbrowser import open as open_browser
 from enigma.components import Enigma
 from tkinter import messagebox
-import xml.etree.ElementTree as ET
 from winsound import PlaySound, SND_ASYNC
 from glob import glob
 from os import path
@@ -14,9 +13,6 @@ font = ('Arial', 10)
 
 
 bg = 'gray85'
-
-
-select_all = '0.0', 'end'
 
 
 class Playback:
@@ -33,17 +29,6 @@ class Playback:
 
         if sound_name in self.sounds and self.master_instance.sound_enabled:
             PlaySound(path.join('sounds', sound_name), SND_ASYNC)
-
-
-    def load_cfg(self):
-        pass
-
-    def save_cfg(self):
-        """Saves current configuration to the cfg file"""
-        pass
-
-    def __getitem__(self, item):
-        return self.__config_buffer[item]
 
 
 class TkEnigma(Enigma):
@@ -88,17 +73,26 @@ class Base:
 
 class Root(Tk, Base):
     """Root GUI class with enigma entry field, plugboard button, rotor button"""
-    def __init__(self, *args, **kwargs):
+    def __init__(self, cfg, bg, font, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
         Base.__init__(self, 'enigma.ico', 'Enigma')
 
         self.enigma = TkEnigma(self, 'UKW-B', ['I', 'II', 'III'])
         self.playback = Playback(self)
+        self.cfg = cfg
+
+        self.font = font
+        self.layout = []
+        [self.layout.append(row['values']) for row in
+         self.cfg.get_data('layout', 'SUBATTRS')]
+
+        self.labels = []
+        [self.labels.extend(row['values']) for row in
+         self.cfg.get_data('labels', 'SUBATTRS')]
+        self.bg = bg
 
         # Frames
         self.rotor_container = Frame(self, bd=1, relief='raised', bg=bg)
-
-        self.indicator_board = IndicatorBoard(self.rotor_container)
 
         # Lid
         Button(self.rotor_container, text='\n'.join('Rotors'),
@@ -123,11 +117,13 @@ class Root(Tk, Base):
         self.rowconfigure(index=0, weight=1)
 
         # Container init
+        self.io_board = IOBoard(self.enigma, self)
+        self.lightboard = Lightboard(self, self.layout, self.labels)
+        self.indicator_board = IndicatorBoard(self, self.enigma, tk_master=self)
+
         self.indicator_board.pack()
         self.rotor_container.pack(fill='both', padx=5, pady=5, side='top')
-        self.lightboard = Lightboard(self)
         self.lightboard.pack(side='top', fill='both', padx=5)
-        self.io_board = IOBoard(self, self.enigma)
         self.io_board.pack(side='top')
 
         self.last_len = 0
@@ -145,7 +141,7 @@ class Root(Tk, Base):
         self.enigma.reflector = 'UKW-B'
         self.enigma.rotors = ['III', 'II', 'I']
         self.enigma.plugboard = []
-        self.io_board.text_input.delete(*select_all)
+        self.io_board.text_input.delete('0.0', 'end')
         self.last_len = 0
 
         self._autorotate.set(1)
@@ -159,12 +155,12 @@ class Root(Tk, Base):
 
     def plugboard_menu(self):
         """Opens the plugboard GUI"""
-        self.wait_window(PlugboardMenu(self.enigma))
+        self.wait_window(PlugboardMenu(self.enigma, self.layout, self.labels))
 
     def rotor_menu(self):
         """Opens the rotor gui and applies new values after closing"""
         self.wait_window(RotorMenu(self.enigma))
-        self.io_board.text_input.delete(*select_all)
+        self.io_board.text_input.delete('0.0', 'end')
         self.io_board.format_entries()
 
     @property
@@ -212,11 +208,11 @@ class Root(Tk, Base):
 
 class PlugboardMenu(Toplevel, Base):
     """GUI for visual plugboard pairing setup"""
-    def __init__(self, enigma_instance, *args, **kwargs):
+    def __init__(self, enigma, layout, labels, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
         Base.__init__(self, 'plugboard.ico', 'Plugboard')
 
-        self.enigma = enigma_instance
+        self.enigma = enigma
         self.used = []  # All used letters
         self._pairs = self.enigma.plugboard  # Pairs to return
 
@@ -564,11 +560,11 @@ class ReflectorSlot(BaseSlot):
 
 class IndicatorBoard(Frame):
     """Contains all rotor indicators"""
-    def __init__(self, master, tk_master=None, *args, **kwargs):
+    def __init__(self, master, enigma, tk_master=None, *args, **kwargs):
         Frame.__init__(self, master, *args, **kwargs)
 
         self.master = master
-        self.enigma = self.master.enigma
+        self.enigma = enigma
 
         self.indicators = []
         for index in range(3):
@@ -583,8 +579,8 @@ class IndicatorBoard(Frame):
 
 class RotorIndicator(Frame):
     """Rotor indicator for indicating or rotating a rotor"""
-    def __init__(self, master, index):
-        Frame.__init__(self, self, bg=bg)
+    def __init__(self, master, index, playback, *args, **kwargs):
+        Frame.__init__(self, master, bg=bg, *args, **kwargs)
         self.index = index
 
         self.enigma = master.enigma
@@ -601,12 +597,11 @@ class RotorIndicator(Frame):
 
         self.indicator.pack(side='top', pady=10, padx=20)
 
-        self.enigma = enigma_instance
         self.update_indicator()
 
     def rotate(self, places=0):
         """Rotates the rotor with the selected index backward"""
-        self.master.master.playback.play('click')
+        self.playback.play('click')
         self.enigma.rotors[self.index].rotate(places)
         self.update_indicator()
 
@@ -617,7 +612,7 @@ class RotorIndicator(Frame):
 
 
 class IOBoard(Frame):
-    def __init__(self, master, enigma_instance, tk_master=None, *args, **kwargs):
+    def __init__(self, enigma_instance, master,  tk_master=None, *args, **kwargs):
         tk_master = tk_master if tk_master else master
         Frame.__init__(self, tk_master, *args, *kwargs)
 
@@ -731,36 +726,36 @@ class IOBoard(Frame):
     @property
     def input_box(self):
         """Gets the value of the input field"""
-        return self.text_input.get(*select_all).upper().replace('\n', '')
+        return self.text_input.get('0.0', 'end').upper().replace('\n', '')
 
     @property
     def output_box(self):
         """Gets the value of the output field"""
-        return self.text_output.get(*select_all).upper().replace('\n', '')
+        return self.text_output.get('0.0', 'end').upper().replace('\n', '')
 
     @input_box.setter
     def input_box(self, string):
         """Sets input field to the value of string"""
-        self.text_input.delete(*select_all)
+        self.text_input.delete('0.0', 'end')
         self.text_input.insert('0.0', string)
 
     @output_box.setter
     def output_box(self, string):
         """Sets output field to the value of string"""
         self.text_output.config(state='normal')
-        self.text_output.delete(*select_all)
+        self.text_output.delete('0.0', 'end')
         self.text_output.insert('0.0', string)
         self.text_output.config(state='disabled')
 
     def button_press(self, letter):
         """Returns the encrypted letter, plays sound if sound enabled"""
-        self.master.playback.play('button_press')
+        self.playback.play('button_press')
         return self.enigma.button_press(letter)
 
 
 class Lightboard(Frame):
-    def __init__(self, master, *args, **kwargs):
-        Frame.__init__(self, master, bd=1, relief='raised', bg=bg, *args, *kwargs)
+    def __init__(self, tk_master, layout, labels, *args, **kwargs):
+        Frame.__init__(self, tk_master, bd=1, relief='raised', bg=bg, *args, *kwargs)
 
         rows = []
         self.bulbs = []
@@ -768,6 +763,7 @@ class Lightboard(Frame):
         for row in layout:
             new_row = Frame(self)
             for item in row:
+                item = int(item)
                 text = labels[item][0]
                 self.bulbs.append(
                     Label(new_row, text=text, font=('Arial', 14), bg=bg,

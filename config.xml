@@ -4,7 +4,6 @@
     lists before returning-->
     <globals>
         <font style="Arial" size="10"/>
-        <select_all split="command" command="0.0 end"/>
         <bg color="gray85"/>
         <unit_tests startup_test="True" cfg_dir="unit_test\test_cfg.xml"/>
         <enigma_defaults model="Enigma1" data_dir="enigma\historical_data.xml"/>
