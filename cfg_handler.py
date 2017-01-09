@@ -21,7 +21,7 @@ class Config:
         if to_split:
             to_split = to_split.split()
             for key, value in attribs.items():
-                if key in to_split:
+                if key in to_split and type(value) == str:
                     value = value.split()
                 attribs[key] = value
 
@@ -57,7 +57,6 @@ class Config:
     def new_context(self, name, context_path: list):
         """Creates a new 'bookmark' for accessing data easily"""
         context_path = Config.__compose_path(context_path)
-        print(context_path)
         self.__contexts[name] = self.__buffer.find(context_path)
 
     def get_data(self, data_path, data_type='ATTRS'):
