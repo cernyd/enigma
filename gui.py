@@ -72,7 +72,7 @@ class Root(Tk, Base):
         Tk.__init__(self, *args, **kwargs)
         Base.__init__(self, 'enigma.ico', 'Enigma')
 
-        self.enigma = TkEnigma(self, 'UKW-B', ['III', 'II', 'I'])
+        self.enigma = TkEnigma(self, 'UKW-B', ['I', 'II', 'III'])
         self.playback = Playback(self)
         self.root_menu = None
         self.config(menu=self.root_menu)
@@ -117,10 +117,10 @@ class Root(Tk, Base):
         # Container init
         self.io_board = IOBoard(self.enigma, self, self, self.playback, self.font)
         self.lightboard = Lightboard(self, self.layout, self.labels, self.bg)
-        self.indicator_board = IndicatorBoard(self.enigma, self, self.playback, self.bg, self.font)
+        self.indicator_board = IndicatorBoard(self.enigma, self.rotor_container, self.playback, self.bg, self.font)
 
         self.indicator_board.pack()
-        # self.rotor_container.pack(fill='both', padx=5, pady=5, side='top')
+        self.rotor_container.pack(fill='both', padx=5, pady=5, side='top')
         self.lightboard.pack(side='top', fill='both', padx=5)
         self.io_board.pack(side='top')
 
