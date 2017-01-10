@@ -143,7 +143,7 @@ class Root(Tk, Base):
     def reset_all(self):  # A bit too long?
         """Sets all settings to default"""
         self.enigma.reflector = 'UKW-B'
-        self.enigma.rotors = ['III', 'II', 'I']
+        self.enigma.rotors = ['I', 'II', 'III']
         self.enigma.plugboard = []
         self.io_board.text_input.delete('0.0', 'end')
 
