@@ -26,7 +26,8 @@ class Playback:
 
 
 class TkEnigma(Enigma):
-    """Enigma adjusted for Tk rotor lock"""
+    """Enigma adjusted for Tk rotor lock,
+    ignore the property signatures please..."""
     def __init__(self, master, *config):
         Enigma.__init__(self, *config)
         self.master = master
@@ -71,19 +72,30 @@ class Root(Tk, Base):
         Tk.__init__(self, *args, **kwargs)
         Base.__init__(self, 'enigma.ico', 'Enigma')
 
-        self.enigma = TkEnigma(self, 'UKW-B', ['I', 'II', 'III'])
+        self.enigma = TkEnigma(self, 'UKW-B', ['III', 'II', 'I'])
         self.playback = Playback(self)
+        self.root_menu = None
+        self.config(menu=self.root_menu)
         self.cfg = cfg
-
+        self.bg = bg
         self.font = font
+        self.font[1] = int(self.font[1])  # Convert font size to int
         self.layout = []
+        self.labels = []
+
         [self.layout.append(row['values']) for row in
          self.cfg.get_data('layout', 'SUBATTRS')]
 
-        self.labels = []
         [self.labels.extend(row['values']) for row in
          self.cfg.get_data('labels', 'SUBATTRS')]
-        self.bg = bg
+
+        # Settings vars
+        self._sound_enabled = IntVar()
+        self._autorotate = IntVar()
+        self._rotor_lock = IntVar()
+        self._sync_scroll = IntVar()
+
+        self.__make_root_menu()
 
         # Frames
         self.rotor_container = Frame(self, bd=1, relief='raised', bg=bg)
@@ -96,14 +108,6 @@ class Root(Tk, Base):
         self.open_plugboard = Button(self, text='Plugboard',
                                      command=self.plugboard_menu)
 
-        # Settings vars
-        self._sound_enabled = IntVar(value=1)
-        self._autorotate = IntVar(value=1)
-        self._rotor_lock = IntVar(value=0)
-        self._sync_scroll = IntVar(value=1)
-
-        self.config(menu=RootMenu(self))
-
         # Plugboard init
         self.open_plugboard.pack(side='bottom', fill='both', padx=3, pady=3)
 
@@ -111,16 +115,22 @@ class Root(Tk, Base):
         self.rowconfigure(index=0, weight=1)
 
         # Container init
-        self.io_board = IOBoard(self.enigma, self)
-        self.lightboard = Lightboard(self, self.layout, self.labels)
-        self.indicator_board = IndicatorBoard(self, self.enigma, tk_master=self)
+        self.io_board = IOBoard(self.enigma, self, self, self.playback, self.font)
+        self.lightboard = Lightboard(self, self.layout, self.labels, self.bg)
+        self.indicator_board = IndicatorBoard(self.enigma, self, self.playback, self.bg, self.font)
 
         self.indicator_board.pack()
-        self.rotor_container.pack(fill='both', padx=5, pady=5, side='top')
+        # self.rotor_container.pack(fill='both', padx=5, pady=5, side='top')
         self.lightboard.pack(side='top', fill='both', padx=5)
         self.io_board.pack(side='top')
 
-        self.last_len = 0
+        self.reset_all()
+
+    def __reset_setting_vars(self):
+        self._autorotate.set(1)
+        self._sound_enabled.set(1)
+        self._sync_scroll.set(1)
+        self._rotor_lock.set(0)
 
     @property
     def rotor_lock(self):
@@ -136,12 +146,8 @@ class Root(Tk, Base):
         self.enigma.rotors = ['III', 'II', 'I']
         self.enigma.plugboard = []
         self.io_board.text_input.delete('0.0', 'end')
-        self.last_len = 0
 
-        self._autorotate.set(1)
-        self._sound_enabled.set(1)
-        self._sync_scroll.set(1)
-        self._rotor_lock.set(0)
+        self.__reset_setting_vars()
 
         self.update_indicators()
         self.lightboard.light_up('')
@@ -156,6 +162,40 @@ class Root(Tk, Base):
         self.wait_window(RotorMenu(self.enigma))
         self.io_board.text_input.delete('0.0', 'end')
         self.io_board.format_entries()
+
+    def __make_root_menu(self):
+        self.root_menu = Menu(self, tearoff=0)
+        self.root_menu.add_cascade(label='Settings', menu=self.root_menu)
+        self.root_menu.add_command(label='About', command=lambda: open_browser(
+            'https://github.com/cernyd/enigma'))
+        self.root_menu.add_command(label='Help')
+
+        config_menu = Menu(self.root_menu, tearoff=0)
+
+        config_menu.add_command(label='Save Configuration',
+                                command=self.save_config)
+        config_menu.add_command(label='Load Configuration',
+                                command=self.load_config)
+        config_menu.add_command(label='Delete Configuration',
+                                command=lambda: remove('settings.txt'))
+
+        self.root_menu.add_cascade(label='Saving and Loading', menu=config_menu)
+
+        self.root_menu.add_separator()
+        self.root_menu.add_checkbutton(label='Enable sound', onvalue=1,
+                                      offvalue=0, variable=self._sound_enabled)
+        self.root_menu.add_checkbutton(label='Autorotate',
+                                      variable=self._autorotate)
+        self.root_menu.add_checkbutton(label='Rotor lock',
+                                      variable=self._rotor_lock)
+        self.root_menu.add_checkbutton(label='Synchronised scrolling',
+                                      variable=self._sync_scroll)
+        self.root_menu.add_separator()
+        self.root_menu.add_command(label='Reset all',
+                                  command=self.reset_all)
+
+    def update_indicators(self):
+        self.indicator_board.update_indicators()
 
     @property
     def sync_scroll(self):
@@ -202,7 +242,7 @@ class Root(Tk, Base):
 
 class PlugboardMenu(Toplevel, Base):
     """GUI for visual plugboard pairing setup"""
-    def __init__(self, *args, **kwargs):
+    def __init__(self, enigma, layout, labels, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
         Base.__init__(self, 'plugboard.ico', 'Plugboard')
 
@@ -216,6 +256,7 @@ class PlugboardMenu(Toplevel, Base):
         for row in layout:
             new_row = Frame(self)
             for item in row:
+                item = int(item)
                 self.plug_sockets.append(PlugSocket(new_row, self,labels[item]))
             rows.append(new_row)
 
@@ -227,13 +268,11 @@ class PlugboardMenu(Toplevel, Base):
 
         button_frame = Frame(self)
 
-        self.apply_button = Button(button_frame, text='Apply',
-                                   command=self.apply,
-                                   width=12)
+        self.apply_button = Button(button_frame, text='Apply', width=12,
+                                   command=self.apply)
 
-        self.storno_button = Button(button_frame, text='Storno',
-                                    command=self.destroy,
-                                    width=12)
+        self.storno_button = Button(button_frame, text='Storno', width=12,
+                                    command=self.destroy)
 
         self.apply_button.pack(side='right', padx=5, pady=5)
         self.storno_button.pack(side='right', padx=5, pady=5)
@@ -388,39 +427,6 @@ class PlugEntry(Entry):
         return raw[0] if raw else raw
 
 
-class RootMenu(Menu):
-    def __init__(self, *args, **kwargs):
-        Menu.__init__(self, master, *args, **kwargs)
-
-        settings_menu = Menu(self, tearoff=0)
-        self.add_cascade(label='Settings', menu=settings_menu)
-        self.add_command(label='About', command=lambda: open_browser(
-            'https://github.com/cernyd/enigma'))
-        self.add_command(label='Help')
-        config_menu = Menu(settings_menu, tearoff=0)
-
-        config_menu.add_command(label='Save Configuration',
-                                command=self.master.save_config)
-        config_menu.add_command(label='Load Configuration',
-                                command=self.master.load_config)
-        config_menu.add_command(label='Delete Configuration',
-                                command=lambda: remove('settings.txt'))
-
-        settings_menu.add_cascade(label='Saving and Loading', menu=config_menu)
-
-        settings_menu.add_separator()
-        settings_menu.add_checkbutton(label='Enable sound', onvalue=1, offvalue=0,
-                                      variable=self.master._sound_enabled)
-        settings_menu.add_checkbutton(label='Autorotate',
-                                      variable=self.master._autorotate)
-        settings_menu.add_checkbutton(label='Rotor lock',
-                                      variable=self.master._rotor_lock)
-        settings_menu.add_checkbutton(label='Synchronised scrolling',
-                                      variable=self.master._sync_scroll)
-        settings_menu.add_separator()
-        settings_menu.add_command(label='Reset all', command=self.master.reset_all)
-
-
 class RotorMenu(Toplevel, Base):
     """GUI for setting rotor order, reflectors and ring settings"""
     def __init__(self, *args, **kwargs):
@@ -554,15 +560,12 @@ class ReflectorSlot(BaseSlot):
 
 class IndicatorBoard(Frame):
     """Contains all rotor indicators"""
-    def __init__(self, *args, **kwargs):
-        Frame.__init__(self, master, *args, **kwargs)
-
-        self.master = master
-        self.enigma = enigma
+    def __init__(self, enigma, tk_master, playback, bg, font, *args, **kwargs):
+        Frame.__init__(self, tk_master, *args, **kwargs)
 
         self.indicators = []
         for index in range(3):
-            indicator = RotorIndicator(self, index)
+            indicator = RotorIndicator(enigma, self, playback, index, bg, font)
             self.indicators.append(indicator)
             indicator.pack(side='left')
 
@@ -573,11 +576,11 @@ class IndicatorBoard(Frame):
 
 class RotorIndicator(Frame):
     """Rotor indicator for indicating or rotating a rotor"""
-    def __init__(self, *args, **kwargs):
-        Frame.__init__(self, master, bg=bg, *args, **kwargs)
+    def __init__(self, enigma, tk_master, playback, index, bg, font, *args, **kwargs):
+        Frame.__init__(self, tk_master, bg=bg, *args, **kwargs)
         self.index = index
-
-        self.enigma = master.enigma
+        self.playback = playback
+        self.enigma = enigma
 
         cfg = dict(font=font, width=1)
 
@@ -606,12 +609,12 @@ class RotorIndicator(Frame):
 
 
 class IOBoard(Frame):
-    def __init__(self, enigma, tk_master, font, sync_scroll, *args, **kwargs):
+    def __init__(self, enigma, tk_master, master, playback, font, *args, **kwargs):
         Frame.__init__(self, tk_master, *args, *kwargs)
         self.enigma = enigma
-        self.sync_scroll = sync_scroll
-
+        self.master = master
         self.master.bind('<Key>', self.press_event)
+        self.playback = playback
 
         # Scrollbars
         self.input_scrollbar = Scrollbar(self)
@@ -650,7 +653,6 @@ class IOBoard(Frame):
         if self.last_len != input_length:
             len_difference = input_length - self.last_len
 
-
             if self.last_len > input_length:
                 self.last_len = input_length
                 return ['shorter', len_difference]
@@ -679,7 +681,8 @@ class IOBoard(Frame):
             if length_status:
                 self.format_entries()
                 if length_status == 'longer':
-                    letter = self.button_press(self.input_box[-1])
+                    self.playback.play('button_press')
+                    letter = self.enigma.button_press(self.input_box[-1])
                     self.output_box = self.output_box + letter
                 elif length_status == 'shorter' and self.master.autorotate:
                     self.enigma._rotate_primary(-1)
@@ -739,14 +742,9 @@ class IOBoard(Frame):
         self.text_output.insert('0.0', string)
         self.text_output.config(state='disabled')
 
-    def button_press(self, letter):
-        """Returns the encrypted letter, plays sound if sound enabled"""
-        self.playback.play('button_press')
-        return self.enigma.button_press(letter)
-
 
 class Lightboard(Frame):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, tk_master, layout, labels, bg, *args, **kwargs):
         Frame.__init__(self, tk_master, bd=1, relief='raised', bg=bg, *args, *kwargs)
 
         rows = []

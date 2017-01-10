@@ -228,9 +228,9 @@ class Rotor(_RotorBase):
 
     def _did_turnover(self):
         """Checks if the next position should turn by one place."""
-        if (self._last_position, self.position) == self.turnover:
+        if self._last_position + self.position == self.turnover:
             return True
-        elif (self.position, self._last_position) == self.turnover:
+        elif self.position + self._last_position == self.turnover:
             return True
         return False
 
