@@ -9,8 +9,9 @@ unittest.main(exit=False)
 
 if __name__ == '__main__':
     config = Config(['config.xml'])
-    font = config.get_data(['globals', 'font']).keys()
+    font = list(config.get_data(['globals', 'font']).values())
     bg = config.get_data(['globals', 'bg'])['color']
     root_config = Config(['enigma', 'historical_data.xml'])
+
     root = Root(root_config, bg, font)
     root.mainloop()
