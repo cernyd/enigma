@@ -34,7 +34,6 @@ class Enigma:
         self._rotors = []
         self.rotors = rotors  # Calling property
         self._plugboard = []
-        self.last_output = ''  # To avoid sending the same data from rotor position class
 
     @property
     def plugboard(self):
