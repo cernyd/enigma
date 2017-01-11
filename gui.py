@@ -75,7 +75,6 @@ class Root(Tk, Base):
         self.enigma = TkEnigma(self, 'UKW-B', ['I', 'II', 'III'])
         self.playback = Playback(self)
         self.root_menu = None
-        self.config(menu=self.root_menu)
         self.cfg = cfg
         self.bg = bg
         self.font = font
@@ -94,8 +93,6 @@ class Root(Tk, Base):
         self._autorotate = IntVar()
         self._rotor_lock = IntVar()
         self._sync_scroll = IntVar()
-
-        self.__make_root_menu()
 
         # Frames
         self.rotor_container = Frame(self, bd=1, relief='raised', bg=bg)
@@ -123,6 +120,8 @@ class Root(Tk, Base):
         self.rotor_container.pack(fill='both', padx=5, pady=5, side='top')
         self.lightboard.pack(side='top', fill='both', padx=5)
         self.io_board.pack(side='top')
+
+        self.__make_root_menu()
 
         self.reset_all()
 
@@ -165,12 +164,12 @@ class Root(Tk, Base):
 
     def __make_root_menu(self):
         self.root_menu = Menu(self, tearoff=0)
-        self.root_menu.add_cascade(label='Settings', menu=self.root_menu)
+        settings_menu = Menu(self.root_menu, tearoff=0)
+        self.root_menu.add_cascade(label='Settings', menu=settings_menu)
         self.root_menu.add_command(label='About', command=lambda: open_browser(
             'https://github.com/cernyd/enigma'))
         self.root_menu.add_command(label='Help')
-
-        config_menu = Menu(self.root_menu, tearoff=0)
+        config_menu = Menu(settings_menu, tearoff=0)
 
         config_menu.add_command(label='Save Configuration',
                                 command=self.save_config)
@@ -179,20 +178,23 @@ class Root(Tk, Base):
         config_menu.add_command(label='Delete Configuration',
                                 command=lambda: remove('settings.txt'))
 
-        self.root_menu.add_cascade(label='Saving and Loading', menu=config_menu)
+        settings_menu.add_cascade(label='Saving and Loading', menu=config_menu)
 
-        self.root_menu.add_separator()
-        self.root_menu.add_checkbutton(label='Enable sound', onvalue=1,
-                                      offvalue=0, variable=self._sound_enabled)
-        self.root_menu.add_checkbutton(label='Autorotate',
+        settings_menu.add_separator()
+        settings_menu.add_checkbutton(label='Enable sound', onvalue=1,
+                                      offvalue=0,
+                                      variable=self._sound_enabled)
+        settings_menu.add_checkbutton(label='Autorotate',
                                       variable=self._autorotate)
-        self.root_menu.add_checkbutton(label='Rotor lock',
+        settings_menu.add_checkbutton(label='Rotor lock',
                                       variable=self._rotor_lock)
-        self.root_menu.add_checkbutton(label='Synchronised scrolling',
+        settings_menu.add_checkbutton(label='Synchronised scrolling',
                                       variable=self._sync_scroll)
-        self.root_menu.add_separator()
-        self.root_menu.add_command(label='Reset all',
+        settings_menu.add_separator()
+        settings_menu.add_command(label='Reset all',
                                   command=self.reset_all)
+
+        self.config(menu=self.root_menu)
 
     def update_indicators(self):
         self.indicator_board.update_indicators()
