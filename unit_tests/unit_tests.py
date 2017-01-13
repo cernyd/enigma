@@ -6,6 +6,8 @@ from cfg_handler import Config
 
 class TestEnigma(unittest.TestCase):
     """Used to test if enigma class behaves like the real life counterpart"""
+    model = 'Enigma1'
+
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
         self.cfg = Config(['unit_tests', 'test_cfg.xml'])
@@ -14,7 +16,7 @@ class TestEnigma(unittest.TestCase):
 
     def reset_subject(self):
         buffer = self.cfg.get_data('default_cfg')
-        self.subject = Enigma(buffer['reflector'], buffer['rotors'])
+        self.subject = Enigma(TestEnigma.model, buffer['reflector'], buffer['rotors'])
 
     def test_encrypt_decrypt(self):
         """Tests if encryption and decryption are working properly"""
@@ -67,8 +69,8 @@ class TestEnigma(unittest.TestCase):
         self.assertEqual(self.subject.plugboard, plug_pairs, 'Invalid plugboard'
                                                              ' pairs assigned!')
 
-    def test_cfg_io(self):
-        """Tests if rotor data is dumped and loaded correctly"""
-
-    def test_enigma_cfg_io(self):
-        """Tests if enigma data is dumped and loaded correctly"""
+    # def test_cfg_io(self):
+    #     """Tests if rotor data is dumped and loaded correctly"""
+    #
+    # def test_enigma_cfg_io(self):
+    #     """Tests if enigma data is dumped and loaded correctly"""
