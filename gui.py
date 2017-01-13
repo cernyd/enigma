@@ -397,18 +397,16 @@ class PlugSocket(Frame):
 class PlugEntry(Entry):
     def __init__(self, master, tk_master, *args, **kwargs):
         # Superclass constructor call
-        internal_tracer = StringVar()
-
+        self.internal_tracer = StringVar()
         Entry.__init__(self, tk_master, *args, **kwargs,
-                       textvariable=internal_tracer)
+                       textvariable=self.internal_tracer)
 
-        internal_tracer.trace('w', self.event)
+        self.internal_tracer.trace('w', self.event)
 
         self.master = master
         self.last_val = ''
 
-    def event(self,
-              *event):  # Needs some refactoring ( unreliable and confusing )
+    def event(self, *event):
         new_val = self.validate(self.get())  # Raw new data
         delete = self.last_val and not new_val
         write = not self.last_val and new_val
@@ -467,7 +465,7 @@ class RotorMenu(Toplevel, Base):
         self.reflector = ReflectorSlot(self, main_frame, self.enigma.all_reflector_labels)
         self.reflector.pack(side='left', fill='y', padx=(10, 2), pady=5)
 
-        self.rotors = [RotorSlot(self, main_frame, index, self.enigma.labels) for index in range(3)]
+        self.rotors = [RotorSlot(self, main_frame, index, self.enigma.labels, self.enigma.all_rotor_labels) for index in range(3)]
         [rotor.pack(side='left', padx=2, pady=5, fill='y') for rotor in self.rotors]
 
         main_frame.pack(side='top', pady=(5, 0), padx=(0,10))
@@ -478,7 +476,7 @@ class RotorMenu(Toplevel, Base):
         """Applies all settings to the global enigma instance"""
         self.enigma.rotors = self.curr_rotors
         self.enigma.reflector = self.curr_reflector
-        self.enigma.ring_settings = self.curr_ring_settings
+        self.enigma.ring_settings = [alphabet[setting] for setting in self.curr_ring_settings]
         self.destroy()
 
     def update_all(self, *event):
@@ -525,12 +523,14 @@ class BaseSlot(Frame):
 
 
 class RotorSlot(BaseSlot):
-    def __init__(self, master, tk_master, index, ring_labels, *args, **kwargs):
+    def __init__(self, master, tk_master, index, ring_labels, rotors, *args, **kwargs):
         text = ('SLOW', 'MEDIUM', 'FAST')[index] + ' ROTOR'
         BaseSlot.__init__(self, master, tk_master, text, *args, **kwargs)
 
         self.index = index
         self.labels = ring_labels
+
+        self.generate_contents(rotors)
 
         # Ring setting indicator
         setting = self.master.enigma.ring_settings[index]
