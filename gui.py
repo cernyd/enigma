@@ -121,7 +121,7 @@ class Root(Tk, Base):
 
         # Container init
         self.io_board = IOBoard(self.enigma, self, self, self.playback, self.font)
-        self.lightboard = Lightboard(self, self.enigma.layout, self.enigma.labels, self.bg)
+        self.lightboard = Lightboard(self, self.enigma.layout, self.bg)
         self.indicator_board = IndicatorBoard(self.enigma, self.rotor_container, self.playback, self.bg, self.font)
 
         self.indicator_board.pack()
@@ -159,6 +159,7 @@ class Root(Tk, Base):
         self.update_indicators()
         self.lightboard.light_up('')
         self.io_board.format_entries()
+        self.io_board.last_len = 0
 
     def plugboard_menu(self):
         """Opens the plugboard GUI"""
@@ -387,7 +388,6 @@ class PlugSocket(Frame):
 
     def callback(self, event_type):
         """Callback from the plug_entry widget"""
-        print('Event > ', event_type)
         if event_type == 'WRITE':
             self.link(self.plug_socket.get())
         elif event_type == 'DELETE':
@@ -558,13 +558,11 @@ class ReflectorSlot(BaseSlot):
         BaseSlot.__init__(self, master, tk_master, 'REFLECTOR', *args, **kwargs)
 
         self.generate_contents(reflectors)
-        self.choice_var.set(self.master.enigma.reflector.label)
+        self.choice_var.set(self.master.enigma.reflector_label)
+        self.choice_var.trace('w', self.update_selected)
 
     def update_selected(self, *event):
         self.master.curr_reflector = self.choice_var.get()
-
-    def update_available(self, *event):
-        BaseSlot.update_available(self, type=[self.master.curr_reflector])
 
 
 class IndicatorBoard(Frame):
@@ -698,7 +696,7 @@ class IOBoard(Frame):
 
             self.master.update_indicators()
 
-            if len(self.output_box):
+            if self.output_box:
                 self.master.lightboard.light_up(self.output_box[-1])
             else:
                 self.master.lightboard.light_up()
@@ -753,7 +751,7 @@ class IOBoard(Frame):
 
 
 class Lightboard(Frame):
-    def __init__(self, tk_master, layout, labels, bg, *args, **kwargs):
+    def __init__(self, tk_master, layout, bg, *args, **kwargs):
         Frame.__init__(self, tk_master, bd=1, relief='raised', bg=bg, *args, *kwargs)
 
         rows = []
@@ -762,11 +760,8 @@ class Lightboard(Frame):
         for row in layout:
             new_row = Frame(self)
             for item in row:
-                item = int(item)
-                text = labels[item][0]
-                self.bulbs.append(
-                    Label(new_row, text=text, font=('Arial', 14), bg=bg,
-                          padx=2))
+                text = alphabet[int(item)]
+                self.bulbs.append(Label(new_row, text=text, font=('Arial', 14), bg=bg, padx=2))
             rows.append(new_row)
 
         for row in rows:
