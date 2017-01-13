@@ -5,12 +5,22 @@ from cfg_handler import Config
 
 class RotorFactory:
     """Factory for creating various enigma Rotor/Reflector objects"""
-    def __init__(self, cfg_path):
-        self.cfg = Config(['enigma', 'historical_data.xml'])
+    def __init__(self, cfg_path, model):
+        self.cfg = Config(cfg_path)
+        self.model = model
+        self.rotors = [item['label'] for item in self.cfg.get_data(f".//enigma[@model='{model}']/rotors", 'SUBATTRS')]
+        self.reflectors = [item['label'] for item in self.cfg.get_data(f".//enigma[@model='{model}']/reflectors", 'SUBATTRS')]
+        self.layout = []
+        [self.layout.append(row['values']) for row in
+         self.cfg.get_data('layout', 'SUBATTRS')]
+        self.labels = []
+        [self.labels.extend(row['values']) for row in
+         self.cfg.get_data('labels', 'SUBATTRS')]
+
 
     def produce(self, model, rotor_type, label):
         """Creates and returns new object based on input"""
-        cfg = self.cfg.get_data(f".//enigma[@model='{model}']/{rotor_type}", 'SUBATTRS')
+        cfg = self.cfg.get_data(f".//enigma[@model='{self.model}']/{rotor_type}", 'SUBATTRS')
 
         for item in cfg:
             if item['label'] == label:
@@ -27,8 +37,9 @@ class RotorFactory:
 class Enigma:
     """Enigma machine object emulating all mechanical processes in the real
     enigma machine"""
-    def __init__(self, reflector=None, rotors=None):
-        self.rotor_factory = RotorFactory(['enigma', 'historical_data.xml'])
+    def __init__(self, model, reflector=None, rotors=None):
+        self.rotor_factory = RotorFactory(['enigma', 'historical_data.xml'], model)
+        self.model = model
         self._reflector = None
         self.reflector = reflector
         self._rotors = []
