@@ -7,7 +7,7 @@
     </labels>
     <layout>
         <row split="values" id="0" values="16 22 4 17 19 25 20 8 14"/>
-        <row split="values" id="1" values="18 3 5 6 7 9 10"/>
+        <row split="values" id="1" values="0 18 3 5 6 7 9 10"/>
         <row split="values" id="2" values="15 24 23 2 21 1 13 12 11"/>
     </layout>
     <!--Historical enigma data-->

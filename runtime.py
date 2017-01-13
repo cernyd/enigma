@@ -17,5 +17,4 @@ if config.get_data(['globals', 'unit_tests'])['startup_test'] == "True":
 
 
 if __name__ == '__main__':
-
     root.mainloop()
