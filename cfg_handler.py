@@ -1,12 +1,24 @@
 import xml.etree.ElementTree as ET
 from re import findall
+from functools import wraps
+
+
+def _compose_path(func):
+    """Converts to valid path if path list is passed"""
+    @wraps(func)
+    def wrapper(self, path, *args, **kwargs):
+        if type(path) == list:
+            path = ".//" + '/'.join(path)
+        return func(self, path, *args, **kwargs)
+    return wrapper
 
 
 class Config:
     """Universal configuration parser and manager"""
+    @_compose_path
     def __init__(self, buffer_path):
         try:
-            self.__buffer = ET.parse(Config.__compose_path(buffer_path)).getroot()
+            self.__buffer = ET.parse(buffer_path).getroot()
         except FileNotFoundError as err:
             err.message = "Requested configuration file not found!"
             raise
@@ -37,11 +49,11 @@ class Config:
                                 value = [int(item) for item in value]
                         attribs[key] = value
             except ValueError as err:
-                value = findall("\'(.+)\'$", err.args[0])[0]
-                err.args = (f"Invalid type conversion request, "
-                            f"value \"{value}\" can't be converted to int!\n"
-                            f"Attribute dump > {attribs}\n"
-                            f"All conversion requests > {toint}",)
+                value = findall("\'(.+)\'$", err.message)
+                err.message = f"Invalid type conversion request, "\
+                            f"value \"{value}\" can't be converted to int!\n"\
+                            f"Attribute dump > {attribs}\n"\
+                            f"All conversion requests > {toint}"
                 raise
 
         return attribs
@@ -64,26 +76,18 @@ class Config:
         else:
             raise ValueError(f"Invalid data type \"{data_type}\"!")
 
+    @_compose_path
     def focus_buffer(self, data_path):
         """Sets the buffer to only a part of the original one."""
-        self.__buffer = self.__buffer.find(Config.__compose_path(data_path))
+        self.__buffer = self.__buffer.find(data_path)
 
-    @staticmethod
-    def __compose_path(data_path):
-        """Creates a path if the path is not joined"""
-        path_type = type(data_path)
-        if path_type == str:
-            return data_path
-        elif path_type == list:
-            return ".//" + '/'.join(data_path)
+    @_compose_path
+    def new_context(self, name, context_path):
+        self.__contexts[name] = context_path
 
-    def new_context(self, name, context_path: list):
-        self.__contexts[name] = Config.__compose_path(context_path)
-
+    @_compose_path
     def get_data(self, data_path, data_type='ATTRS'):
         """Returns data based on data type and data path specified"""
-        data_path = Config.__compose_path(data_path)
-
         if data_path in self.__contexts:
             data_path = self.__contexts[data_path]
 
@@ -93,3 +97,7 @@ class Config:
         assert data != None, err_msg
 
         return Config.__process_data(data, data_type)
+
+    @_compose_path
+    def save_data(self, save_path, data):
+        pass

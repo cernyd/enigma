@@ -233,12 +233,12 @@ class Root(Tk, Base):
                                   rotor_lock=self._rotor_lock.get(),
                                   synchronised_scrolling=self._sync_scroll.get()),
                         enigma=self.enigma.dump_config())
-            # save_config(data)
+        print(data)
 
     def load_config(self):  # Not flexible
         if glob('settings.txt'):
             try:
-                data = None  # load_config()
+                data = load_config()
                 self._sound_enabled.set(data['root']['sound_enabled'])
                 self._autorotate.set(data['root']['autorotate'])
                 self._rotor_lock.set(data['root']['rotor_lock'])
