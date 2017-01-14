@@ -45,6 +45,10 @@ class Config:
         else:
             raise ValueError(f"Invalid data type \"{data_type}\"!")
 
+    def focus_buffer(self, data_path):
+        """Sets the buffer to only a part of the original one."""
+        self.__buffer = self.__buffer.find(data_path)
+
     @staticmethod
     def __compose_path(data_path):
         """Creates a path if the path is not joined"""
@@ -55,18 +59,16 @@ class Config:
             return ".//" + '/'.join(data_path)
 
     def new_context(self, name, context_path: list):
-        """Creates a new 'bookmark' for accessing data easily"""
-        context_path = Config.__compose_path(context_path)
-        self.__contexts[name] = self.__buffer.find(context_path)
+        self.__contexts[name] = Config.__compose_path(context_path)
 
     def get_data(self, data_path, data_type='ATTRS'):
         """Returns data based on data type and data path specified"""
         data_path = Config.__compose_path(data_path)
 
         if data_path in self.__contexts:
-            data = self.__contexts[data_path]
-        else:
-            data = self.__buffer.find(data_path)
+            data_path = self.__contexts[data_path]
+
+        data = self.__buffer.find(data_path)
 
         return Config.__process_data(data, data_type)
 
