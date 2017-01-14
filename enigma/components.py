@@ -258,7 +258,7 @@ class Rotor(_RotorBase):
 
     @property
     def position(self):
-        return self.relative_board[0]
+        return self.position_ring[0]
 
     @position.setter
     def position(self, position):
