@@ -22,12 +22,15 @@ class RotorFactory:
         """Creates and returns new object based on input"""
         cfg = self.cfg.get_data(f".//enigma[@model='{self.model}']/{rotor_type}", 'SUBATTRS')
 
+        match = False
         for item in cfg:
             if item['label'] == label:
                 cfg = item
+                match = True
                 break
 
-        assert cfg, "No configuration found!"
+        err_msg = f"No configuration found for label \"{label}\"!"
+        assert match, err_msg
         if rotor_type == 'rotors':
             return Rotor(**cfg)
         elif rotor_type == 'reflectors':

@@ -6,7 +6,7 @@ from cfg_handler import Config
 
 class TestEnigma(unittest.TestCase):
     """Used to test if enigma class behaves like the real life counterpart"""
-    model = 'Enigma1'
+    model = ''
     cfg_path = []
 
     def __init__(self, *args, **kwargs):
