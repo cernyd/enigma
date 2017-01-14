@@ -7,10 +7,12 @@ from cfg_handler import Config
 class TestEnigma(unittest.TestCase):
     """Used to test if enigma class behaves like the real life counterpart"""
     model = 'Enigma1'
+    cfg_path = []
 
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
-        self.cfg = Config(['unit_tests', 'test_cfg.xml'])
+        self.cfg = Config(TestEnigma.cfg_path)
+        self.cfg.focus_buffer('test_cfg')
         self.subject: Enigma
         self.reset_subject()
 
