@@ -40,7 +40,8 @@ class Config:
                 value = findall("\'(.+)\'$", err.args[0])[0]
                 err.args = (f"Invalid type conversion request, "
                             f"value \"{value}\" can't be converted to int!\n"
-                            f"Attribute dump > {attribs}",)
+                            f"Attribute dump > {attribs}\n"
+                            f"All conversion requests > {toint}",)
                 raise
 
         return attribs
