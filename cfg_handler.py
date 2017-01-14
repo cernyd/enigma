@@ -19,21 +19,22 @@ class Config:
         to_split = attribs.pop('split', None)
         toint = attribs.pop('toint', None)
 
-        if to_split:
-            for key, value in attribs.items():
-                if key in to_split or to_split == "*":
-                    value = value.split()
-                attribs[key] = value
+        if attribs:
+            if to_split:
+                for key, value in attribs.items():
+                    if key in to_split or to_split == "*":
+                        value = value.split()
+                    attribs[key] = value
 
-        if toint:
-            for key, value in attribs.items():
-                if key in toint or toint == "*":
-                    valtype = type(value)
-                    if valtype == str:
-                        value = int(value)
-                    elif valtype == list:
-                        value = [int(item) for item in value]
-                attribs[key] = value
+            if toint:
+                for key, value in attribs.items():
+                    if key in toint or toint == "*":
+                        valtype = type(value)
+                        if valtype == str:
+                            value = int(value)
+                        elif valtype == list:
+                            value = [int(item) for item in value]
+                    attribs[key] = value
 
         return attribs
 
