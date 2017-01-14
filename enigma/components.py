@@ -7,9 +7,10 @@ class RotorFactory:
     """Factory for creating various enigma Rotor/Reflector objects"""
     def __init__(self, cfg_path, model):
         self.cfg = Config(cfg_path)
+        self.base_path = f"enigma[@model='{model}']"
         self.model = model
-        self.rotors = [item['label'] for item in self.cfg.get_data(f".//enigma[@model='{model}']/rotors", 'SUBATTRS')]
-        self.reflectors = [item['label'] for item in self.cfg.get_data(f".//enigma[@model='{model}']/reflectors", 'SUBATTRS')]
+        self.rotors = [item['label'] for item in self.cfg.get_data([self.base_path, 'rotors'], 'SUBATTRS')]
+        self.reflectors = [item['label'] for item in self.cfg.get_data([self.base_path, 'reflectors'], 'SUBATTRS')]
         self.layout = []
         [self.layout.append(row['values']) for row in
          self.cfg.get_data('layout', 'SUBATTRS')]
@@ -20,7 +21,7 @@ class RotorFactory:
 
     def produce(self, model, rotor_type, label):
         """Creates and returns new object based on input"""
-        cfg = self.cfg.get_data(f".//enigma[@model='{self.model}']/{rotor_type}", 'SUBATTRS')
+        cfg = self.cfg.get_data([self.base_path, rotor_type], 'SUBATTRS')
 
         match = False
         for item in cfg:
