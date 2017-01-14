@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-from os import path
+from re import findall
 
 
 class Config:
@@ -26,15 +26,22 @@ class Config:
                         value = value.split()
                     attribs[key] = value
 
-            if toint:
-                for key, value in attribs.items():
-                    if key in toint or toint == "*":
-                        valtype = type(value)
-                        if valtype == str:
-                            value = int(value)
-                        elif valtype == list:
-                            value = [int(item) for item in value]
-                    attribs[key] = value
+            try:
+                if toint:
+                    for key, value in attribs.items():
+                        if key in toint or toint == "*":
+                            valtype = type(value)
+                            if valtype == str:
+                                value = int(value)
+                            elif valtype == list:
+                                value = [int(item) for item in value]
+                        attribs[key] = value
+            except ValueError as err:
+                value = findall("\'(.+)\'$", err.args[0])[0]
+                err.args = (f"Invalid type conversion request, "
+                            f"value \"{value}\" can't be converted to int!\n"
+                            f"Attribute dump > {attribs}",)
+                raise
 
         return attribs
 
