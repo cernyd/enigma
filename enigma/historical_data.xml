@@ -25,4 +25,16 @@
             <reflector label="UKW-C" back_board="FVPJIAOYEDRZXWGCTKUQSBNMHL"/>
         </reflectors>
     </enigma>
+    <enigma model="Norenigma">
+        <rotors>
+            <rotor label="I" back_board="WTOKASUYVRBXJHQCPZEFMDINLG" turnover="QR"/>
+            <rotor label="II" back_board="GJLPUBSWEMCTQVHXAOFZDRKYNI" turnover="EF"/>
+            <rotor label="III" back_board="JWFMHNBPUSDYTIXVZGRQLAOEKC" turnover="VW"/>
+            <rotor label="IV" back_board="ESOVPZJAYQUIRHXLNFTGKDCMWB" turnover="JK"/>
+            <rotor label="V" back_board="HEJXQOTZBVFDASCILWPGYNMURK" turnover="ZA"/>
+        </rotors>
+        <reflectors>
+            <reflector label="UKW" back_board="MOWJYPUXNDSRAIBFVLKZGQCHET"/>
+        </reflectors>
+    </enigma>
 </data>

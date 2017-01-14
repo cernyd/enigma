@@ -6,7 +6,7 @@
                           decrypted="ENIGMAUNITTESTMESSAGE"/>
     <test_rotors split="rotors" rotors="III I II"/>
     <test_positions split="positions" positions="A B C"/>
-    <test_reflector reflector="UKW-A"/>
+    <test_reflector reflector="UKW-B"/>
     <test_ring_settings split="ring_settings" ring_settings="C B A"/>
     <test_plugboard split="pairs" pairs="AQ XP FG DR"/>
 </cfg>

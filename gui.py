@@ -84,17 +84,18 @@ class Base:
 
 class Root(Tk, Base):
     """Root GUI class with enigma entry field, plugboard button, rotor button"""
-    def __init__(self, enigma_model, cfg, bg, font, *args, **kwargs):
+    def __init__(self, enigma_cfg, cfg, bg, font, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
-        Base.__init__(self, 'enigma.ico', 'Enigma')
+        Base.__init__(self, 'enigma.ico', enigma_cfg['model'])
 
-        self.enigma = TkEnigma(self, enigma_model, 'UKW-B', ['I', 'II', 'III'])
+        self.enigma = TkEnigma(self, *enigma_cfg.values())
         self.playback = Playback(self)
         self.root_menu = None
         self.cfg = cfg
         self.bg = bg
         self.font = font
         self.font[1] = int(self.font[1])  # Convert font size to int
+        self.enigma_cfg = enigma_cfg
 
         # Settings vars
         self._sound_enabled = IntVar()
@@ -149,8 +150,8 @@ class Root(Tk, Base):
 
     def reset_all(self):  # A bit too long?
         """Sets all settings to default"""
-        self.enigma.reflector = 'UKW-B'
-        self.enigma.rotors = ['I', 'II', 'III']
+        self.enigma.reflector = self.enigma_cfg['reflector']
+        self.enigma.rotors = self.enigma_cfg['rotors']
         self.enigma.plugboard = []
         self.io_board.text_input.delete('0.0', 'end')
 
@@ -170,6 +171,8 @@ class Root(Tk, Base):
         self.wait_window(RotorMenu(self.enigma, self.bg))
         self.io_board.text_input.delete('0.0', 'end')
         self.io_board.format_entries()
+        self.update_indicators()
+        self.lightboard.light_up('')
 
     def __make_root_menu(self):
         self.root_menu = Menu(self, tearoff=0)

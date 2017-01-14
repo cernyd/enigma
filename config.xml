@@ -3,10 +3,11 @@
     <!--"split" parameters tell the config handler what string data to split to
     lists before returning-->
     <globals>
+        <enigma_defaults split="rotors" model="Enigma1" reflector="UKW-B" rotors="I II III"/>
         <font style="Arial" size="10"/>
         <bg color="gray85"/>
         <unit_tests startup_test="True" cfg_dir="unit_test\test_cfg.xml"/>
-        <enigma_defaults model="Enigma1" data_dir="enigma\historical_data.xml"/>
+        <historical_cfg data_dir="enigma\historical_data.xml"/>
     </globals>
     <saved>
         <!--Save config here!-->
