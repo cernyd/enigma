@@ -82,7 +82,7 @@ class Enigma:
         """Sets rotors"""
         self._rotors = []
         for label in labels:
-            self._rotors.append(self.rotor_factory.produce('Enigma1', 'rotors', label))
+            self._rotors.append(self.rotor_factory.produce(self.model, 'rotors', label))
 
     @property
     def positions(self):
@@ -99,7 +99,7 @@ class Enigma:
 
     @reflector.setter
     def reflector(self, label):
-        self._reflector = self.rotor_factory.produce('Enigma1', 'reflectors', label)
+        self._reflector = self.rotor_factory.produce(self.model, 'reflectors', label)
 
     @property
     def ring_settings(self):
@@ -233,7 +233,7 @@ class Rotor(_RotorBase):
     def rotate(self, places=1):
         """Rotates rotor by one x places, returns True if the next rotor should
         be turned over"""
-        self.change_rotor_offset(places)
+        self._change_rotor_offset(places)
         return self._did_turnover()
 
     def _did_turnover(self):
@@ -244,17 +244,17 @@ class Rotor(_RotorBase):
             return True
         return False
 
-    def change_board_offset(self, board, places=1):
+    def _change_board_offset(self, board, places=1):
         """Changes offset of a specified board."""
         old_val = getattr(self, board)
         new_val = old_val[places:] + old_val[:places]
         setattr(self, board, new_val)
 
-    def change_rotor_offset(self, places=1):
+    def _change_rotor_offset(self, places=1):
         """Sets rotor offset relative to the enigma"""
         self._last_position = self.position
         for board in 'relative_board', 'position_ring':
-            self.change_board_offset(board, places)
+            self._change_board_offset(board, places)
 
     @property
     def position(self):
@@ -263,7 +263,7 @@ class Rotor(_RotorBase):
     @position.setter
     def position(self, position):
         while self.position_ring[0] != position:
-            self.change_rotor_offset()
+            self._change_rotor_offset()
 
     @property
     def ring_setting(self):
@@ -273,4 +273,4 @@ class Rotor(_RotorBase):
     def ring_setting(self, setting):
         """Sets rotor indicator offset relative to the internal wiring"""
         while self.ring_setting != setting:
-            self.change_board_offset('relative_board')
+            self._change_board_offset('relative_board')
