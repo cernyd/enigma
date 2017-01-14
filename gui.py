@@ -94,7 +94,6 @@ class Root(Tk, Base):
         self.cfg = cfg
         self.bg = bg
         self.font = font
-        self.font[1] = int(self.font[1])  # Convert font size to int
         self.enigma_cfg = enigma_cfg
 
         # Settings vars
@@ -135,10 +134,11 @@ class Root(Tk, Base):
         self.reset_all()
 
     def __reset_setting_vars(self):
-        self._autorotate.set(1)
-        self._sound_enabled.set(1)
-        self._sync_scroll.set(1)
-        self._rotor_lock.set(0)
+        var_config = self.cfg.get_data(['globals', 'setting_vars'])
+        self._autorotate.set(var_config['autorotate'])
+        self._sound_enabled.set(var_config['sound_enabled'])
+        self._sync_scroll.set(var_config['sync_scroll'])
+        self._rotor_lock.set(var_config['rotor_lock'])
 
     @property
     def rotor_lock(self):
@@ -270,7 +270,6 @@ class PlugboardMenu(Toplevel, Base):
         for row in layout:
             new_row = Frame(self)
             for item in row:
-                item = int(item)
                 self.plug_sockets.append(PlugSocket(self, new_row, self.enigma, labels[item]))
             rows.append(new_row)
 
@@ -434,7 +433,7 @@ class PlugEntry(Entry):
 
     def validate(self, raw):
         forbidden = ''.join(self.master.local_forbidden)
-        raw = sub('([\s]|[%s])+' % forbidden, '', raw).upper()
+        raw = sub('([\s]|[%s]|[^a-zA-Z])+' % forbidden, '', raw).upper()
         return raw[0] if raw else raw
 
 
@@ -763,7 +762,7 @@ class Lightboard(Frame):
         for row in layout:
             new_row = Frame(self)
             for item in row:
-                text = alphabet[int(item)]
+                text = alphabet[item]
                 self.bulbs.append(Label(new_row, text=text, font=('Arial', 14), bg=bg, padx=2))
             rows.append(new_row)
 

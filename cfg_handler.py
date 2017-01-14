@@ -6,7 +6,7 @@ class Config:
     """Universal configuration parser and manager"""
     def __init__(self, buffer_path):
         try:
-            self.__buffer = ET.parse(path.join(*buffer_path)).getroot()
+            self.__buffer = ET.parse(Config.__compose_path(buffer_path)).getroot()
         except FileNotFoundError as err:
             err.message = "Requested configuration file not found!"
             raise
@@ -14,15 +14,25 @@ class Config:
         self.__contexts = {}
 
     @staticmethod
-    def __split_attribs(attribs: dict):
+    def __process_attribs(attribs: dict):
         """Splits attributes if they have the 'split' flag set."""
         to_split = attribs.pop('split', None)
+        toint = attribs.pop('toint', None)
 
         if to_split:
-            to_split = to_split.split()
             for key, value in attribs.items():
-                if key in to_split:
+                if key in to_split or to_split == "*":
                     value = value.split()
+                attribs[key] = value
+
+        if toint:
+            for key, value in attribs.items():
+                if key in toint or toint == "*":
+                    valtype = type(value)
+                    if valtype == str:
+                        value = int(value)
+                    elif valtype == list:
+                        value = [int(item) for item in value]
                 attribs[key] = value
 
         return attribs
@@ -33,11 +43,11 @@ class Config:
         if data_type == 'SUBTAGS':
             return [item.tag for item in element]
         elif data_type == 'SUBATTRS':
-            return [Config.__split_attribs(item.attrib) for item in element]
+            return [Config.__process_attribs(item.attrib) for item in element]
         elif data_type == 'TEXT':
             return element.text
         elif data_type == 'ATTRS':
-            return Config.__split_attribs(element.attrib)
+            return Config.__process_attribs(element.attrib)
         elif data_type == 'TAG':
             return element.tag
         elif data_type == 'OBJ':
@@ -47,7 +57,7 @@ class Config:
 
     def focus_buffer(self, data_path):
         """Sets the buffer to only a part of the original one."""
-        self.__buffer = self.__buffer.find(data_path)
+        self.__buffer = self.__buffer.find(Config.__compose_path(data_path))
 
     @staticmethod
     def __compose_path(data_path):
@@ -71,6 +81,3 @@ class Config:
         data = self.__buffer.find(data_path)
 
         return Config.__process_data(data, data_type)
-
-    def __getitem__(self, item):
-        return self.__contexts[item]
