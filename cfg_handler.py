@@ -80,4 +80,7 @@ class Config:
 
         data = self.__buffer.find(data_path)
 
+        err_msg = f"No data found for path \"{data_path}\"!"
+        assert data != None, err_msg
+
         return Config.__process_data(data, data_type)
