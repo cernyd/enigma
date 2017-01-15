@@ -30,7 +30,8 @@ class TestEnigma(unittest.TestCase):
                 output += self.subject.button_press(letter)
             self.assertEqual(output, buffer[test[1]], f'Failed to '
                                                              f'{test[1][:-2]}!')
-        self.subject.button_press('h')
+        with self.assertRaises(AssertionError):
+            self.subject.button_press(18)
 
     def test_rotors(self):
         """Tests if rotors are assigned properly"""
