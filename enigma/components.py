@@ -219,9 +219,9 @@ def _compensate(func):
 
 class Rotor(_RotorBase):
     """Inherited from RotorBase, adds rotation and ring setting functionality"""
-    def __init__(self, turnover: str, **cfg):
-        _RotorBase.__init__(self, **cfg, valid_cfg=('position_ring', 'turnover',
-                                                    'relative_board'))
+    def __init__(self, label, turnover, back_board):
+        _RotorBase.__init__(self, label, back_board,
+                            valid_cfg=('position_ring', 'turnover', 'relative_board'))
         self.turnover = tuple(turnover) if type(turnover) == str else turnover
         self.position_ring, self.relative_board = [alphabet] * 2
         self._last_position = ''
