@@ -30,6 +30,7 @@ class TestEnigma(unittest.TestCase):
                 output += self.subject.button_press(letter)
             self.assertEqual(output, buffer[test[1]], f'Failed to '
                                                              f'{test[1][:-2]}!')
+        self.subject.button_press('h')
 
     def test_rotors(self):
         """Tests if rotors are assigned properly"""
@@ -46,6 +47,8 @@ class TestEnigma(unittest.TestCase):
         self.subject.positions = positions
         self.assertEqual(self.subject.positions, positions,
                          'Positions assigned in wrong order!')
+        with self.assertRaises(AssertionError):
+            self.subject.positions = 14651, 'garbage', -15
 
     def test_reflector(self):
         """Tests if the reflector is set properly"""
@@ -54,6 +57,8 @@ class TestEnigma(unittest.TestCase):
         self.subject.reflector = reflector
         self.assertEqual(self.subject.reflector_label, reflector,
                          'Invalid rotor assigned!')
+        with self.assertRaises(AssertionError):
+            self.subject.reflector = 'garbage_input'
 
     def test_ring_settings(self):
         """Tests if ring settings are set properly"""
@@ -62,6 +67,8 @@ class TestEnigma(unittest.TestCase):
         self.subject.ring_settings = ring_settings
         self.assertEqual(self.subject.ring_settings, ring_settings,
                          'Invalid ring settings assigned!')
+        with self.assertRaises(AssertionError):
+            self.subject.ring_settings = [12, 'garbage_input', 798715]
 
     def test_plugboard(self):
         """Checks if plugboard pairs are set propertly"""
@@ -70,6 +77,9 @@ class TestEnigma(unittest.TestCase):
         self.subject.plugboard = plug_pairs
         self.assertEqual(self.subject.plugboard, plug_pairs, 'Invalid plugboard'
                                                              ' pairs assigned!')
+        with self.assertRaises(AssertionError):
+            self.subject.plugboard = 'garbage_input'
+
 
     # def test_cfg_io(self):
     #     """Tests if rotor data is dumped and loaded correctly"""

@@ -203,9 +203,14 @@ class Reflector(_RotorBase):
 
 def _compensate(func):
     """Converts input to relative input and
-    relative output to absolute output."""
+    relative output to absolute output, does some assertions too."""
     @wraps(func)
     def wrapper(self, letter):
+        letter = str(letter).upper()
+        if not str(letter) in alphabet:
+            raise AssertionError(f"Input \"{str(letter)}\" not single a letter!")
+        elif len(letter) != 1:
+            raise AssertionError("Length of \"{str(letter)}\" is not 1!")
         relative_input = self.relative_board[alphabet.index(letter)]
         return alphabet[self.relative_board.index(func(self, relative_input))]
     return wrapper
@@ -266,6 +271,8 @@ class Rotor(_RotorBase):
 
     @position.setter
     def position(self, position):
+        err_msg = f"Invalid position \"{str(position)}\"!"
+        assert str(position) in alphabet, err_msg
         while self.position_ring[0] != position:
             self._change_rotor_offset()
 
@@ -276,5 +283,7 @@ class Rotor(_RotorBase):
     @ring_setting.setter
     def ring_setting(self, setting):
         """Sets rotor indicator offset relative to the internal wiring"""
+        err_msg = f"Invalid ring setting \"{str(setting)}\"!"
+        assert str(setting) in alphabet, err_msg
         while self.ring_setting != setting:
             self._change_board_offset('relative_board')
