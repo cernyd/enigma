@@ -1,6 +1,7 @@
 from functools import wraps
 from string import ascii_uppercase as alphabet
 from cfg_handler import Config
+from itertools import permutations
 
 
 class RotorFactory:
@@ -221,7 +222,7 @@ class Rotor(_RotorBase):
     def __init__(self, turnover: str, **cfg):
         _RotorBase.__init__(self, **cfg, valid_cfg=('position_ring', 'turnover',
                                                     'relative_board'))
-        self.turnover = turnover
+        self.turnover = tuple(turnover) if type(turnover) == str else turnover
         self.position_ring, self.relative_board = [alphabet] * 2
         self._last_position = ''
 
@@ -243,13 +244,8 @@ class Rotor(_RotorBase):
         """Rotates rotor by one x places, returns True if the next rotor should
         be turned over"""
         self._change_rotor_offset(places)
-        return self._did_turnover()
 
-    def _did_turnover(self):
-        """Checks if the next position should turn by one place."""
-        if self._last_position + self.position == self.turnover:
-            return True
-        elif self.position + self._last_position == self.turnover:
+        if self.turnover in permutations(self._last_position + self.position):
             return True
         return False
 
