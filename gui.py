@@ -655,6 +655,12 @@ class IOBoard(Frame):
 
         self.last_len = 0  # Last input string length
 
+    def _process_all(self, letters):
+        output = ''
+        for letter in letters:
+            output += self.enigma.button_press(letter)
+        return output
+
     def status(self):
         """Checks for any changes in the entered text length"""
         self.format_entries()
@@ -686,15 +692,14 @@ class IOBoard(Frame):
 
         if correct_widget and not_keystroke:  # Because I can't trace it...
             length_status, length_difference = self.status()
-
             if length_status:
                 self.format_entries()
                 if length_status == 'longer':
                     self.playback.play('button_press')
-                    letter = self.enigma.button_press(self.input_box[-1])
-                    self.output_box = self.output_box + letter
+                    new_text = self._process_all(self.input_box[-length_difference])
+                    self.output_box = self.output_box + new_text
                 elif length_status == 'shorter' and self.master.autorotate:
-                    self.enigma._rotate_primary(-1)
+                    self.enigma._rotate_primary(length_difference)
 
             self.master.update_indicators()
 
