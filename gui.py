@@ -626,21 +626,21 @@ class IOBoard(Frame):
         self.playback = playback
 
         # Scrollbars
-        self.input_scrollbar = Scrollbar(self, command=lambda *args: self.yview_sync('text_input', *args))
-        self.output_scrollbar = Scrollbar(self, command=lambda *args: self.yview_sync('text_output', *args))
+        self.input_scrollbar = Scrollbar(self, command=lambda *args: self.yview_sync(self.text_input, self.text_output, *args))
+        self.output_scrollbar = Scrollbar(self, command=lambda *args: self.yview_sync(self.text_output, self.text_input, *args))
 
         # IO init
         Label(self, text='Input', font=font).grid(row=0, column=0)
 
         self.text_input = Text(self, width=25, height=5,
-                               yscrollcommand=lambda *args: self.yscrollcommand_sync('input_scrollbar', *args))
+                               yscrollcommand=lambda *args: self.yscrollcommand_sync(self.input_scrollbar, self.output_scrollbar, *args))
 
         self.text_input.is_input_widget = True
 
         Label(self, text='Output', font=font).grid(row=2, column=0)
 
         self.text_output = Text(self, width=25, height=5,
-                                yscrollcommand=lambda *args: self.yscrollcommand_sync('output_scrollbar', *args),
+                                yscrollcommand=lambda *args: self.yscrollcommand_sync(self.output_scrollbar, self.input_scrollbar, *args),
                                 state='disabled')
 
         self.input_scrollbar.grid(row=1, column=1, sticky='ns')
@@ -651,12 +651,6 @@ class IOBoard(Frame):
         self.text_output.grid(row=3, column=0, padx=3, pady=2)
 
         self.last_len = 0  # Last input string length
-
-    def _process_all(self, letters):
-        output = ''
-        for letter in letters:
-            output += self.enigma.button_press(letter)
-        return output
 
     def status(self):
         """Checks for any changes in the entered text length"""
@@ -687,47 +681,36 @@ class IOBoard(Frame):
 
         not_keystroke = event.state != 12 and 'Control' not in event.keysym
 
-        if correct_widget and not_keystroke:  # Because I can't trace it...
+        if correct_widget and (not_keystroke or event.keysym in 'vV'):  # Because I can't trace it...
             length_status, length_difference = self.status()
+
             if length_status:
                 self.format_entries()
+
                 if length_status == 'longer':
                     self.playback.play('button_press')
-                    new_text = self._process_all(self.input_box[-length_difference])
-                    self.output_box = self.output_box + new_text
+                    for letter in self.input_box[:-length_difference]:
+                        self.output_box += self.enigma.button_press(letter)
+
                 elif length_status == 'shorter' and self.master.autorotate:
-                    self.enigma._rotate_primary(length_difference)
+                    for _ in range(abs(length_difference)):
+                        self.enigma._rotate_primary(-1)
 
             self.master.update_indicators()
 
-            if self.output_box:
+            try:
                 self.master.lightboard.light_up(self.output_box[-1])
-            else:
+            except IndexError:
                 self.master.lightboard.light_up()
 
-    def __get_sender_receiver(self, sender):
-        """Gets the sender-receiver scrollbar pair in correct order"""
-        textwidgets, scrollbars = ['text_input', 'text_output'], ['input_scrollbar', 'output_scrollbar']
-        if sender in textwidgets:
-            widget_objs = map(lambda obj: getattr(self, obj), textwidgets)
-            widget_objs = list(widget_objs)
-            return widget_objs if sender == textwidgets[0] else reversed(widget_objs)
-        elif sender in scrollbars:
-            scrollbar_objs = map(lambda obj: getattr(self, obj), scrollbars)
-            scrollbar_objs = list(scrollbar_objs)
-            return scrollbar_objs if sender == textwidgets[0] else reversed(
-                scrollbar_objs)
-
-    def yview_sync(self, sender_name, *event):
+    def yview_sync(self, sender, receiver, *event):
         """Sets scrollbar position if the scrollbar is dragged"""
-        sender, receiver = self.__get_sender_receiver(sender_name)
         sender.yview(*event)
         if self.master.sync_scroll:
             receiver.yview(*event)
 
-    def yscrollcommand_sync(self, sender_name, *args):
+    def yscrollcommand_sync(self, sender, receiver, *args):
         """Sets widget view position from the yscrollcommand parameter in Text"""
-        sender, receiver = self.__get_sender_receiver(sender_name)
         sender.set(*args)
         if self.master.sync_scroll:
             receiver.set(*args)
