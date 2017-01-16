@@ -689,7 +689,7 @@ class IOBoard(Frame):
 
                 if length_status == 'longer':
                     self.playback.play('button_press')
-                    for letter in self.input_box[:-length_difference]:
+                    for letter in self.input_box[-length_difference:]:
                         self.output_box += self.enigma.button_press(letter)
 
                 elif length_status == 'shorter' and self.master.autorotate:
