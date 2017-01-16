@@ -626,25 +626,22 @@ class IOBoard(Frame):
         self.playback = playback
 
         # Scrollbars
-        self.input_scrollbar = Scrollbar(self)
-        self.output_scrollbar = Scrollbar(self)
+        self.input_scrollbar = Scrollbar(self, command=lambda *args: self.yview_sync('text_input', *args))
+        self.output_scrollbar = Scrollbar(self, command=lambda *args: self.yview_sync('text_output', *args))
 
         # IO init
         Label(self, text='Input', font=font).grid(row=0, column=0)
 
         self.text_input = Text(self, width=25, height=5,
-                               yscrollcommand=self.input_scrollbar_wrapper)
+                               yscrollcommand=lambda *args: self.yscrollcommand_sync('input_scrollbar', *args))
 
         self.text_input.is_input_widget = True
 
         Label(self, text='Output', font=font).grid(row=2, column=0)
 
         self.text_output = Text(self, width=25, height=5,
-                                yscrollcommand=self.output_scrollbar_wrapper,
+                                yscrollcommand=lambda *args: self.yscrollcommand_sync('output_scrollbar', *args),
                                 state='disabled')
-
-        self.input_scrollbar.config(command=self.input_yview)
-        self.output_scrollbar.config(command=self.output_yview)
 
         self.input_scrollbar.grid(row=1, column=1, sticky='ns')
         self.output_scrollbar.grid(row=3, column=1, sticky='ns')
@@ -708,29 +705,32 @@ class IOBoard(Frame):
             else:
                 self.master.lightboard.light_up()
 
-    def input_yview(self, *event):
-        """Input yview controller, used to synchronise scrolling"""
-        self.text_input.yview(*event)
-        if self.master.sync_scroll:
-            self.text_output.yview(*event)
+    def __get_sender_receiver(self, sender):
+        """Gets the sender-receiver scrollbar pair in correct order"""
+        textwidgets, scrollbars = ['text_input', 'text_output'], ['input_scrollbar', 'output_scrollbar']
+        if sender in textwidgets:
+            widget_objs = map(lambda obj: getattr(self, obj), textwidgets)
+            widget_objs = list(widget_objs)
+            return widget_objs if sender == textwidgets[0] else reversed(widget_objs)
+        elif sender in scrollbars:
+            scrollbar_objs = map(lambda obj: getattr(self, obj), scrollbars)
+            scrollbar_objs = list(scrollbar_objs)
+            return scrollbar_objs if sender == textwidgets[0] else reversed(
+                scrollbar_objs)
 
-    def input_scrollbar_wrapper(self, *args):
-        """Relays the scrollbar set actions, used for synchronised scrolling"""
-        self.input_scrollbar.set(*args)
+    def yview_sync(self, sender_name, *event):
+        """Sets scrollbar position if the scrollbar is dragged"""
+        sender, receiver = self.__get_sender_receiver(sender_name)
+        sender.yview(*event)
         if self.master.sync_scroll:
-            self.output_scrollbar.set(*args)
+            receiver.yview(*event)
 
-    def output_yview(self, *event):
-        """Output yview controller, used to synchronise scrolling"""
-        self.text_output.yview(*event)
+    def yscrollcommand_sync(self, sender_name, *args):
+        """Sets widget view position from the yscrollcommand parameter in Text"""
+        sender, receiver = self.__get_sender_receiver(sender_name)
+        sender.set(*args)
         if self.master.sync_scroll:
-            self.text_input.yview(*event)
-
-    def output_scrollbar_wrapper(self, *args):
-        """Relays the scrollbar set actions, used for synchronised scrolling"""
-        self.output_scrollbar.set(*args)
-        if self.master.sync_scroll:
-            self.input_scrollbar.set(*args)
+            receiver.set(*args)
 
     @property
     def input_box(self):
