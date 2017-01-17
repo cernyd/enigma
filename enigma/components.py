@@ -228,8 +228,6 @@ class Rotor(_RotorBase):
             if type(notch) == str: notch = tuple(notch)
             self.turnover.append(tuple(notch))
 
-        print(self.turnover)
-
         self.position_ring, self.relative_board = [alphabet] * 2
         self._last_position = ''
 
@@ -250,7 +248,9 @@ class Rotor(_RotorBase):
     def rotate(self, places=1):
         """Rotates rotor by one x places, returns True if the next rotor should
         be turned over"""
-        self._change_rotor_offset(places)
+        self._last_position = self.position
+        for board in 'relative_board', 'position_ring':
+            self._change_board_offset(board, places)
 
         for notch in self.turnover:
             if notch in permutations(self._last_position + self.position):
@@ -263,22 +263,20 @@ class Rotor(_RotorBase):
         new_val = old_val[places:] + old_val[:places]
         setattr(self, board, new_val)
 
-    def _change_rotor_offset(self, places=1):
-        """Sets rotor offset relative to the enigma"""
-        self._last_position = self.position
-        for board in 'relative_board', 'position_ring':
-            self._change_board_offset(board, places)
-
     @property
     def position(self):
         return self.position_ring[0]
 
+    def _generic_setter(self, message, uptodate_value, target_value, update_action):
+        assert str(target_value) in alphabet, message % str(target_value)
+        while uptodate_value() != target_value:
+            update_action()
+
     @position.setter
     def position(self, position):
-        err_msg = f"Invalid position \"{str(position)}\"!"
-        assert str(position) in alphabet, err_msg
-        while self.position_ring[0] != position:
-            self._change_rotor_offset()
+        """Sets rotor to target position"""
+        self._generic_setter("Invalid position\"%s\"!", lambda: getattr(self, 'position'),
+                             position, self.rotate)
 
     @property
     def ring_setting(self):
@@ -287,7 +285,5 @@ class Rotor(_RotorBase):
     @ring_setting.setter
     def ring_setting(self, setting):
         """Sets rotor indicator offset relative to the internal wiring"""
-        err_msg = f"Invalid ring setting \"{str(setting)}\"!"
-        assert str(setting) in alphabet, err_msg
-        while self.ring_setting != setting:
-            self._change_board_offset('relative_board')
+        self._generic_setter("Invalid ring setting \"%s\"!", lambda: getattr(self, 'ring_setting'),
+                             setting, lambda: self._change_board_offset('relative_board'))
