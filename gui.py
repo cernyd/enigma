@@ -661,12 +661,12 @@ class IOBoard(Frame):
 
             if self.last_len > input_length:
                 self.last_len = input_length
-                return ['shorter', len_difference]
+                return 'shorter', len_difference
             elif self.last_len < input_length:
                 self.last_len = input_length
-                return ['longer', len_difference]
+                return 'longer', len_difference
         else:
-            return [False, 0]
+            return False, 0
 
     def format_entries(self):
         """Ensures input/output fields have the same length"""
@@ -681,12 +681,10 @@ class IOBoard(Frame):
 
         not_keystroke = event.state != 12 and 'Control' not in event.keysym
 
-        if correct_widget and (not_keystroke or event.keysym in 'vV'):  # Because I can't trace it...
+        if correct_widget and (not_keystroke or event.keysym in 'vVxX'):  # Because I can't trace it...
             length_status, length_difference = self.status()
 
             if length_status:
-                self.format_entries()
-
                 if length_status == 'longer':
                     self.playback.play('button_press')
                     for letter in self.input_box[-length_difference:]:
