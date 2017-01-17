@@ -251,9 +251,10 @@ class Rotor(_RotorBase):
         self._last_position = self.position
         for board in 'relative_board', 'position_ring':
             self._change_board_offset(board, places)
-
+        print('Turnover > ', self.turnover)
+        print('Permutations > ', list(permutations(self._last_position + self.position)))
         for notch in self.turnover:
-            if notch in permutations(self._last_position + self.position):
+            if self._last_position + self.position in permutations(notch):
                 return True
         return False
 
