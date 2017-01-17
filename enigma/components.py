@@ -222,7 +222,14 @@ class Rotor(_RotorBase):
     def __init__(self, label, turnover, back_board):
         _RotorBase.__init__(self, label, back_board,
                             valid_cfg=('position_ring', 'turnover', 'relative_board'))
-        self.turnover = tuple(turnover) if type(turnover) == str else turnover
+
+        self.turnover = []
+        for notch in turnover:
+            if type(notch) == str: notch = tuple(notch)
+            self.turnover.append(tuple(notch))
+
+        print(self.turnover)
+
         self.position_ring, self.relative_board = [alphabet] * 2
         self._last_position = ''
 
@@ -245,8 +252,9 @@ class Rotor(_RotorBase):
         be turned over"""
         self._change_rotor_offset(places)
 
-        if self.turnover in permutations(self._last_position + self.position):
-            return True
+        for notch in self.turnover:
+            if notch in permutations(self._last_position + self.position):
+                return True
         return False
 
     def _change_board_offset(self, board, places=1):
