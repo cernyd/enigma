@@ -125,11 +125,23 @@ class Enigma:
         return letter  # If no connection found
 
     def _rotate_primary(self, places=1):
-        rotate_next = False
+        step_next = False
         index = 0
         for rotor in reversed(self._rotors):
-            if rotate_next or index == 0:
-                rotate_next = rotor.rotate(places)
+            if places > 0:
+                if index == 0:
+                    if rotor.position in rotor.turnover:
+                        step_next = True
+                    rotor.rotate(places)
+                elif step_next:
+                    step_next = False
+                    rotor.rotate(places)
+                elif index == 1 and rotor.position in rotor.turnover:
+                    rotor.rotate(places)
+                    step_next = True
+            elif places < 0:
+                """Reverse process!"""
+
             index += 1
 
     def button_press(self, letter):
@@ -223,10 +235,7 @@ class Rotor(_RotorBase):
         _RotorBase.__init__(self, label, back_board,
                             valid_cfg=('position_ring', 'turnover', 'relative_board'))
 
-        self.turnover = []
-        for notch in turnover:
-            if type(notch) == str: notch = tuple(notch)
-            self.turnover.append(tuple(notch))
+        self.turnover = turnover
 
         self.position_ring, self.relative_board = [alphabet] * 2
         self._last_position = ''
@@ -251,11 +260,6 @@ class Rotor(_RotorBase):
         self._last_position = self.position
         for board in 'relative_board', 'position_ring':
             self._change_board_offset(board, places)
-
-        for permutation in permutations([self._last_position, self.position]):
-            if permutation in self.turnover:
-                return True
-        return False
 
     def _change_board_offset(self, board, places=1):
         """Changes offset of a specified board."""
