@@ -13,14 +13,14 @@
     <!--Historical enigma data-->
     <enigma model="Enigma1">
         <rotors>
-            <rotor label="I" split="turnover" back_board="EKMFLGDQVZNTOWYHXUSPAIBRCJ" turnover="QR"/>
-            <rotor label="II" split="turnover" back_board="AJDKSIRUXBLHWTMCQGZNPYFVOE" turnover="EF"/>
-            <rotor label="III" split="turnover" back_board="BDFHJLCPRTXVZNYEIWGAKMUSQO" turnover="VW"/>
-            <rotor label="IV" split="turnover" back_board="ESOVPZJAYQUIRHXLNFTGKDCMWB" turnover="JK"/>
-            <rotor label="V" split="turnover" back_board="VZBRGITYUPSDNHLXAWMJQOFECK" turnover="ZA"/>
-            <rotor label="VI" split="turnover" back_board="JPGVOUMFYQBENHZRDKASXLICTW" turnover="ZA MN"/>
-            <rotor label="VII" split="turnover" back_board="NZJHGRCXMYSWBOUFAIVLPEKQDT" turnover="ZA MN"/>
-            <rotor label="VIII" split="turnover" back_board="FKQHTLXOCBJSPDZRAMEWNIUYGV" turnover="ZA MN"/>
+            <rotor label="I" back_board="EKMFLGDQVZNTOWYHXUSPAIBRCJ" turnover="Q"/>
+            <rotor label="II" back_board="AJDKSIRUXBLHWTMCQGZNPYFVOE" turnover="E"/>
+            <rotor label="III" back_board="BDFHJLCPRTXVZNYEIWGAKMUSQO" turnover="V"/>
+            <rotor label="IV" back_board="ESOVPZJAYQUIRHXLNFTGKDCMWB" turnover="J"/>
+            <rotor label="V" back_board="VZBRGITYUPSDNHLXAWMJQOFECK" turnover="Z"/>
+            <rotor label="VI" back_board="JPGVOUMFYQBENHZRDKASXLICTW" turnover="ZM"/>
+            <rotor label="VII" back_board="NZJHGRCXMYSWBOUFAIVLPEKQDT" turnover="ZM"/>
+            <rotor label="VIII" back_board="FKQHTLXOCBJSPDZRAMEWNIUYGV" turnover="ZM"/>
         </rotors>
         <reflectors>
             <reflector label="UKW-A" back_board="EJMZALYXVBWFCRQUONTSPIKHGD"/>

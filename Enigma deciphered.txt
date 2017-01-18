@@ -35,3 +35,12 @@ Reflector:	B
 Wheel order:	III VI VIII
 Ring positions: 	01 08 13
 Plug pairs:	AN EZ HK IJ LR MQ OT PV SW UX
+----------------------------------------------------------------------------
+Scharnhorst (Konteradmiral Erich Bey), 1943
+Reflector:	B
+Wheel order:	III VI VIII
+Ring positions: 	01 08 13
+Plug pairs:	AN EZ HK IJ LR MQ OT PV SW UX
+Message key: UZV
+
+STEUERE J TANA FJORD J AN STAN DORT QU AAA CCC VIER NEUN NEUN ZWO FAHRT ZWO NUL SMXX SCHARNHORST HCO
