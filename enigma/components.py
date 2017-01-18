@@ -1,7 +1,6 @@
 from functools import wraps
 from string import ascii_uppercase as alphabet
 from cfg_handler import Config
-from itertools import permutations
 
 
 class RotorFactory:
@@ -128,19 +127,19 @@ class Enigma:
         step_next = False
         index = 0
         for rotor in reversed(self._rotors):
-            if places > 0:
-                if index == 0:
-                    if rotor.position in rotor.turnover:
-                        step_next = True
+            if index == 0:
+                if places < 0:
                     rotor.rotate(places)
-                elif step_next:
-                    step_next = False
-                    rotor.rotate(places)
-                elif index == 1 and rotor.position in rotor.turnover:
-                    rotor.rotate(places)
+                if rotor.position in rotor.turnover:
                     step_next = True
-            elif places < 0:
-                """Reverse process!"""
+                if places > 0:
+                    rotor.rotate(places)
+            elif index == 1 and rotor.position in rotor.turnover:
+                rotor.rotate(places)
+                step_next = True
+            elif step_next:
+                rotor.rotate(places)
+                step_next = False
 
             index += 1
 
