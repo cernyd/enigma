@@ -19,7 +19,7 @@ class RotorFactory:
          self.cfg.get_data('labels', 'SUBATTRS')]
 
 
-    def produce(self, model, rotor_type, label):
+    def produce(self, rotor_type, label):
         """Creates and returns new object based on input"""
         cfg = self.cfg.get_data([self.base_path, rotor_type], 'SUBATTRS')
 
@@ -36,6 +36,8 @@ class RotorFactory:
             return Rotor(**cfg)
         elif rotor_type == 'reflectors':
             return Reflector(**cfg)
+        elif rotor_type == 'stators':
+            return Stator(**cfg)
 
 
 class _SteppingMechanism:
@@ -116,7 +118,7 @@ class _EnigmaBase:
             rotor.ring_setting = setting
 
     def step_primary(self, places=1):
-        self._stepping_mechanism.step(places)
+        self._stepping_mechanism.step_primary(places)
 
     def button_press(self, letter):
         pass
@@ -139,6 +141,7 @@ class Enigma1(_EnigmaBase):
     def __init__(self, plugboard, *args):
         _EnigmaBase.__init__(self, *args)
         self.plugboard = plugboard
+        self._stepping_mechanism = RatchetStepper(self._rotors)
 
     @property
     def plugboard(self):
@@ -170,6 +173,7 @@ class Enigma1(_EnigmaBase):
     def button_press(self, letter):
         self.step_primary(1)
         output = self._plugboard_route(letter)
+        output = self._stator.forward(output)
 
         for rotor in reversed(self._rotors):
             output = rotor.forward(output)
@@ -179,9 +183,9 @@ class Enigma1(_EnigmaBase):
         for rotor in self._rotors:
             output = rotor.backward(output)
 
-        output = self._plugboard_route(output)
+        output = self._stator.backward(output)
 
-        return output
+        return self._plugboard_route(output)
 
 
 class EnigmaM3(Enigma1):
@@ -200,7 +204,7 @@ class EnigmaM4(Enigma1):
 
 class _RotorBase:
     """Base class for Rotors and Reflectors"""
-    def __init__(self, label='', back_board='', valid_cfg=tuple()):
+    def __init__(self, label, back_board, valid_cfg=tuple()):
         """All parameters except should be passed in **config, valid_cfg is a
         tuple of additional configuration data for config loading and dumping"""
         self.valid_cfg = ['back_board', 'label']
@@ -238,6 +242,18 @@ class Reflector(_RotorBase):
         return self._route_forward(letter)
 
 
+class UKW_D(Reflector):
+    def __init__(self):
+        self.back_board = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        self.static_pair = ''
+
+    def reflect(self, letter):
+        if letter not in 'BO':
+            return Reflector.reflect(self, letter)
+        else:
+            return 'B' if letter == 'O' else 'O'
+
+
 def _compensate(func):
     """Converts input to relative input and
     relative output to absolute output, does some assertions too."""
@@ -253,28 +269,36 @@ def _compensate(func):
     return wrapper
 
 
-class Rotor(_RotorBase):
-    """Inherited from RotorBase, adds rotation and ring setting functionality"""
-    def __init__(self, label, turnover, back_board):
-        _RotorBase.__init__(self, label, back_board,
-                            valid_cfg=('position_ring', 'turnover', 'relative_board'))
+class Stator(_RotorBase):
+    def forward(self, letter):
+        """Routes letter from front to back"""
+        return self._route_forward(letter)
 
-        self.turnover = turnover
-        self.position_ring, self.relative_board = [alphabet] * 2
+    def backward(self, letter):
+        """Routes letter from back to front"""
+        return self._route_backward(letter)
 
     def _route_backward(self, letter):
         """Routes letters from back board to front board"""
         return alphabet[self.back_board.index(letter)]
 
+
+class Rotor(Stator):
+    """Inherited from RotorBase, adds rotation and ring setting functionality"""
+    def __init__(self, label,  back_board, turnover='',):
+        Stator.__init__(self, label, back_board,
+                            valid_cfg=('position_ring', 'turnover', 'relative_board'))
+
+        self.turnover = turnover
+        self.position_ring, self.relative_board = [alphabet] * 2
+
     @_compensate
     def forward(self, letter):
-        """Routes letter from front to back"""
-        return self._route_forward(letter)
+        return Stator.forward(self, letter)
 
     @_compensate
     def backward(self, letter):
-        """Routes letter from back to front"""
-        return self._route_backward(letter)
+        return Stator.backward(self, letter)
 
     def rotate(self, places=1):
         """Rotates rotor by one x places, returns True if the next rotor should
@@ -312,3 +336,7 @@ class Rotor(_RotorBase):
         """Sets rotor indicator offset relative to the internal wiring"""
         self._generic_setter("Invalid ring setting \"%s\"!", lambda: getattr(self, 'ring_setting'),
                              setting, lambda: self._change_board_offset('relative_board'))
+
+
+class Uhr:
+    pass
