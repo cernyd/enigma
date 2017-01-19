@@ -75,6 +75,46 @@ class _EnigmaBase:
         self._reflector = reflector
         self._stepping_mechanism = None
 
+    @property
+    def rotor_labels(self):
+        """Returns rotor type ( label ), for the rotor order window."""
+        return [rotor.label for rotor in self._rotors]
+
+    @property
+    def rotors(self):
+        return self._rotors
+
+    @rotors.setter
+    def rotors(self, rotors):
+        """Sets rotors"""
+        self._rotors = rotors
+
+    @property
+    def positions(self):
+        return [rotor.position for rotor in self._rotors]
+
+    @positions.setter
+    def positions(self, positions):
+        for position, rotor in zip(positions, self._rotors):
+            rotor.position = position
+
+    @property
+    def reflector(self):
+        return self._reflector
+
+    @reflector.setter
+    def reflector(self, reflector):
+        self._reflector = reflector
+
+    @property
+    def ring_settings(self):
+        return [rotor.ring_setting for rotor in self.rotors]
+
+    @ring_settings.setter
+    def ring_settings(self, offsets):
+        for rotor, setting in zip(self.rotors, offsets):
+            rotor.ring_setting = setting
+
     def step_primary(self, places=1):
         self._stepping_mechanism.step(places)
 
@@ -95,56 +135,10 @@ class _EnigmaBase:
             rotor.config(**config)
 
 
-class Enigma1Compatible(_EnigmaBase):
+class Enigma1(_EnigmaBase):
     def __init__(self, plugboard, *args):
         _EnigmaBase.__init__(self, *args)
         self.plugboard = plugboard
-
-    def _plugboard_route(self, letter):
-        pass
-
-    def button_press(self, letter):
-        self.step_primary(1)
-        output = self._plugboard_route(letter)
-
-        for rotor in reversed(self._rotors):
-            output = rotor.forward(output)
-
-        output = self.reflector.reflect(output)
-
-        for rotor in self._rotors:
-            output = rotor.backward(output)
-
-        output = self._plugboard_route(output)
-
-        return output
-
-
-class EnigmaM3(Enigma1Compatible):
-    def __init__(self, *args):
-        Enigma1Compatible.__init__(self, *args)
-        assert len(self._rotors) == 3, "Invalid number of rotors!"
-        self.stepping_mechanism = RatchetStepper(self._rotors)
-
-
-class EnigmaM4(Enigma1Compatible):
-    def __init__(self, *args):
-        Enigma1Compatible.__init__(self, *args)
-        assert len(self._rotors) == 4, "Invalid number of rotors!"
-        self.stepping_mechanism = RatchetStepper(self._rotors[1:])
-
-
-class Enigma:
-    """Enigma machine object emulating all mechanical processes in the real
-    enigma machine"""
-    def __init__(self, model, reflector=None, rotors=None):
-        self.rotor_factory = RotorFactory(['enigma', 'historical_data.xml'], model)
-        self.model = model
-        self._reflector = None
-        self.reflector = reflector
-        self._rotors = []
-        self.rotors = rotors  # Calling property
-        self._plugboard = []
 
     @property
     def plugboard(self):
@@ -164,52 +158,6 @@ class Enigma:
 
         self._plugboard = plugboard_pairs
 
-    @property
-    def reflector_label(self):
-        return self.reflector.label
-
-    @property
-    def rotor_labels(self):
-        """Returns rotor type ( label ), for the rotor order window."""
-        return [rotor.label for rotor in self._rotors]
-
-    @property
-    def rotors(self):
-        return self._rotors
-
-    @rotors.setter
-    def rotors(self, labels):
-        """Sets rotors"""
-        self._rotors = []
-        for label in labels:
-            self._rotors.append(self.rotor_factory.produce(self.model, 'rotors', label))
-
-    @property
-    def positions(self):
-        return [rotor.position for rotor in self._rotors]
-
-    @positions.setter
-    def positions(self, positions):
-        for position, rotor in zip(positions, self._rotors):
-            rotor.position = position
-
-    @property
-    def reflector(self):
-        return self._reflector
-
-    @reflector.setter
-    def reflector(self, label):
-        self._reflector = self.rotor_factory.produce(self.model, 'reflectors', label)
-
-    @property
-    def ring_settings(self):
-        return [rotor.ring_setting for rotor in self.rotors]
-
-    @ring_settings.setter
-    def ring_settings(self, offsets):
-        for rotor, setting in zip(self.rotors, offsets):
-            rotor.ring_setting = setting
-
     def _plugboard_route(self, letter):
         neighbour = []
         for pair in self._plugboard:
@@ -218,6 +166,36 @@ class Enigma:
                 neighbour.remove(letter)
                 return neighbour[0]
         return letter  # If no connection found
+
+    def button_press(self, letter):
+        self.step_primary(1)
+        output = self._plugboard_route(letter)
+
+        for rotor in reversed(self._rotors):
+            output = rotor.forward(output)
+
+        output = self.reflector.reflect(output)
+
+        for rotor in self._rotors:
+            output = rotor.backward(output)
+
+        output = self._plugboard_route(output)
+
+        return output
+
+
+class EnigmaM3(Enigma1):
+    def __init__(self, *args):
+        Enigma1.__init__(self, *args)
+        assert len(self._rotors) == 3, "Invalid number of rotors!"
+        self.stepping_mechanism = RatchetStepper(self._rotors)
+
+
+class EnigmaM4(Enigma1):
+    def __init__(self, *args):
+        Enigma1.__init__(self, *args)
+        assert len(self._rotors) == 4, "Invalid number of rotors!"
+        self.stepping_mechanism = RatchetStepper(self._rotors[1:])
 
 
 class _RotorBase:
@@ -282,9 +260,7 @@ class Rotor(_RotorBase):
                             valid_cfg=('position_ring', 'turnover', 'relative_board'))
 
         self.turnover = turnover
-
         self.position_ring, self.relative_board = [alphabet] * 2
-        self._last_position = ''
 
     def _route_backward(self, letter):
         """Routes letters from back board to front board"""
@@ -303,7 +279,6 @@ class Rotor(_RotorBase):
     def rotate(self, places=1):
         """Rotates rotor by one x places, returns True if the next rotor should
         be turned over"""
-        self._last_position = self.position
         for board in 'relative_board', 'position_ring':
             self._change_board_offset(board, places)
 
