@@ -38,6 +38,102 @@ class RotorFactory:
             return Reflector(**cfg)
 
 
+class _SteppingMechanism:
+    def __init__(self, rotors):
+        self._rotors = rotors
+
+    def step_primary(self, places):
+        pass
+
+
+class RatchetStepper(_SteppingMechanism):
+    def step_primary(self, places):
+        step_next = False
+        index = 0
+        for rotor in reversed(self._rotors):
+            if index == 0:
+                if places < 0:
+                    rotor.rotate(places)
+                if rotor.position in rotor.turnover:
+                    step_next = True
+                if places > 0:
+                    rotor.rotate(places)
+            elif index == 1 and rotor.position in rotor.turnover:
+                rotor.rotate(places)
+                step_next = True
+            elif step_next:
+                rotor.rotate(places)
+                step_next = False
+
+            index += 1
+
+
+class _EnigmaBase:
+    def __init__(self, reflector, rotors, stator):
+        self._stator = stator
+        self._rotors = rotors
+        self._reflector = reflector
+        self._stepping_mechanism = None
+
+    def step_primary(self, places=1):
+        self._stepping_mechanism.step(places)
+
+    def button_press(self, letter):
+        pass
+
+    def dump_config(self):
+        """Dumps the whole enigma data config"""
+        return dict(plugboard=self._plugboard,
+                    reflector=self.reflector.dump_config(),
+                    rotors=[rotor.dump_config() for rotor in self._rotors])
+
+    def load_config(self, data):
+        """Loads everything from the data config"""
+        self.plugboard = data['plugboard']
+        self._reflector.config(**data['reflector'])
+        for rotor, config in zip(self._rotors, data['rotors']):
+            rotor.config(**config)
+
+
+class Enigma1Compatible(_EnigmaBase):
+    def __init__(self, plugboard, *args):
+        _EnigmaBase.__init__(self, *args)
+        self.plugboard = plugboard
+
+    def _plugboard_route(self, letter):
+        pass
+
+    def button_press(self, letter):
+        self.step_primary(1)
+        output = self._plugboard_route(letter)
+
+        for rotor in reversed(self._rotors):
+            output = rotor.forward(output)
+
+        output = self.reflector.reflect(output)
+
+        for rotor in self._rotors:
+            output = rotor.backward(output)
+
+        output = self._plugboard_route(output)
+
+        return output
+
+
+class EnigmaM3(Enigma1Compatible):
+    def __init__(self, *args):
+        Enigma1Compatible.__init__(self, *args)
+        assert len(self._rotors) == 3, "Invalid number of rotors!"
+        self.stepping_mechanism = RatchetStepper(self._rotors)
+
+
+class EnigmaM4(Enigma1Compatible):
+    def __init__(self, *args):
+        Enigma1Compatible.__init__(self, *args)
+        assert len(self._rotors) == 4, "Invalid number of rotors!"
+        self.stepping_mechanism = RatchetStepper(self._rotors[1:])
+
+
 class Enigma:
     """Enigma machine object emulating all mechanical processes in the real
     enigma machine"""
@@ -122,55 +218,6 @@ class Enigma:
                 neighbour.remove(letter)
                 return neighbour[0]
         return letter  # If no connection found
-
-    def _rotate_primary(self, places=1):
-        step_next = False
-        index = 0
-        for rotor in reversed(self._rotors):
-            if index == 0:
-                if places < 0:
-                    rotor.rotate(places)
-                if rotor.position in rotor.turnover:
-                    step_next = True
-                if places > 0:
-                    rotor.rotate(places)
-            elif index == 1 and rotor.position in rotor.turnover:
-                rotor.rotate(places)
-                step_next = True
-            elif step_next:
-                rotor.rotate(places)
-                step_next = False
-
-            index += 1
-
-    def button_press(self, letter):
-        self._rotate_primary()
-        output = self._plugboard_route(letter)
-
-        for rotor in reversed(self._rotors):
-            output = rotor.forward(output)
-
-        output = self.reflector.reflect(output)
-
-        for rotor in self._rotors:
-            output = rotor.backward(output)
-
-        output = self._plugboard_route(output)
-
-        return output
-
-    def dump_config(self):
-        """Dumps the whole enigma data config"""
-        return dict(plugboard=self._plugboard,
-                    reflector=self.reflector.dump_config(),
-                    rotors=[rotor.dump_config() for rotor in self._rotors])
-
-    def load_config(self, data):
-        """Loads everything from the data config"""
-        self.plugboard = data['plugboard']
-        self._reflector.config(**data['reflector'])
-        for rotor, config in zip(self._rotors, data['rotors']):
-            rotor.config(**config)
 
 
 class _RotorBase:
