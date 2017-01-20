@@ -22,18 +22,18 @@ from enigma.components import *
 # if __name__ == '__main__':
 #     root.mainloop()
 
-while True:
-    print()
-    factory = RotorFactory(['enigma', 'historical_data.xml'], input('Enter enigma model: '))
-    reflector = factory.produce('reflectors', input('Enter reflector: '))
-
-    rotors=[]
-    for label in input('Enter rotors: ').split():
-        rotors.append(factory.produce('rotors', label))
-
-    stator = factory.produce('stators', input('Enter stator: '))
-    myEnigma = EnigmaM4(input('Enter plug pairs: ').split(), reflector, rotors, stator)
-    myEnigma.ring_settings = input('Enter ring settings: ').split()
-    myEnigma.positions = input('Enter positions: ').split()
-    for letter in input('Enter message: ').replace(' ', ''):
-        print(myEnigma.button_press(letter), end='')
+# while True:
+#     print()
+#     factory = RotorFactory(['enigma', 'historical_data.xml'], input('Enter enigma model: '))
+#     reflector = factory.produce('reflectors', input('Enter reflector: '))
+#
+#     rotors=[]
+#     for label in input('Enter rotors: ').split():
+#         rotors.append(factory.produce('rotors', label))
+#
+#     stator = factory.produce('stators', input('Enter stator: '))
+#     myEnigma = EnigmaM4(input('Enter plug pairs: ').split(), reflector, rotors, stator)
+#     myEnigma.ring_settings = input('Enter ring settings: ').split()
+#     myEnigma.positions = input('Enter positions: ').split()
+#     for letter in input('Enter message: ').replace(' ', ''):
+#         print(myEnigma.button_press(letter), end='')
