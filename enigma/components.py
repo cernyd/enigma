@@ -32,6 +32,7 @@ class RotorFactory:
 
         err_msg = f"No configuration found for label \"{label}\"!"
         assert match, err_msg
+        print(cfg)
         if rotor_type == 'rotors':
             return Rotor(**cfg)
         elif rotor_type == 'reflectors':
@@ -137,42 +138,55 @@ class _EnigmaBase:
             rotor.config(**config)
 
 
-class Enigma1(_EnigmaBase):
-    def __init__(self, plugboard, *args):
-        _EnigmaBase.__init__(self, *args)
-        self.plugboard = plugboard
-        self._stepping_mechanism = RatchetStepper(self._rotors)
+class WiredPairs:
+    def __init__(self, pairs=''):
+        self._pairs = pairs
 
     @property
-    def plugboard(self):
-        return self._plugboard
+    def pairs(self):
+        return self._pairs
 
-    @plugboard.setter
-    def plugboard(self, pairs):
+    @pairs.setter
+    def pairs(self, pairs):
         assert (len(pairs) <= 13), "Invalid number of pairs!"
 
         used = []
-        plugboard_pairs = []
+        new_pairs = []
         for pair in pairs:
             for letter in pair:
                 assert (letter not in used), "A letter can only be wired once!"
                 used.append(letter)
-            plugboard_pairs.append(pair)
+            new_pairs.append(pair)
 
-        self._plugboard = plugboard_pairs
+        self._pairs = new_pairs
 
-    def _plugboard_route(self, letter):
+    def pairs_route(self, letter):
         neighbour = []
-        for pair in self._plugboard:
+        for pair in self._pairs:
             if letter in pair:
                 neighbour.extend(pair)
                 neighbour.remove(letter)
                 return neighbour[0]
         return letter  # If no connection found
 
+
+class Enigma1(_EnigmaBase):
+    def __init__(self, plugboard_pairs, *args):
+        _EnigmaBase.__init__(self, *args)
+        self._plugboard = WiredPairs(plugboard_pairs)
+        self._stepping_mechanism = RatchetStepper(self._rotors)
+
+    @property
+    def plugboard(self):
+        return self.plugboard.pairs
+
+    @plugboard.setter
+    def plugboard(self, pairs):
+        self._plugboard.pairs = pairs
+
     def button_press(self, letter):
         self.step_primary(1)
-        output = self._plugboard_route(letter)
+        output = self._plugboard.pairs_route(letter)
         output = self._stator.forward(output)
 
         for rotor in reversed(self._rotors):
@@ -185,7 +199,7 @@ class Enigma1(_EnigmaBase):
 
         output = self._stator.backward(output)
 
-        return self._plugboard_route(output)
+        return self._plugboard.pairs_route(output)
 
 
 class EnigmaM3(Enigma1):
@@ -200,6 +214,29 @@ class EnigmaM4(Enigma1):
         Enigma1.__init__(self, *args)
         assert len(self._rotors) == 4, "Invalid number of rotors!"
         self.stepping_mechanism = RatchetStepper(self._rotors[1:])
+
+
+def _compensate(func):
+    """Converts input to relative input and
+    relative output to absolute output, does some assertions too."""
+    @wraps(func)
+    def wrapper(self, letter):
+        relative_input = self.relative_board[alphabet.index(letter)]
+        return alphabet[self.relative_board.index(func(self, relative_input))]
+    return wrapper
+
+
+def _check_input(func):
+    @wraps(func)
+    def wrapper(self, letter):
+        letter = str(letter).upper()
+        if letter not in alphabet:
+            raise AssertionError(
+                f"Input \"{str(letter)}\" not single a letter!")
+        elif len(letter) != 1:
+            raise AssertionError("Length of \"{str(letter)}\" is not 1!")
+        return func(self, letter)
+    return wrapper
 
 
 class _RotorBase:
@@ -234,71 +271,41 @@ class _RotorBase:
         return cfg
 
 
+class _Rotatable:
+    def _change_board_offset(self, board, places=1):
+        """Changes offset of a specified board."""
+        old_val = getattr(self, board)
+        new_val = old_val[places:] + old_val[:places]
+        setattr(self, board, new_val)
+
+
 class Reflector(_RotorBase):
     """Reflector class, used to """
-
+    @_check_input
     def reflect(self, letter):
         """Reflects letter back"""
         return self._route_forward(letter)
 
 
-class UKW_D(Reflector):
-    def __init__(self):
-        self.front_board ="ACDEFGHIJKLMNPQRSTUVWXYZ"
-        self.back_board = "AZXWVUTSRQPONMLKIHGFEDCB"
-
-    def reflect(self, letter):
-        if letter not in 'BO':
-            return Reflector.reflect(self, letter)
-        else:
-            return 'B' if letter == 'O' else 'O'
-
-
-def _compensate(func):
-    """Converts input to relative input and
-    relative output to absolute output, does some assertions too."""
-    @wraps(func)
-    def wrapper(self, letter):
-        letter = str(letter).upper()
-        if not str(letter) in alphabet:
-            raise AssertionError(f"Input \"{str(letter)}\" not single a letter!")
-        elif len(letter) != 1:
-            raise AssertionError("Length of \"{str(letter)}\" is not 1!")
-        relative_input = self.relative_board[alphabet.index(letter)]
-        return alphabet[self.relative_board.index(func(self, relative_input))]
-    return wrapper
-
-
 class Stator(_RotorBase):
+    @_check_input
     def forward(self, letter):
         """Routes letter from front to back"""
         return self._route_forward(letter)
 
+    @_check_input
     def backward(self, letter):
         """Routes letter from back to front"""
-        return self._route_backward(letter)
-
-    def _route_backward(self, letter):
-        """Routes letters from back board to front board"""
         return alphabet[self.back_board.index(letter)]
 
 
-class Rotor(Stator):
+class Rotor(Stator, _Rotatable):
     """Inherited from RotorBase, adds rotation and ring setting functionality"""
-    def __init__(self, label,  back_board, turnover='',):
+    def __init__(self, label,  back_board, turnover=''):
         Stator.__init__(self, label, back_board,
-                            valid_cfg=('position_ring', 'turnover', 'relative_board'))
-
-        self.turnover = turnover
+                            valid_cfg=('position_ring', '_Rotor_turnover', 'relative_board'))
+        self._turnover = turnover
         self.position_ring, self.relative_board = [alphabet] * 2
-
-    @_compensate
-    def forward(self, letter):
-        return Stator.forward(self, letter)
-
-    @_compensate
-    def backward(self, letter):
-        return Stator.backward(self, letter)
 
     def rotate(self, places=1):
         """Rotates rotor by one x places, returns True if the next rotor should
@@ -306,11 +313,9 @@ class Rotor(Stator):
         for board in 'relative_board', 'position_ring':
             self._change_board_offset(board, places)
 
-    def _change_board_offset(self, board, places=1):
-        """Changes offset of a specified board."""
-        old_val = getattr(self, board)
-        new_val = old_val[places:] + old_val[:places]
-        setattr(self, board, new_val)
+    @property
+    def turnover(self):
+        return self._turnover
 
     @property
     def position(self):
@@ -338,5 +343,50 @@ class Rotor(Stator):
                              setting, lambda: self._change_board_offset('relative_board'))
 
 
-class Uhr:
-    pass
+class UKW_D:
+    def __init__(self, pairs=[]):
+        self._pairs = WiredPairs('BO')
+        self.alphabet =   "ACDEFGHIJKLMNPQRSTUVWXYZ"
+        self.index_ring = "AZXWVUTSRQPONMLKIHGFEDCB"
+        self.wiring_pairs = pairs
+
+    @property
+    def wiring_pairs(self):
+        return self._pairs.pairs
+
+    @wiring_pairs.setter
+    def wiring_pairs(self, pairs):
+        assert len(pairs) == 12, "Invalid number of pairs, " \
+                                 "only number of pairs possible is 12!"
+        new_pairs = []
+        for pair in pairs:
+            curr_pair = ''
+            for letter in pair:
+                curr_pair += self.alphabet[self.index_ring.index(letter)]
+            new_pairs.append(curr_pair)
+        new_pairs.append('BO')
+        self._pairs.pairs = new_pairs
+
+    def reflect(self, letter):
+        return self._pairs.pairs_route(letter)
+
+
+class Uhr(WiredPairs):
+    def __init__(self, pairs=''):
+        WiredPairs.__init__(self, pairs)
+
+    def pairs_route(self, letter):
+        pass
+
+
+class Luckenfuller(Rotor):
+    def __init__(self, label, back_board, turnover):
+        Rotor.__init__(self, label, back_board, turnover)
+
+    @property
+    def turnover(self):
+        return self._turnover
+
+    @Rotor.turnover.setter
+    def turnover(self, turnover):
+        self._turnover = turnover
