@@ -244,8 +244,8 @@ class Reflector(_RotorBase):
 
 class UKW_D(Reflector):
     def __init__(self):
-        self.back_board = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        self.static_pair = ''
+        self.front_board ="ACDEFGHIJKLMNPQRSTUVWXYZ"
+        self.back_board = "AZXWVUTSRQPONMLKIHGFEDCB"
 
     def reflect(self, letter):
         if letter not in 'BO':
