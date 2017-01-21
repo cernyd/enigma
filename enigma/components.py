@@ -32,7 +32,6 @@ class RotorFactory:
 
         err_msg = f"No configuration found for label \"{label}\"!"
         assert match, err_msg
-        print(cfg)
         if rotor_type == 'rotors':
             return Rotor(**cfg)
         elif rotor_type == 'reflectors':
@@ -41,15 +40,12 @@ class RotorFactory:
             return Stator(**cfg)
 
 
-class _SteppingMechanism:
-    def __init__(self, rotors):
+class _EnigmaBase:
+    def __init__(self, reflector, rotors, stator):
+        self._stator = stator
         self._rotors = rotors
+        self._reflector = reflector
 
-    def step_primary(self, places):
-        pass
-
-
-class RatchetStepper(_SteppingMechanism):
     def step_primary(self, places):
         step_next = False
         index = 0
@@ -69,14 +65,6 @@ class RatchetStepper(_SteppingMechanism):
                 step_next = False
 
             index += 1
-
-
-class _EnigmaBase:
-    def __init__(self, reflector, rotors, stator):
-        self._stator = stator
-        self._rotors = rotors
-        self._reflector = reflector
-        self._stepping_mechanism = None
 
     @property
     def rotor_labels(self):
@@ -117,9 +105,6 @@ class _EnigmaBase:
     def ring_settings(self, offsets):
         for rotor, setting in zip(self.rotors, offsets):
             rotor.ring_setting = setting
-
-    def step_primary(self, places=1):
-        self._stepping_mechanism.step_primary(places)
 
     def button_press(self, letter):
         pass
@@ -174,7 +159,6 @@ class Enigma1(_EnigmaBase):
     def __init__(self, plugboard_pairs, *args):
         _EnigmaBase.__init__(self, *args)
         self._plugboard = WiredPairs(plugboard_pairs)
-        self._stepping_mechanism = RatchetStepper(self._rotors)
 
     @property
     def plugboard(self):
@@ -206,14 +190,12 @@ class EnigmaM3(Enigma1):
     def __init__(self, *args):
         Enigma1.__init__(self, *args)
         assert len(self._rotors) == 3, "Invalid number of rotors!"
-        self.stepping_mechanism = RatchetStepper(self._rotors)
 
 
 class EnigmaM4(Enigma1):
     def __init__(self, *args):
         Enigma1.__init__(self, *args)
         assert len(self._rotors) == 4, "Invalid number of rotors!"
-        self.stepping_mechanism = RatchetStepper(self._rotors[1:])
 
 
 def _compensate(func):
@@ -307,6 +289,14 @@ class Rotor(Stator, _Rotatable):
         self._turnover = turnover
         self.position_ring, self.relative_board = [alphabet] * 2
 
+    @_compensate
+    def forward(self, letter):
+        return Stator.forward(self, letter)
+
+    @_compensate
+    def backward(self, letter):
+        return Stator.backward(self, letter)
+
     def rotate(self, places=1):
         """Rotates rotor by one x places, returns True if the next rotor should
         be turned over"""
@@ -321,16 +311,16 @@ class Rotor(Stator, _Rotatable):
     def position(self):
         return self.position_ring[0]
 
-    def _generic_setter(self, message, uptodate_value, target_value, update_action):
-        assert str(target_value) in alphabet, message % str(target_value)
-        while uptodate_value() != target_value:
-            update_action()
-
     @position.setter
     def position(self, position):
         """Sets rotor to target position"""
         self._generic_setter("Invalid position\"%s\"!", lambda: getattr(self, 'position'),
                              position, self.rotate)
+
+    def _generic_setter(self, message, uptodate_value, target_value, update_action):
+        assert str(target_value) in alphabet, message % str(target_value)
+        while uptodate_value() != target_value:
+            update_action()
 
     @property
     def ring_setting(self):

@@ -32,8 +32,11 @@ from enigma.components import *
 #         rotors.append(factory.produce('rotors', label))
 #
 #     stator = factory.produce('stators', input('Enter stator: '))
-#     myEnigma = EnigmaM4(input('Enter plug pairs: ').split(), reflector, rotors, stator)
+#     myEnigma = EnigmaM3(input('Enter plug pairs: ').split(), reflector, rotors, stator)
 #     myEnigma.ring_settings = input('Enter ring settings: ').split()
 #     myEnigma.positions = input('Enter positions: ').split()
 #     for letter in input('Enter message: ').replace(' ', ''):
 #         print(myEnigma.button_press(letter), end='')
+
+from enigma_cracker import crack_positions
+print(crack_positions("Enigma1", "RTNGFCRUPFGKW", "WETTERBERICHT"))
