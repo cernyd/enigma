@@ -38,6 +38,5 @@ from enigma.components import *
 #     for letter in input('Enter message: ').replace(' ', ''):
 #         print(myEnigma.button_press(letter), end='')
 
-# from enigma_cracker import crack_positions, guess_plug_pairs
-# # print(crack_positions("Enigma1", "NRIBKLCZIFMSN", "WETTERBERICHT"))
-# print(guess_plug_pairs("FXTTXRBXRICHT", "WETTERBERICHT"))
+from enigma_cracker import crack_positions, guess_plug_pairs
+print(crack_positions("Enigma1", "NDDFHAJCMYKLX", "WETTERBERICHT"))
