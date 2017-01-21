@@ -28,3 +28,12 @@ def crack_positions(model, cipher, crib):
                 return rotor_order, setting, t2 - t1
 
 
+def guess_plug_pairs(cipher, crib):
+    pairs = []
+    for index in range(len(cipher)):
+        if cipher[index] != crib[index]:
+            pair = cipher[index] + crib[index]
+            if pair not in pairs:
+                pairs.append(pair)
+    return pairs
+
