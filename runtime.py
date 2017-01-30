@@ -1,9 +1,9 @@
 # from cfg_handler import Config
 # from gui import Root
 # from unit_tests import TestEnigma, unittest
-from enigma.components import *
-
-
+# from enigma.components import *
+#
+#
 # config = Config('config.xml')
 # config.focus_buffer('globals')
 # font = list(config.get_data('font').values())
@@ -21,22 +21,3 @@ from enigma.components import *
 #
 # if __name__ == '__main__':
 #     root.mainloop()
-
-# while True:
-#     print()
-#     factory = RotorFactory(['enigma', 'historical_data.xml'], input('Enter enigma model: '))
-#     reflector = factory.produce('reflectors', input('Enter reflector: '))
-#
-#     rotors=[]
-#     for label in input('Enter rotors: ').split():
-#         rotors.append(factory.produce('rotors', label))
-#
-#     stator = factory.produce('stators', input('Enter stator: '))
-#     myEnigma = EnigmaM3(input('Enter plug pairs: ').split(), reflector, rotors, stator)
-#     myEnigma.ring_settings = input('Enter ring settings: ').split()
-#     myEnigma.positions = input('Enter positions: ').split()
-#     for letter in input('Enter message: ').replace(' ', ''):
-#         print(myEnigma.button_press(letter), end='')
-
-from enigma_cracker import crack_positions, guess_plug_pairs
-print(crack_positions("Enigma1", "NDDFHAJCMYKLX", "WETTERBERICHT"))

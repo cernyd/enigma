@@ -2,7 +2,7 @@ from os import remove
 from re import sub
 from tkinter import *
 from webbrowser import open as open_browser
-from enigma.components import Enigma, alphabet
+from enigma.components import EnigmaM3, alphabet
 from tkinter import messagebox
 from winsound import PlaySound, SND_ASYNC
 from glob import glob
@@ -25,31 +25,31 @@ class Playback:
             PlaySound(path.join('sounds', sound_name), SND_ASYNC)
 
 
-class TkEnigma(Enigma):
+class TkEnigma(EnigmaM3):
     """Enigma adjusted for Tk rotor lock,
     ignore the property signatures please..."""
     def __init__(self, master, *config):
-        Enigma.__init__(self, *config)
+        EnigmaM3.__init__(self, *config)
         self.master = master
 
     def _rotate_primary(self, places=1):
         if not self.master.rotor_lock:
-            Enigma._rotate_primary(self, places)
+            EnigmaM3._rotate_primary(self, places)
 
-    @Enigma.reflector.setter
+    @EnigmaM3.reflector.setter
     def reflector(self, label):
         try:
-            Enigma.reflector.fset(self, label)
+            EnigmaM3.reflector.fset(self, label)
         except AttributeError as err:
             messagebox.showwarning('Invalid reflector', 'Invalid reflector,'
                                                         ' please try '
                                                         'again...')
 
-    @Enigma.rotors.setter
+    @EnigmaM3.rotors.setter
     def rotors(self, labels):
         """Adds a visual error feedback ( used only in the tk implementation"""
         try:
-            Enigma.rotors.fset(self, labels)
+            EnigmaM3.rotors.fset(self, labels)
         except AttributeError as err:
             messagebox.showwarning('Invalid rotor', 'Some of rotors are not \n'
                                                     'valid, please try again...')
