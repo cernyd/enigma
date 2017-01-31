@@ -1,9 +1,7 @@
-# from cfg_handler import Config
-# from gui import Root
-# from unit_tests import TestEnigma, unittest
-# from enigma.components import *
-#
-#
+from gui import Root
+from enigma.components import *
+
+
 # config = Config('config.xml')
 # config.focus_buffer('globals')
 # font = list(config.get_data('font').values())
@@ -21,3 +19,6 @@
 #
 # if __name__ == '__main__':
 #     root.mainloop()
+
+factory = EnigmaFactory(['enigma', 'historical_data.xml'])
+print(factory.produce('Enigma1'))

@@ -90,9 +90,9 @@ class Config:
         """Returns data based on data type and data path specified"""
         if data_path in self.__contexts:
             data_path = self.__contexts[data_path]
-
-        data = self.__buffer.find(data_path)
-
+        print(data_path)
+        data = list(self.__buffer.iter(data_path))
+        print(data)
         err_msg = f"No data found for path \"{data_path}\"!"
         assert data != None, err_msg
 

@@ -90,24 +90,26 @@ class TestEnigma(unittest.TestCase):
     #     """Tests if enigma data is dumped and loaded correctly"""
 
 
+class EnigmaFactory:
+    def __init__(self, cfg_path):
+        self._rotor_factory = RotorFactory(cfg_path)
+        self._enigma_models = {'Enigma1': Enigma1, 'EnigmaM3': EnigmaM3,
+                               'EnigmaM4': EnigmaM4}
+
+    def produce(self, model):
+        enigma_model = self._enigma_models[model]
+        stator = self._rotor_factory.produce(model, 'stator', 'ETW')
+        return enigma_model()
+
+
 class RotorFactory:
     """Factory for creating various enigma Rotor/Reflector objects"""
-    def __init__(self, cfg_path, model):
+    def __init__(self, cfg_path, ):
         self.cfg = Config(cfg_path)
-        self.base_path = f"enigma[@model='{model}']"
-        self.model = model
-        self.rotors = [item['label'] for item in self.cfg.get_data([self.base_path, 'rotors'], 'SUBATTRS')]
-        self.reflectors = [item['label'] for item in self.cfg.get_data([self.base_path, 'reflectors'], 'SUBATTRS')]
-        self.layout = []
-        [self.layout.append(row['values']) for row in
-         self.cfg.get_data('layout', 'SUBATTRS')]
-        self.labels = []
-        [self.labels.extend(row['values']) for row in
-         self.cfg.get_data('labels', 'SUBATTRS')]
 
-    def produce(self, rotor_type, label):
+    def produce(self, model, rotor_type, label):
         """Creates and returns new object based on input"""
-        cfg = self.cfg.get_data([self.base_path, rotor_type], 'SUBATTRS')
+        cfg = self.cfg.get_data([f"enigma[@model='{model}']", rotor_type], 'SUBATTRS')
 
         match = False
         for item in cfg:
@@ -127,6 +129,8 @@ class RotorFactory:
 
 
 class _EnigmaBase:
+    rotor_count = 3
+
     def __init__(self, reflector, rotors, stator):
         self._stator = stator
         self._rotors = rotors
@@ -164,6 +168,7 @@ class _EnigmaBase:
     @rotors.setter
     def rotors(self, rotors):
         """Sets rotors"""
+        assert len(rotors) == _EnigmaBase.rotor_count, "Invalid number of rotors!"
         self._rotors = rotors
 
     @property
@@ -275,13 +280,12 @@ class Enigma1(_EnigmaBase):
 class EnigmaM3(Enigma1):
     def __init__(self, *args):
         Enigma1.__init__(self, *args)
-        assert len(self._rotors) == 3, "Invalid number of rotors!"
 
 
 class EnigmaM4(Enigma1):
     def __init__(self, *args):
+        EnigmaM4.rotor_count = 4
         Enigma1.__init__(self, *args)
-        assert len(self._rotors) == 4, "Invalid number of rotors!"
 
 
 def _compensate(func):
