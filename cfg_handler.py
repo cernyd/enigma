@@ -79,7 +79,7 @@ class Config:
     @_compose_path
     def focus_buffer(self, data_path):
         """Sets the buffer to only a part of the original one."""
-        self.__buffer = self.__buffer.find(data_path)
+        self.__buffer = self.__buffer.findall(data_path)
 
     @_compose_path
     def new_context(self, name, context_path):
@@ -90,9 +90,8 @@ class Config:
         """Returns data based on data type and data path specified"""
         if data_path in self.__contexts:
             data_path = self.__contexts[data_path]
-        print(data_path)
+        print(list(self.__buffer.iter(data_path)))
         data = list(self.__buffer.iter(data_path))
-        print(data)
         err_msg = f"No data found for path \"{data_path}\"!"
         assert data != None, err_msg
 
