@@ -98,7 +98,8 @@ class EnigmaFactory:
 
     def produce(self, model):
         enigma_model = self._enigma_models[model]
-        stator = self._rotor_factory.produce(model, 'stator', 'ETW')
+        rotor = self._rotor_factory.produce(model, 'rotors', 'I')
+        # stator = self._rotor_factory.produce(model, 'stators', 'ETW')
         return enigma_model()
 
 
@@ -110,7 +111,6 @@ class RotorFactory:
     def produce(self, model, rotor_type, label):
         """Creates and returns new object based on input"""
         cfg = self.cfg.get_data([f"enigma[@model='{model}']", rotor_type], 'SUBATTRS')
-
         match = False
         for item in cfg:
             if item['label'] == label:
