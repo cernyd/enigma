@@ -83,6 +83,7 @@ class Config:
 
     @_compose_path
     def new_context(self, name, context_path):
+        """Creates a new shortcut ( can be then accessed in the get_data method )"""
         self.__contexts[name] = context_path
 
     @_compose_path
@@ -99,4 +100,5 @@ class Config:
 
     @_compose_path
     def save_data(self, save_path, data):
+        """Saves the edited data buffer back to the original file"""
         pass
