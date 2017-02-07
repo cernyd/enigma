@@ -98,7 +98,8 @@ class EnigmaFactory:
 
     def produce(self, model):
         enigma_model = self._enigma_models[model]
-        reflector = self._rotor_factory.produce(model, 'reflectors', 'UKW-B')
+        reflectors = [item['label'] for item in self._rotor_factory.get_data(model, 'reflectors', 'SUBATTRS')]
+        reflector = self._rotor_factory.produce(model, 'reflectors', reflectors[0])
         rotors = [self._rotor_factory.produce(model, 'rotors', label) for label in ['I', 'II', 'III']]
         stator = self._rotor_factory.produce(model, 'stators', 'ETW')
         return enigma_model([], reflector, rotors, stator)
@@ -108,10 +109,14 @@ class RotorFactory:
     """Factory for creating various enigma Rotor/Reflector objects"""
     def __init__(self, cfg_path, ):
         self.cfg = Config(cfg_path)
+        self._base_path = "enigma[@model='{model}']"
+
+    def get_data(self, model, rotor_type, mode):
+        return self.cfg.get_data([self._base_path.format(model), rotor_type], mode)
 
     def produce(self, model, rotor_type, label):
         """Creates and returns new object based on input"""
-        cfg = self.cfg.get_data([f"enigma[@model='{model}']", rotor_type], 'SUBATTRS')
+        cfg = self.get_data(model, rotor_type, 'SUBATTRS')
         match = False
         for item in cfg:
             if item['label'] == label:
