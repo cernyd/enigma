@@ -98,7 +98,10 @@ class EnigmaFactory:
 
     def produce(self, model):
         enigma_model = self._enigma_models[model]
-        return enigma_model()
+        reflector = self._rotor_factory.produce(model, 'reflectors', 'UKW-B')
+        rotors = [self._rotor_factory.produce(model, 'rotors', label) for label in ['I', 'II', 'III']]
+        stator = self._rotor_factory.produce(model, 'stators', 'ETW')
+        return enigma_model([], reflector, rotors, stator)
 
 
 class RotorFactory:
@@ -127,12 +130,13 @@ class RotorFactory:
 
 
 class _EnigmaBase:
-    rotor_count = 3
-
-    def __init__(self, reflector, rotors, stator):
+    def __init__(self, reflector, rotors, stator, rotor_count=3):
+        self._rotor_count = rotor_count
         self._stator = stator
-        self._rotors = rotors
-        self._reflector = reflector
+        self._rotors = None
+        self.rotors = rotors
+        self._reflector = None
+        self.reflector = reflector
 
     def step_primary(self, places):
         step_next = False
@@ -166,7 +170,7 @@ class _EnigmaBase:
     @rotors.setter
     def rotors(self, rotors):
         """Sets rotors"""
-        assert len(rotors) == _EnigmaBase.rotor_count, "Invalid number of rotors!"
+        assert len(rotors) == self._rotor_count, "Invalid number of rotors!"
         self._rotors = rotors
 
     @property
@@ -282,8 +286,7 @@ class EnigmaM3(Enigma1):
 
 class EnigmaM4(Enigma1):
     def __init__(self, *args):
-        EnigmaM4.rotor_count = 4
-        Enigma1.__init__(self, *args)
+        Enigma1.__init__(self, *args, 4)
 
 
 def _compensate(func):
