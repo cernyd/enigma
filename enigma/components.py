@@ -93,16 +93,17 @@ class TestEnigma(unittest.TestCase):
 class EnigmaFactory:
     def __init__(self, cfg_path):
         self._rotor_factory = RotorFactory(cfg_path)
-        self._enigma_models = {'Enigma1': Enigma1, 'EnigmaM3': EnigmaM3,
-                               'EnigmaM4': EnigmaM4}
+        self._enigma_models = {'Enigma1': Enigma1}
 
     def produce(self, model):
         enigma_model = self._enigma_models[model]
-        reflectors = [item['label'] for item in self._rotor_factory.get_data(model, 'reflectors', 'SUBATTRS')]
-        reflector = self._rotor_factory.produce(model, 'reflectors', reflectors[0])
-        rotors = [self._rotor_factory.produce(model, 'rotors', label) for label in ['I', 'II', 'III']]
-        stator = self._rotor_factory.produce(model, 'stators', 'ETW')
-        return enigma_model([], reflector, rotors, stator)
+        reflector_labels = [item['label'] for item in self._rotor_factory.get_data(model, 'reflectors', 'SUBATTRS')]
+        reflector = self._rotor_factory.produce(model, 'reflectors', reflector_labels[0])
+        rotor_labels = [item['label'] for item in self._rotor_factory.get_data(model, 'rotors', 'SUBATTRS')]
+        rotors = [self._rotor_factory.produce(model, 'rotors', label) for label in rotor_labels[:3]]
+        stator_labels = [item['label'] for item in self._rotor_factory.get_data(model, 'stators', 'SUBATTRS')]
+        stator = self._rotor_factory.produce(model, 'stators', stator_labels[0])
+        return enigma_model(stator, rotors, reflector, [])
 
 
 class RotorFactory:
@@ -112,7 +113,7 @@ class RotorFactory:
         self._base_path = "enigma[@model='{model}']"
 
     def get_data(self, model, rotor_type, mode):
-        return self.cfg.get_data([self._base_path.format(model), rotor_type], mode)
+        return self.cfg.get_data([self._base_path.format(model=model), rotor_type], mode)
 
     def produce(self, model, rotor_type, label):
         """Creates and returns new object based on input"""
@@ -135,7 +136,7 @@ class RotorFactory:
 
 
 class _EnigmaBase:
-    def __init__(self, reflector, rotors, stator, rotor_count=3):
+    def __init__(self, stator, reflector, rotors, rotor_count=3):
         self._rotor_count = rotor_count
         self._stator = stator
         self._rotors = None
@@ -144,6 +145,8 @@ class _EnigmaBase:
         self.reflector = reflector
 
     def step_primary(self, places):
+        """Steps primary rotor, other rotors will step too if in appropriate
+        positions."""
         step_next = False
         index = 0
         for rotor in reversed(self._rotors):
@@ -254,9 +257,9 @@ class WiredPairs:
 
 
 class Enigma1(_EnigmaBase):
-    def __init__(self, plugboard_pairs, *args):
+    def __init__(self, *args):
         _EnigmaBase.__init__(self, *args)
-        self._plugboard = WiredPairs(plugboard_pairs)
+        self._plugboard = WiredPairs()
 
     @property
     def plugboard(self):
@@ -282,16 +285,6 @@ class Enigma1(_EnigmaBase):
         output = self._stator.backward(output)
 
         return self._plugboard.pairs_route(output)
-
-
-class EnigmaM3(Enigma1):
-    def __init__(self, *args):
-        Enigma1.__init__(self, *args)
-
-
-class EnigmaM4(Enigma1):
-    def __init__(self, *args):
-        Enigma1.__init__(self, *args, 4)
 
 
 def _compensate(func):
