@@ -98,8 +98,6 @@ class EnigmaFactory:
 
     def produce(self, model):
         enigma_model = self._enigma_models[model]
-        rotor = self._rotor_factory.produce(model, 'rotors', 'I')
-        # stator = self._rotor_factory.produce(model, 'stators', 'ETW')
         return enigma_model()
 
 
