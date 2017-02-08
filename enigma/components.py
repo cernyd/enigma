@@ -14,12 +14,13 @@ class TestEnigma(unittest.TestCase):
         unittest.TestCase.__init__(self, *args, **kwargs)
         self.cfg = Config(TestEnigma.cfg_path)
         self.cfg.focus_buffer('test_cfg')
-        self.subject: EnigmaM3
+        self.subject = None
+        self.enigma_factory = EnigmaFactory(['enigma', 'historical_data.xml'])
         self.reset_subject()
 
     def reset_subject(self):
         buffer = self.cfg.get_data('default_cfg')
-        self.subject = EnigmaM3(TestEnigma.model, buffer['reflector'], buffer['rotors'])
+        self.subject = self.enigma_factory.produce('EnigmaM3')
 
     def test_encrypt_decrypt(self):
         """Tests if encryption and decryption are working properly"""
@@ -96,7 +97,10 @@ class EnigmaFactory:
         self._enigma_models = {'Enigma1': Enigma1}
 
     def produce(self, model):
-        enigma_model = self._enigma_models[model]
+        try:
+            enigma_model = self._enigma_models[model]
+        except KeyError:
+            raise KeyError(f"No enigma model found for \"{model}\"!")
         reflector_labels = [item['label'] for item in self._rotor_factory.get_data(model, 'reflectors', 'SUBATTRS')]
         reflector = self._rotor_factory.produce(model, 'reflectors', reflector_labels[0])
         rotor_labels = [item['label'] for item in self._rotor_factory.get_data(model, 'rotors', 'SUBATTRS')]
@@ -470,5 +474,5 @@ class Luckenfuller(Rotor):
     def turnover(self, turnover):
         self._turnover = turnover
 
-__all__ = [EnigmaFactory, RotorFactory, Enigma1, Reflector, Stator, Rotor,
-           UKW_D, Uhr, Luckenfuller]
+__all__ = ['EnigmaFactory', 'RotorFactory', 'Enigma1', 'Reflector', 'Stator',
+           'Rotor', 'UKW_D', 'Uhr', 'Luckenfuller']
