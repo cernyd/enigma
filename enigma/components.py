@@ -92,11 +92,15 @@ class TestEnigma(unittest.TestCase):
 
 
 class EnigmaFactory:
+    """Factory for producing enigma machines ( initialised more simply by
+    choosing defaults from available config )"""
     def __init__(self, cfg_path):
         self._rotor_factory = RotorFactory(cfg_path)
         self._enigma_models = {'Enigma1': Enigma1}
 
     def produce(self, model):
+        """Produces an enigma machine given a specific model ( must be available
+        in the speicified cfg_path )"""
         try:
             enigma_model = self._enigma_models[model]
         except KeyError:
@@ -112,16 +116,15 @@ class EnigmaFactory:
 
 class RotorFactory:
     """Factory for creating various enigma Rotor/Reflector objects"""
-    def __init__(self, cfg_path, ):
+    def __init__(self, cfg_path):
         self.cfg = Config(cfg_path)
         self._base_path = "enigma[@model='{model}']"
 
-    def get_data(self, model, rotor_type, mode):
-        return self.cfg.get_data([self._base_path.format(model=model), rotor_type], mode)
-
     def produce(self, model, rotor_type, label):
         """Creates and returns new object based on input"""
-        cfg = self.get_data(model, rotor_type, 'SUBATTRS')
+        # cfg = self.get_data(model, rotor_type, 'SUBATTRS')
+        # CFG - Needs a better cfg and refactored cfg handling
+        cfg = None
         match = False
         for item in cfg:
             if item['label'] == label:
@@ -139,7 +142,43 @@ class RotorFactory:
             return Stator(**cfg)
 
 
+class WiredPairs:
+    """Returns the other letter from pairs if one letter is given.
+    IS FLEXIBLE!"""
+    def __init__(self, pairs=''):
+        self._pairs = pairs
+
+    @property
+    def pairs(self):
+        return self._pairs
+
+    @pairs.setter
+    def pairs(self, pairs):
+        assert (len(pairs) <= 13), "Invalid number of pairs!"
+
+        used = []
+        new_pairs = []
+        for pair in pairs:
+            for letter in pair:
+                assert (letter not in used), "A letter can only be wired once!"
+                used.append(letter)
+            new_pairs.append(pair)
+
+        self._pairs = new_pairs
+
+    def pairs_route(self, letter):
+        neighbour = []
+        for pair in self._pairs:
+            if letter in pair:
+                neighbour.extend(pair)
+                neighbour.remove(letter)
+                return neighbour[0]
+        return letter  # If no connection found
+
+
 class _EnigmaBase:
+    """Base for all enigma objects, has no plugboard, default rotor count for
+    all enigma machines is 3."""
     def __init__(self, stator, reflector, rotors, rotor_count=3):
         self._rotor_count = rotor_count
         self._stator = stator
@@ -212,7 +251,19 @@ class _EnigmaBase:
             rotor.ring_setting = setting
 
     def button_press(self, letter):
-        pass
+        self.step_primary(1)
+
+        output = self._stator.forward(letter)
+
+        for rotor in reversed(self._rotors):
+            output = rotor.forward(output)
+
+        output = self.reflector.reflect(output)
+
+        for rotor in self._rotors:
+            output = rotor.backward(output)
+
+        return self._stator.backward(output)
 
     def dump_config(self):
         """Dumps the whole enigma data config"""
@@ -226,38 +277,6 @@ class _EnigmaBase:
         self._reflector.config(**data['reflector'])
         for rotor, config in zip(self._rotors, data['rotors']):
             rotor.config(**config)
-
-
-class WiredPairs:
-    def __init__(self, pairs=''):
-        self._pairs = pairs
-
-    @property
-    def pairs(self):
-        return self._pairs
-
-    @pairs.setter
-    def pairs(self, pairs):
-        assert (len(pairs) <= 13), "Invalid number of pairs!"
-
-        used = []
-        new_pairs = []
-        for pair in pairs:
-            for letter in pair:
-                assert (letter not in used), "A letter can only be wired once!"
-                used.append(letter)
-            new_pairs.append(pair)
-
-        self._pairs = new_pairs
-
-    def pairs_route(self, letter):
-        neighbour = []
-        for pair in self._pairs:
-            if letter in pair:
-                neighbour.extend(pair)
-                neighbour.remove(letter)
-                return neighbour[0]
-        return letter  # If no connection found
 
 
 class Enigma1(_EnigmaBase):
@@ -274,31 +293,9 @@ class Enigma1(_EnigmaBase):
         self._plugboard.pairs = pairs
 
     def button_press(self, letter):
-        self.step_primary(1)
         output = self._plugboard.pairs_route(letter)
-        output = self._stator.forward(output)
-
-        for rotor in reversed(self._rotors):
-            output = rotor.forward(output)
-
-        output = self.reflector.reflect(output)
-
-        for rotor in self._rotors:
-            output = rotor.backward(output)
-
-        output = self._stator.backward(output)
-
+        output = _EnigmaBase.button_press(self, output)
         return self._plugboard.pairs_route(output)
-
-
-def _compensate(func):
-    """Converts input to relative input and
-    relative output to absolute output, does some assertions too."""
-    @wraps(func)
-    def wrapper(self, letter):
-        relative_input = self.relative_board[alphabet.index(letter)]
-        return alphabet[self.relative_board.index(func(self, relative_input))]
-    return wrapper
 
 
 def _check_input(func):
@@ -372,6 +369,16 @@ class Stator(_RotorBase):
     def backward(self, letter):
         """Routes letter from back to front"""
         return alphabet[self.back_board.index(letter)]
+
+
+def _compensate(func):
+    """Converts input to relative input and
+    relative output to absolute output, does some assertions too."""
+    @wraps(func)
+    def wrapper(self, letter):
+        relative_input = self.relative_board[alphabet.index(letter)]
+        return alphabet[self.relative_board.index(func(self, relative_input))]
+    return wrapper
 
 
 class Rotor(Stator, _Rotatable):
@@ -473,6 +480,7 @@ class Luckenfuller(Rotor):
     @Rotor.turnover.setter
     def turnover(self, turnover):
         self._turnover = turnover
+
 
 __all__ = ['EnigmaFactory', 'RotorFactory', 'Enigma1', 'Reflector', 'Stator',
            'Rotor', 'UKW_D', 'Uhr', 'Luckenfuller']
