@@ -9,6 +9,8 @@ from glob import glob
 from os import path
 
 
+# MISC
+
 class Playback:
     """Module for playing sounds from the sounds folder"""
 
@@ -81,6 +83,8 @@ class Base:
         self.wm_title(wm_title)
         self.grab_set()
 
+
+# ROOT
 
 class Root(Tk, Base):
     """Root GUI class with enigma entry field, plugboard button, rotor button"""
@@ -253,6 +257,8 @@ class Root(Tk, Base):
         else:
             messagebox.showerror('Loading error', 'No save file found!')
 
+
+# PLUGBOARD MENU
 
 class PlugboardMenu(Toplevel, Base):
     """GUI for visual plugboard pairing setup"""
@@ -437,6 +443,8 @@ class PlugEntry(Entry):
         return raw[0] if raw else raw
 
 
+# ROTOR MENU
+
 class RotorMenu(Toplevel, Base):
     """GUI for setting rotor order, reflectors and ring settings"""
     def __init__(self, enigma, bg, *args, **kwargs):
@@ -567,6 +575,8 @@ class ReflectorSlot(BaseSlot):
         self.master.curr_reflector = self.choice_var.get()
 
 
+# INDICATOR BOARD( in the main gui )
+
 class IndicatorBoard(Frame):
     """Contains all rotor indicators"""
     def __init__(self, enigma, tk_master, playback, bg, font, *args, **kwargs):
@@ -616,6 +626,8 @@ class RotorIndicator(Frame):
         raw = self.enigma.rotors[self.index].position
         self.indicator.config(text=raw)
 
+
+# IOBOARD
 
 class IOBoard(Frame):
     def __init__(self, enigma, tk_master, master, playback, font, *args, **kwargs):
@@ -737,6 +749,8 @@ class IOBoard(Frame):
         self.text_output.insert('0.0', string)
         self.text_output.config(state='disabled')
 
+
+# LIGHTBOARD
 
 class Lightboard(Frame):
     def __init__(self, tk_master, layout, bg, *args, **kwargs):
