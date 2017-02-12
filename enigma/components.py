@@ -259,13 +259,11 @@ class Enigma:
 
     def dump_config(self):
         """Dumps the whole enigma data config"""
-        return dict(plugboard=self._plugboard,
-                    reflector=self.reflector.dump_config(),
+        return dict(reflector=self.reflector.dump_config(),
                     rotors=[rotor.dump_config() for rotor in self._rotors])
 
     def load_config(self, data):
         """Loads everything from the data config"""
-        self.plugboard = data['plugboard']
         self._reflector.config(**data['reflector'])
         for rotor, config in zip(self._rotors, data['rotors']):
             rotor.config(**config)
@@ -292,6 +290,15 @@ class Enigma1(Enigma):
         output = self._plugboard.pairs_route(letter)
         output = Enigma.button_press(self, output)
         return self._plugboard.pairs_route(output)
+
+    def load_config(self, data):
+        self._plugboard = data['plugboard']
+        Enigma.load_config(self, data)
+
+    def dump_config(self):
+        config = Enigma.dump_config(self)
+        config.update(plugboard=self._plugboard)
+        return config
 
 
 class EnigmaM3(Enigma1):
@@ -475,7 +482,7 @@ class Rotor(Stator, _Rotatable):
 class UKW_D:
     """Could be used in 3 rotor enigma versions, mostly used in EnigmaM4
     ( replacing the thin reflector and extra rotor! )"""
-    def __init__(self, pairs=[]):
+    def __init__(self, pairs=tuple()):
         self._pairs = WiredPairs('BO')
         self.alphabet =   "ACDEFGHIJKLMNPQRSTUVWXYZ"
         self.index_ring = "AZXWVUTSRQPONMLKIHGFEDCB"

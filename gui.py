@@ -1,12 +1,13 @@
+from glob import glob
+from os import path
 from os import remove
 from re import sub
 from tkinter import *
-from webbrowser import open as open_browser
-from enigma.components import EnigmaM3, alphabet
 from tkinter import messagebox
+from webbrowser import open as open_browser
 from winsound import PlaySound, SND_ASYNC
-from glob import glob
-from os import path
+
+from enigma.components import EnigmaM3, alphabet
 
 
 # MISC
@@ -36,7 +37,7 @@ class TkEnigma(EnigmaM3):
 
     def _rotate_primary(self, places=1):
         if not self.master.rotor_lock:
-            EnigmaM3._rotate_primary(self, places)
+            EnigmaM3.step_primary(self, places)
 
     @EnigmaM3.reflector.setter
     def reflector(self, label):
@@ -237,7 +238,6 @@ class Root(Tk, Base):
                                   rotor_lock=self._rotor_lock.get(),
                                   synchronised_scrolling=self._sync_scroll.get()),
                         enigma=self.enigma.dump_config())
-        print(data)
 
     def load_config(self):  # Not flexible
         if glob('settings.txt'):
@@ -523,9 +523,9 @@ class BaseSlot(Frame):
             radio.pack(side='top')
             self.radio_group.append(radio)
 
-    def update_available(self, type, event=None):
+    def update_available(self, radio_value, event=None):
         for radio in self.radio_group:
-            if radio['value'] in type:
+            if radio['value'] in radio_value:
                 if radio['value'] != self.choice_var.get():
                     radio.config(state='disabled')
             else:
@@ -560,7 +560,7 @@ class RotorSlot(BaseSlot):
         self.master.curr_ring_settings[self.index] = ring_setting
 
     def update_available(self, *event):
-        BaseSlot.update_available(self, type=self.master.curr_rotors)
+        BaseSlot.update_available(self, radio_value=self.master.curr_rotors)
 
 
 class ReflectorSlot(BaseSlot):

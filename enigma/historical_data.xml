@@ -47,21 +47,6 @@
             <reflector label="UKW-C" back_board="FVPJIAOYEDRZXWGCTKUQSBNMHL"/>
         </reflectors>
     </enigma>
-    <enigma model="Norenigma">
-        <stators>
-            <stator label="ETW" back_board="ABCDEFGHIJKLMNOPQRSTUVWXYZ"/>
-        </stators>
-        <rotors>
-            <rotor label="I" split="turnover" back_board="WTOKASUYVRBXJHQCPZEFMDINLG" turnover="Q"/>
-            <rotor label="II" split="turnover" back_board="GJLPUBSWEMCTQVHXAOFZDRKYNI" turnover="E"/>
-            <rotor label="III" split="turnover" back_board="JWFMHNBPUSDYTIXVZGRQLAOEKC" turnover="V"/>
-            <rotor label="IV" split="turnover" back_board="ESOVPZJAYQUIRHXLNFTGKDCMWB" turnover="J"/>
-            <rotor label="V" split="turnover" back_board="HEJXQOTZBVFDASCILWPGYNMURK" turnover="Z"/>
-        </rotors>
-        <reflectors>
-            <reflector label="UKW" back_board="MOWJYPUXNDSRAIBFVLKZGQCHET"/>
-        </reflectors>
-    </enigma>
     <enigma model="EnigmaM4">
         <stators>
             <stator label="ETW" back_board="ABCDEFGHIJKLMNOPQRSTUVWXYZ"/>
@@ -81,6 +66,21 @@
         <reflectors>
             <reflector label="UKW-B" back_board="ENKQAUYWJICOPBLMDXZVFTHRGS"/>
             <reflector label="UKW-C" back_board="RDOBJNTKVEHMLFCWZAXGYIPSUQ"/>
+        </reflectors>
+    </enigma>
+    <enigma model="Norenigma">
+        <stators>
+            <stator label="ETW" back_board="ABCDEFGHIJKLMNOPQRSTUVWXYZ"/>
+        </stators>
+        <rotors>
+            <rotor label="I" split="turnover" back_board="WTOKASUYVRBXJHQCPZEFMDINLG" turnover="Q"/>
+            <rotor label="II" split="turnover" back_board="GJLPUBSWEMCTQVHXAOFZDRKYNI" turnover="E"/>
+            <rotor label="III" split="turnover" back_board="JWFMHNBPUSDYTIXVZGRQLAOEKC" turnover="V"/>
+            <rotor label="IV" split="turnover" back_board="ESOVPZJAYQUIRHXLNFTGKDCMWB" turnover="J"/>
+            <rotor label="V" split="turnover" back_board="HEJXQOTZBVFDASCILWPGYNMURK" turnover="Z"/>
+        </rotors>
+        <reflectors>
+            <reflector label="UKW" back_board="MOWJYPUXNDSRAIBFVLKZGQCHET"/>
         </reflectors>
     </enigma>
     <enigma model="EnigmaG">
