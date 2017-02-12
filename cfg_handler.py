@@ -5,16 +5,19 @@ from functools import wraps
 
 def _compose_path(func):
     """Converts to valid path if path list is passed"""
+
     @wraps(func)
     def wrapper(self, path, *args, **kwargs):
         if type(path) == list:
             path = ".//" + '/'.join(path)
         return func(self, path, *args, **kwargs)
+
     return wrapper
 
 
 class Config:
     """Universal configuration parser and manager"""
+
     @_compose_path
     def __init__(self, buffer_path):
         try:
@@ -50,10 +53,10 @@ class Config:
                         attribs[key] = value
             except ValueError as err:
                 value = findall("\'(.+)\'$", err.message)
-                err.message = f"Invalid type conversion request, "\
-                            f"value \"{value}\" can't be converted to int!\n"\
-                            f"Attribute dump > {attribs}\n"\
-                            f"All conversion requests > {toint}"
+                err.message = f"Invalid type conversion request, " \
+                              f"value \"{value}\" can't be converted to int!\n" \
+                              f"Attribute dump > {attribs}\n" \
+                              f"All conversion requests > {toint}"
                 raise
 
         return attribs
@@ -92,7 +95,8 @@ class Config:
         if data_path in self.__contexts:
             data_path = self.__contexts[data_path]
 
-        data = self.__buffer.find(data_path)  # Should somehow iterate over results
+        data = self.__buffer.find(
+            data_path)  # Should somehow iterate over results
         err_msg = f"No data found for path \"{data_path}\"!"
         assert data != None, err_msg
 

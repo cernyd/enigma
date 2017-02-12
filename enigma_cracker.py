@@ -1,6 +1,6 @@
 from itertools import product, permutations
 from string import ascii_uppercase as alphabet
-from enigma.components import BasicEnigma1, RotorFactory
+from enigma.components import RotorFactory
 from time import time
 
 def crack_positions(model, cipher, crib):
