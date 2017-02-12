@@ -4,6 +4,7 @@ from cfg_handler import Config
 from functools import wraps
 import unittest
 
+# UNIT TEST
 
 class TestEnigma(unittest.TestCase):
     """Used to test if enigma class behaves like the real life counterpart"""
@@ -91,36 +92,7 @@ class TestEnigma(unittest.TestCase):
     #     """Tests if enigma data is dumped and loaded correctly"""
 
 
-class RotorFactory:
-    """Factory for creating various enigma Rotor/Reflector objects"""
-    def __init__(self, cfg_path):
-        self.cfg = Config(cfg_path)
-        self._base_path = "enigma[@model='{model}']"
-
-    def produce(self, model, rotor_type, label):
-        """Creates and returns new object based on input"""
-        # cfg = self.get_data(model, rotor_type, 'SUBATTRS')
-        # CFG - Needs a better cfg and refactored cfg handling
-        cfg = None
-        match = False
-        for item in cfg:
-            if item['label'] == label:
-                cfg = item
-                match = True
-                break
-
-        err_msg = f"No configuration found for label \"{label}\"!"
-        assert match, err_msg
-        if rotor_type == 'rotors':
-            return Rotor(**cfg)
-        elif rotor_type == 'reflectors':
-            return Reflector(**cfg)
-        elif rotor_type == 'stators':
-            return Stator(**cfg)
-
-
 # GENERIC COMPONENTS
-
 
 class WiredPairs:
     """Returns the other letter from pairs if one letter is given.
@@ -158,7 +130,6 @@ class WiredPairs:
 
 # HISTORICAL ENIGMA EXTENSIONS
 
-
 class Uhr(WiredPairs):
     def __init__(self, pairs=''):
         WiredPairs.__init__(self, pairs)
@@ -169,13 +140,12 @@ class Uhr(WiredPairs):
 
 # ENIGMA COMPONENTS
 
-
 class EnigmaFactory:
     """Factory for producing enigma machines ( initialised more simply by
     choosing defaults from available config )"""
     def __init__(self, cfg_path):
         self._rotor_factory = RotorFactory(cfg_path)
-        self._enigma_models = {'Enigma1': Enigma1}
+        self._enigma_models = {'Enigma1': Enigma1, 'EnigmaM3': EnigmaM3}
 
     def produce(self, model):
         """Produces an enigma machine given a specific model ( must be available
@@ -193,16 +163,21 @@ class EnigmaFactory:
         return enigma_model(stator, rotors, reflector, [])
 
 
-class BasicEnigma:
+class Enigma:
     """Base for all enigma objects, has no plugboard, default rotor count for
     all enigma machines is 3."""
-    def __init__(self, stator, reflector, rotors, rotor_count=3):
-        self._rotor_count = rotor_count
+    rotor_count = 3
+
+    def __init__(self, stator, reflector, rotors):
         self._stator = stator
         self._rotors = None
         self.rotors = rotors
         self._reflector = None
         self.reflector = reflector
+
+    @property
+    def rotor_count(self):
+        return self.__class__.rotor_count
 
     def step_primary(self, places):
         """Steps primary rotor, other rotors will step too if in appropriate
@@ -238,7 +213,7 @@ class BasicEnigma:
     @rotors.setter
     def rotors(self, rotors):
         """Sets rotors"""
-        assert len(rotors) == self._rotor_count, "Invalid number of rotors!"
+        assert len(rotors) == self.rotor_count, "Invalid number of rotors!"
         self._rotors = rotors
 
     @property
@@ -296,13 +271,16 @@ class BasicEnigma:
             rotor.config(**config)
 
 
-class Enigma1(BasicEnigma):
-    def __init__(self, *args):
-        BasicEnigma.__init__(self, *args)
-        self._plugboard = WiredPairs()
+class Enigma1(Enigma):
+    """Adds plugboard functionality, compatible with all EnigmaM_ models
+    except M4 ( Four rotors )"""
+    def __init__(self, stator, reflector, rotors, plugboard_pairs=''):
+        Enigma.__init__(self, stator, reflector, rotors)
+        self._plugboard = WiredPairs(plugboard_pairs)
 
     @property
     def plugboard(self):
+        """Plugboard routing pairs"""
         return self.plugboard.pairs
 
     @plugboard.setter
@@ -310,12 +288,52 @@ class Enigma1(BasicEnigma):
         self._plugboard.pairs = pairs
 
     def button_press(self, letter):
+        """Wraps the base enigma routing with plugboard"""
         output = self._plugboard.pairs_route(letter)
-        output = BasicEnigma.button_press(self, output)
+        output = Enigma.button_press(self, output)
         return self._plugboard.pairs_route(output)
 
 
+class EnigmaM3(Enigma1):
+    """Name for the group of Enigma M1, M2 and M3 machines. All of them are
+    practically identical"""
+
+
+class EnigmaM4(EnigmaM3):
+    """Navy version with four rotors, otherwise identical, UKW-D can be used
+    instead. Thin reflectors are used, UKW-D can be used too if the extra rotor
+    and thin reflector are replaced."""
+    rotor_count = 4
+
+
 # ROTOR COMPONENTS
+
+class RotorFactory:
+    """Factory for creating various enigma Rotor/Reflector objects"""
+    def __init__(self, cfg_path):
+        self.cfg = Config(cfg_path)
+        self._base_path = "enigma[@model='{model}']"
+
+    def produce(self, model, rotor_type, label):
+        """Creates and returns new object based on input"""
+        # cfg = self.get_data(model, rotor_type, 'SUBATTRS')
+        # CFG - Needs a better cfg and refactored cfg handling
+        cfg = None
+        match = False
+        for item in cfg:
+            if item['label'] == label:
+                cfg = item
+                match = True
+                break
+
+        err_msg = f"No configuration found for label \"{label}\"!"
+        assert match, err_msg
+        if rotor_type == 'rotors':
+            return Rotor(**cfg)
+        elif rotor_type == 'reflectors':
+            return Reflector(**cfg)
+        elif rotor_type == 'stators':
+            return Stator(**cfg)
 
 
 def _check_input(func):
@@ -364,6 +382,7 @@ class _RotorBase:
 
 
 class _Rotatable:
+    """Adds the ability to change board offsets"""
     def _change_board_offset(self, board, places=1):
         """Changes offset of a specified board."""
         old_val = getattr(self, board)
@@ -454,6 +473,8 @@ class Rotor(Stator, _Rotatable):
 
 
 class UKW_D:
+    """Could be used in 3 rotor enigma versions, mostly used in EnigmaM4
+    ( replacing the thin reflector and extra rotor! )"""
     def __init__(self, pairs=[]):
         self._pairs = WiredPairs('BO')
         self.alphabet =   "ACDEFGHIJKLMNPQRSTUVWXYZ"
@@ -494,5 +515,5 @@ class Luckenfuller(Rotor):
         self._turnover = turnover
 
 
-__all__ = ['EnigmaFactory', 'RotorFactory', 'BasicEnigma1', 'Reflector', 'Stator',
-           'Rotor', 'UKW_D', 'Uhr', 'Luckenfuller']
+__all__ = ['EnigmaFactory', 'RotorFactory', 'Enigma1', 'EnigmaM3', 'EnigmaM4',
+           'Reflector', 'Stator', 'Rotor', 'UKW_D', 'Uhr', 'Luckenfuller']
