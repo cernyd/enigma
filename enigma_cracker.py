@@ -1,6 +1,6 @@
 from itertools import product, permutations
 from string import ascii_uppercase as alphabet
-from enigma.components import Enigma1, RotorFactory
+from enigma.components import BasicEnigma1, RotorFactory
 from time import time
 
 def crack_positions(model, cipher, crib):
@@ -8,7 +8,7 @@ def crack_positions(model, cipher, crib):
     factory = RotorFactory(['enigma', 'historical_data.xml'], model)
     all_rotors = [factory.produce('rotors', label) for label in ('I', 'II', 'III', 'IV', 'V')]
     stator = factory.produce('stators', 'ETW')
-    enigma = Enigma1('', factory.produce('reflectors', 'UKW-B'), [factory.produce('rotors', label) for label in ['I', 'II', 'III']], stator)
+    enigma = BasicEnigma1('', factory.produce('reflectors', 'UKW-B'), [factory.produce('rotors', label) for label in ['I', 'II', 'III']], stator)
     setting_permutations = list(product(alphabet, repeat=3))
     order_permutations = list(permutations(all_rotors, r=3))
 
