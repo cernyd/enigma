@@ -147,20 +147,19 @@ class EnigmaFactory:
         self._rotor_factory = RotorFactory(cfg_path)
         self._enigma_models = {'Enigma1': Enigma1, 'EnigmaM3': EnigmaM3}
 
-    def produce(self, model):
+    def produce(self, model, stator=None, rotors=None):
         """Produces an enigma machine given a specific model ( must be available
         in the speicified cfg_path )"""
         try:
             enigma_model = self._enigma_models[model]
         except KeyError:
             raise KeyError(f"No enigma model found for \"{model}\"!")
-        reflector_labels = [item['label'] for item in self._rotor_factory.get_data(model, 'reflectors', 'SUBATTRS')]
-        reflector = self._rotor_factory.produce(model, 'reflectors', reflector_labels[0])
-        rotor_labels = [item['label'] for item in self._rotor_factory.get_data(model, 'rotors', 'SUBATTRS')]
-        rotors = [self._rotor_factory.produce(model, 'rotors', label) for label in rotor_labels[:3]]
-        stator_labels = [item['label'] for item in self._rotor_factory.get_data(model, 'stators', 'SUBATTRS')]
-        stator = self._rotor_factory.produce(model, 'stators', stator_labels[0])
-        return enigma_model(stator, rotors, reflector, [])
+
+        reflector = None
+        rotors = None
+        stator = None
+
+        return enigma_model(reflector, rotors, stator, [])
 
 
 class Enigma:
@@ -168,7 +167,7 @@ class Enigma:
     all enigma machines is 3."""
     rotor_count = 3
 
-    def __init__(self, stator, reflector, rotors):
+    def __init__(self, reflector, rotors, stator):
         self._stator = stator
         self._rotors = None
         self.rotors = rotors
@@ -272,7 +271,7 @@ class Enigma:
 class Enigma1(Enigma):
     """Adds plugboard functionality, compatible with all EnigmaM_ models
     except M4 ( Four rotors )"""
-    def __init__(self, stator, reflector, rotors, plugboard_pairs=''):
+    def __init__(self, reflector, rotors, stator, plugboard_pairs=''):
         Enigma.__init__(self, stator, reflector, rotors)
         self._plugboard = WiredPairs(plugboard_pairs)
 
@@ -323,9 +322,7 @@ class RotorFactory:
 
     def produce(self, model, rotor_type, label):
         """Creates and returns new object based on input"""
-        # cfg = self.get_data(model, rotor_type, 'SUBATTRS')
-        # CFG - Needs a better cfg and refactored cfg handling
-        cfg = None
+        cfg = self.cfg.get_data([self._base_path.format(model=model), rotor_type],  'SUBATTRS')
         match = False
         for item in cfg:
             if item['label'] == label:

@@ -5,7 +5,6 @@ from functools import wraps
 
 def _compose_path(func):
     """Converts to valid path if path list is passed"""
-
     @wraps(func)
     def wrapper(self, path, *args, **kwargs):
         if type(path) == list:
@@ -95,8 +94,7 @@ class Config:
         if data_path in self.__contexts:
             data_path = self.__contexts[data_path]
 
-        data = self.__buffer.find(
-            data_path)  # Should somehow iterate over results
+        data = self.__buffer.find(data_path)  # Should somehow iterate over results
         err_msg = f"No data found for path \"{data_path}\"!"
         assert data != None, err_msg
 
