@@ -139,7 +139,7 @@ class Root(Tk, Base):
         self.reset_all()
 
     def __reset_setting_vars(self):
-        var_config = self.cfg.get_data(['globals', 'setting_vars'])
+        var_config = self.cfg.find(['globals', 'setting_vars'])
         self._autorotate.set(var_config['autorotate'])
         self._sound_enabled.set(var_config['sound_enabled'])
         self._sync_scroll.set(var_config['sync_scroll'])

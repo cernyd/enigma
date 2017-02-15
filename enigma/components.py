@@ -20,12 +20,12 @@ class TestEnigma(unittest.TestCase):
         self.reset_subject()
 
     def reset_subject(self):
-        buffer = self.cfg.get_data('default_cfg')
+        buffer = self.cfg.find('default_cfg')
         self.subject = self.enigma_factory.produce('EnigmaM3')
 
     def test_encrypt_decrypt(self):
         """Tests if encryption and decryption are working properly"""
-        buffer = self.cfg.get_data('test_encrypt_decrypt')
+        buffer = self.cfg.find('test_encrypt_decrypt')
         for test in permutations(['encrypted', 'decrypted']):
             self.reset_subject()
             output = ''
@@ -39,7 +39,7 @@ class TestEnigma(unittest.TestCase):
     def test_rotors(self):
         """Tests if rotors are assigned properly"""
         self.reset_subject()
-        rotors = self.cfg.get_data('test_rotors')['rotors']
+        rotors = self.cfg.find('test_rotors')['rotors']
         self.subject.rotors = rotors
         self.assertEqual(self.subject.rotor_labels, rotors,
                          'Invalid rotor order assigned!')
@@ -47,7 +47,7 @@ class TestEnigma(unittest.TestCase):
     def test_positions(self):
         """Tests if rotor positions are set properly"""
         self.reset_subject()
-        positions = self.cfg.get_data('test_positions')['positions']
+        positions = self.cfg.find('test_positions')['positions']
         self.subject.positions = positions
         self.assertEqual(self.subject.positions, positions,
                          'Positions assigned in wrong order!')
@@ -57,7 +57,7 @@ class TestEnigma(unittest.TestCase):
     def test_reflector(self):
         """Tests if the reflector is set properly"""
         self.reset_subject()
-        reflector = self.cfg.get_data('test_reflector')['reflector']
+        reflector = self.cfg.find('test_reflector')['reflector']
         self.subject.reflector = reflector
         self.assertEqual(self.subject.reflector_label, reflector,
                          'Invalid rotor assigned!')
@@ -67,7 +67,7 @@ class TestEnigma(unittest.TestCase):
     def test_ring_settings(self):
         """Tests if ring settings are set properly"""
         self.reset_subject()
-        ring_settings = self.cfg.get_data('test_ring_settings')['ring_settings']
+        ring_settings = self.cfg.find('test_ring_settings')['ring_settings']
         self.subject.ring_settings = ring_settings
         self.assertEqual(self.subject.ring_settings, ring_settings,
                          'Invalid ring settings assigned!')
@@ -77,7 +77,7 @@ class TestEnigma(unittest.TestCase):
     def test_plugboard(self):
         """Checks if plugboard pairs are set propertly"""
         self.reset_subject()
-        plug_pairs = self.cfg.get_data('test_plugboard')['pairs']
+        plug_pairs = self.cfg.find('test_plugboard')['pairs']
         self.subject.plugboard = plug_pairs
         self.assertEqual(self.subject.plugboard, plug_pairs, 'Invalid plugboard'
                                                              ' pairs assigned!')
@@ -322,7 +322,7 @@ class RotorFactory:
 
     def produce(self, model, rotor_type, label):
         """Creates and returns new object based on input"""
-        cfg = self.cfg.get_data([self._base_path.format(model=model), rotor_type],  'SUBATTRS')
+        cfg = self.cfg.find([self._base_path.format(model=model), rotor_type], 'SUBATTRS')
         match = False
         for item in cfg:
             if item['label'] == label:
@@ -340,19 +340,6 @@ class RotorFactory:
             return Stator(**cfg)
 
 
-def _check_input(func):
-    @wraps(func)
-    def wrapper(self, letter):
-        letter = str(letter).upper()
-        if letter not in alphabet:
-            raise AssertionError(
-                f"Input \"{str(letter)}\" not single a letter!")
-        elif len(letter) != 1:
-            raise AssertionError("Length of \"{str(letter)}\" is not 1!")
-        return func(self, letter)
-    return wrapper
-
-
 class _RotorBase:
     """Base class for Rotors and Reflectors"""
     def __init__(self, label, back_board, valid_cfg=tuple()):
@@ -363,6 +350,19 @@ class _RotorBase:
 
         self.back_board = back_board
         self.label = label
+
+    def _check_input(func):
+        @wraps(func)
+        def wrapper(self, letter):
+            letter = str(letter).upper()
+            if letter not in alphabet:
+                raise AssertionError(
+                    f"Input \"{str(letter)}\" not single a letter!")
+            elif len(letter) != 1:
+                raise AssertionError("Length of \"{str(letter)}\" is not 1!")
+            return func(self, letter)
+
+        return wrapper
 
     def _route_forward(self, letter):
         """Routes letters from front board to back board"""
@@ -396,19 +396,19 @@ class _Rotatable:
 
 class Reflector(_RotorBase):
     """Reflector class, used to """
-    @_check_input
+    @_RotorBase._check_input
     def reflect(self, letter):
         """Reflects letter back"""
         return self._route_forward(letter)
 
 
 class Stator(_RotorBase):
-    @_check_input
+    @_RotorBase._check_input
     def forward(self, letter):
         """Routes letter from front to back"""
         return self._route_forward(letter)
 
-    @_check_input
+    @_RotorBase._check_input
     def backward(self, letter):
         """Routes letter from back to front"""
         return alphabet[self.back_board.index(letter)]
