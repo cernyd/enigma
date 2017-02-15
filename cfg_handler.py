@@ -1,38 +1,41 @@
 import xml.etree.ElementTree as ET
 from re import findall
 from functools import wraps
+from os import path
 
 
 class Config:
     """Universal configuration parser and manager"""
-    def _compose_path(func):
-        """Converts to valid path if path list is passed"""
-        @wraps(func)
-        def wrapper(self, path, *args, **kwargs):
-            if type(path) == list:
-                path = ".//" + '/'.join(path)
-
-            try:
-                if path in self.__contexts:
-                    path = self.__contexts[path]
-            except AttributeError:
-                pass
-
-            return func(self, path, *args, **kwargs)
-
-        return wrapper
-
-    @_compose_path
     def __init__(self, buffer_path):
         self.__contexts = {}
         self.__curr_focus = ''
         try:
+            if type(buffer_path) == list:
+                buffer_path = path.join(*buffer_path)
             self.__buffer_data = ET.parse(buffer_path).getroot()
         except FileNotFoundError as err:
             err.message = "Requested configuration file not found!"
             raise
 
+    def __check_context(func):
+        """Swaps the target if the address is bookmarked"""
+        @wraps(func)
+        def wrapper(self, path, *args, **kwargs):
+            if path in self.__contexts:
+                path = self.__contexts[path]
 
+            return func(self, path, *args, **kwargs)
+
+        return wrapper
+
+    def __compose_path(func):
+        """Converts to valid path if path list is passed"""
+        @wraps(func)
+        def wrapper(self, path, *args, **kwargs):
+            if type(path) == list:
+                path = ".//" + '/'.join(path)
+            return func(self, path, *args, **kwargs)
+        return wrapper
 
     def __buffer(self):
         if self.__curr_focus:
@@ -94,39 +97,36 @@ class Config:
     def clear_focus(self):
         self.__curr_focus = ''
 
-    @_compose_path
+    @__compose_path
     def focus_buffer(self, data_path):
         """Sets the buffer to only a part of the original one."""
         self.__curr_focus = data_path
 
-    @_compose_path
-    def new_context(self, name, context_path):
+    @__compose_path
+    def new_context(self, context_path, name):
         """Creates a new shortcut ( can be then accessed in the get_data method )"""
         self.__contexts[name] = context_path
 
-    @_compose_path
+    @__compose_path
+    @__check_context
     def find(self, data_path, data_type='ATTRS'):
         """Returns data based on data type and data path specified"""
-        if data_path in self.__contexts:
-            data_path = self.__contexts[data_path]
-
         data = self.__buffer().find(data_path)  # Should somehow iterate over results
         err_msg = f"No data found for path \"{data_path}\"!"
         assert data != None, err_msg
 
         return Config.__process_data(data, data_type)
 
-    @_compose_path
+    @__compose_path
+    @__check_context
     def iter_find(self, data_path, data_type='ATTRS'):
-
-
+        """Finds all data iteratively in the current buffer scope."""
         data = list(self.__buffer().iter(data_path))
         err_msg = f"No data found for path \"{data_path}\"!"
         assert data != None and data != [], err_msg
 
         return [Config.__process_data(item, data_type) for item in data]
 
-    @_compose_path
     def save_data(self, save_path, data):
         """Saves the edited data buffer back to the original file"""
         pass
