@@ -155,9 +155,7 @@ class EnigmaFactory:
         except KeyError:
             raise KeyError(f"No enigma model found for \"{model}\"!")
 
-        reflector = None
-        rotors = None
-        stator = None
+        model_data = self._rotor_factory.all_rotor_labels(model)
 
         return enigma_model(reflector, rotors, stator, [])
 
@@ -319,6 +317,15 @@ class RotorFactory:
     def __init__(self, cfg_path):
         self.cfg = Config(cfg_path)
         self._base_path = "enigma[@model='{model}']"
+
+    def all_rotor_labels(self, model):
+        """Returns all available rotor labels for the selected enigma model"""
+        self.cfg.focus_buffer(self._base_path.format(model=model))
+        rotor_data = {}
+        for item in ['rotor', 'reflector', 'stator']:
+            rotor_data[item + 's'] = [rotor['label'] for rotor in self.cfg.iter_find(item)]
+
+        return rotor_data
 
     def produce(self, model, rotor_type, label):
         """Creates and returns new object based on input"""

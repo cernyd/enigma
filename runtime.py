@@ -25,8 +25,8 @@ from cfg_handler import Config
 #
 # factory = EnigmaFactory(['enigma', 'historical_data.xml'])
 # print(factory.produce('EnigmaM3'))
-config = Config(['enigma', 'historical_data.xml'])
-config.focus_buffer("enigma[@model='EnigmaM4']")
-print(config.iter_find('rotor', 'ATTRS'))
-config.clear_focus()
-print(config.iter_find('rotor', 'ATTRS'))
+# config = Config(['enigma', 'historical_data.xml'])
+# config.focus_buffer("enigma[@model='EnigmaM4']")
+# print(config.iter_find('rotor', 'ATTRS'))
+# config.clear_focus()
+# print(config.iter_find('rotor', 'ATTRS'))
