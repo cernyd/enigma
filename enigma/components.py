@@ -145,25 +145,27 @@ class EnigmaFactory:
     choosing defaults from available config )"""
     def __init__(self, cfg_path):
         self._rotor_factory = RotorFactory(cfg_path)
-        self._enigma_models = {'Enigma1': Enigma1, 'EnigmaM3': EnigmaM3}
 
     def produce(self, model, stator=None, rotors=None):
         """Produces an enigma machine given a specific model ( must be available
         in the speicified cfg_path )"""
         try:
-            enigma_model = self._enigma_models[model]
+            enigma_model = globals()[model]
         except KeyError:
             raise KeyError(f"No enigma model found for \"{model}\"!")
 
         model_data = self._rotor_factory.all_rotor_labels(model)
-
-        return enigma_model(reflector, rotors, stator, [])
+        reflector = self._rotor_factory.produce(model, 'reflector', model_data['reflectors'][0])
+        rotors = [self._rotor_factory.produce(model, 'rotor', label) for label in model_data['rotors'][:enigma_model._rotor_count]]
+        stator = self._rotor_factory.produce(model, 'stator', model_data['stators'][0])
+        print(enigma_model._rotor_count)
+        return enigma_model(reflector, rotors, stator)
 
 
 class Enigma:
     """Base for all enigma objects, has no plugboard, default rotor count for
     all enigma machines is 3."""
-    rotor_count = 3
+    _rotor_count = 3
 
     def __init__(self, reflector, rotors, stator):
         self._stator = stator
@@ -174,7 +176,7 @@ class Enigma:
 
     @property
     def rotor_count(self):
-        return self.__class__.rotor_count
+        return self.__class__._rotor_count
 
     def step_primary(self, places):
         """Steps primary rotor, other rotors will step too if in appropriate
@@ -270,7 +272,7 @@ class Enigma1(Enigma):
     """Adds plugboard functionality, compatible with all EnigmaM_ models
     except M4 ( Four rotors )"""
     def __init__(self, reflector, rotors, stator, plugboard_pairs=''):
-        Enigma.__init__(self, stator, reflector, rotors)
+        Enigma.__init__(self, reflector, rotors, stator)
         self._plugboard = WiredPairs(plugboard_pairs)
 
     @property
@@ -307,7 +309,7 @@ class EnigmaM4(EnigmaM3):
     """Navy version with four rotors, otherwise identical, UKW-D can be used
     instead. Thin reflectors are used, UKW-D can be used too if the extra rotor
     and thin reflector are replaced."""
-    rotor_count = 4
+    _rotor_count = 4
 
 
 # ROTOR COMPONENTS
@@ -329,7 +331,9 @@ class RotorFactory:
 
     def produce(self, model, rotor_type, label):
         """Creates and returns new object based on input"""
-        cfg = self.cfg.find([self._base_path.format(model=model), rotor_type], 'SUBATTRS')
+        self.cfg.focus_buffer(self._base_path.format(model=model))
+        cfg = self.cfg.iter_find(rotor_type)
+
         match = False
         for item in cfg:
             if item['label'] == label:
@@ -339,11 +343,11 @@ class RotorFactory:
 
         err_msg = f"No configuration found for label \"{label}\"!"
         assert match, err_msg
-        if rotor_type == 'rotors':
+        if rotor_type == 'rotor':
             return Rotor(**cfg)
-        elif rotor_type == 'reflectors':
+        elif rotor_type == 'reflector':
             return Reflector(**cfg)
-        elif rotor_type == 'stators':
+        elif rotor_type == 'stator':
             return Stator(**cfg)
 
 
@@ -359,14 +363,19 @@ class _RotorBase:
         self.label = label
 
     def _check_input(func):
+        """Checks if the rotor is given correct input ( a single letter for the
+        alphabet )"""
         @wraps(func)
         def wrapper(self, letter):
             letter = str(letter).upper()
+
             if letter not in alphabet:
                 raise AssertionError(
                     f"Input \"{str(letter)}\" not single a letter!")
+
             elif len(letter) != 1:
                 raise AssertionError("Length of \"{str(letter)}\" is not 1!")
+
             return func(self, letter)
 
         return wrapper
