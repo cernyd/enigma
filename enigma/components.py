@@ -128,16 +128,6 @@ class WiredPairs:
         return letter  # If no connection found
 
 
-# HISTORICAL ENIGMA EXTENSIONS
-
-class Uhr(WiredPairs):
-    def __init__(self, pairs=''):
-        WiredPairs.__init__(self, pairs)
-
-    def pairs_route(self, letter):
-        pass
-
-
 # ENIGMA COMPONENTS
 
 class EnigmaFactory:
@@ -533,6 +523,29 @@ class Luckenfuller(Rotor):
     @Rotor.turnover.setter
     def turnover(self, turnover):
         self._turnover = turnover
+
+
+# HISTORICAL ENIGMA EXTENSIONS
+
+class Uhr(_Rotatable):
+    def __init__(self, pairs=''):
+        self._position = 0
+        self.a_board = 'A A B B C C D D E E F F G G H H I I J J K K L L M M N N ' \
+                       'O O P P Q Q R R S S T T U U V V W W X X Y Y Z Z'
+        self.b_board = ''
+
+    @property
+    def position(self):
+        return self._position
+
+    @position.setter
+    def position(self, position):
+        if position not in range(40):
+            raise AssertionError(f'Invalid Uhr position of "{position}"')
+        self._position = position
+
+    def pairs_route(self, letter):
+        pass
 
 
 __all__ = ['EnigmaFactory', 'RotorFactory', 'Enigma1', 'EnigmaM3', 'EnigmaM4',
