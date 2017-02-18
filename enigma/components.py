@@ -148,7 +148,6 @@ class EnigmaFactory:
         reflector = self._rotor_factory.produce(model, 'reflector', model_data['reflectors'][0])
         rotors = [self._rotor_factory.produce(model, 'rotor', label) for label in model_data['rotors'][:enigma_model._rotor_count]]
         stator = self._rotor_factory.produce(model, 'stator', model_data['stators'][0])
-        print(enigma_model._rotor_count)
         return enigma_model(reflector, rotors, stator)
 
 
@@ -530,9 +529,13 @@ class Luckenfuller(Rotor):
 class Uhr(_Rotatable):
     def __init__(self, pairs=''):
         self._position = 0
-        self.a_board = 'A A B B C C D D E E F F G G H H I I J J K K L L M M N N ' \
-                       'O O P P Q Q R R S S T T U U V V W W X X Y Y Z Z'
-        self.b_board = ''
+        self.white_board = '00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 ' \
+                           '17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 ' \
+                           '34 35 36 37 38 39'
+
+        self.red_board =   '26 11 24 21 02 31 00 25 30 39 28 13 22 35 20 37 06 ' \
+                           '23 04 33 34 19 32 09 18 07 16 17 10 03 08 01 38 27 ' \
+                           '36 29 14 15 12 05'
 
     @property
     def position(self):
