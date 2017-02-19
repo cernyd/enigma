@@ -348,7 +348,7 @@ class _RotorBase:
         self.valid_cfg = ['back_board', 'label']
         self.valid_cfg.extend(valid_cfg)
 
-        self.back_board = back_board
+        self.back_board = back_board  # Defines internal wiring
         self.label = label
 
     def _check_input(func):
@@ -434,7 +434,11 @@ class Rotor(Stator, _Rotatable):
     def __init__(self, label,  back_board, turnover=''):
         Stator.__init__(self, label, back_board,
                             valid_cfg=('position_ring', '_Rotor_turnover', 'relative_board'))
-        self._turnover = turnover
+        self._turnover = turnover  # Letter shown on turnover position
+
+        # position_ring = position currently shown in the position window,
+        # relative_board = used in the actual wiring ( internal, between
+        # position rings )
         self.position_ring, self.relative_board = [alphabet] * 2
 
     @_compensate
@@ -537,14 +541,13 @@ class Uhr(_Rotatable):
         """On position 00, all bx cables are connected to corresponding ax
         cables. Position 00 is reciprocal and allows communication with non-uhr
         users."""
-        self.red_board = '26 11 24 21 02 31 00 25 30 39 28 13 22 35 20 37 06 ' \
-                         '23 04 33 34 19 32 09 18 07 16 17 10 03 08 01 38 27 ' \
-                         '36 29 14 15 12 05'
+        self.back_board = 26, 11, 24, 21, 2, 31, 0, 25, 30, 39, 28, 13, 22, 35, \
+                         20, 37, 6, 23, 4, 33, 34, 19, 32, 9, 18, 7, 16, 17, 10,\
+                         3, 8, 1, 38, 27, 36, 29, 14, 15, 12, 5
 
-        self.black_board = '00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 ' \
-                           '17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 ' \
-                           '34 35 36 37 38 39'
+        self.indicator_board = tuple(range(40))
 
+        # Number pairs stand for ( SEND, RECEIVE )
         self._black_red_plug_pairs = ({'1a': (0, 2), '1b': (4, 6)},
                                       {'2a': (4, 6), '2b': (16, 18)},
                                       {'3a': (8, 10), '3b': (28, 30)},
@@ -556,10 +559,7 @@ class Uhr(_Rotatable):
                                       {'9a': (32, 34), '9b': (20, 22)},
                                       {'10a': (36, 38), '10b': (32, 34)})
 
-        self._pairs = []
-
-    def get_io(self, plug_id):
-        pass
+        self._pairs = {}
 
     @property
     def pairs(self):
@@ -587,12 +587,10 @@ class Uhr(_Rotatable):
                                    "electrical signal could be lost during " \
                                    "non-reciprocal substitution."
 
-        for pair, plugs in zip(pairs, self._black_red_plug_pairs):
-            for letter, plug in zip(pair, plugs):
-                self._pairs.append((letter, plug))
-                print(letter, ' > ', plug)
-
-        print(self._pairs)
+        # Connects letter pairs to a corresponding aX - bX pair
+        for pair, index in zip(pairs, range(1, 11)):
+            self._pairs[pair[0]] = str(index) + 'a'
+            self._pairs[pair[1]] = str(index) + 'b'
 
     @property
     def position(self):
@@ -605,11 +603,24 @@ class Uhr(_Rotatable):
         self._position = position
 
     def pairs_route(self, letter):
-        for pair in self._pairs:
-            if letter in pair:
-                print(pair)
+        cable_id = self._pairs[letter]
+        for pair in self._black_red_plug_pairs:
+            if cable_id in pair:
+                io_indexes = pair[cable_id]
                 break
 
+        target_color = 'b' if cable_id[1] == 'a' else 'a'
+        target_index = self.indicator_board[self.back_board.index(io_indexes[0])]
+        target_pair = None
+        for pair in self._black_red_plug_pairs:
+            for plug_id, io_pair in pair.items():
+                if target_color in plug_id and target_index in io_pair:
+                    target_pair = plug_id, io_pair
+                    break
+
+        for letter, plug_id in self._pairs.items():
+            if plug_id == target_pair[0]:
+                return letter
 
 __all__ = ['EnigmaFactory', 'RotorFactory', 'Enigma1', 'EnigmaM3', 'EnigmaM4',
            'Reflector', 'Stator', 'Rotor', 'UKW_D', 'Uhr', 'Luckenfuller']
