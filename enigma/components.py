@@ -527,8 +527,16 @@ class Luckenfuller(Rotor):
 # HISTORICAL ENIGMA EXTENSIONS
 
 class Uhr(_Rotatable):
+    """Uhr is an enigma machine extension, allows the plugboard to be scrambled
+    based on a key, every 4th position starting with 00 is reciprocal, maximum
+    position is 40. All other positions are not reciprocal ( encryption is not
+    directly reversible: A > B, B > X ( not A! )."""
     def __init__(self, pairs=''):
         self._position = 0
+
+        """On position 00, all bx cables are connected to corresponding ax
+        cables. Position 00 is reciprocal and allows communication with non-uhr
+        users."""
         self.white_board = '00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 ' \
                            '17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 ' \
                            '34 35 36 37 38 39'
@@ -536,6 +544,18 @@ class Uhr(_Rotatable):
         self.red_board =   '26 11 24 21 02 31 00 25 30 39 28 13 22 35 20 37 06 ' \
                            '23 04 33 34 19 32 09 18 07 16 17 10 03 08 01 38 27 ' \
                            '36 29 14 15 12 05'
+
+        self._pairs = None
+
+    @property
+    def pairs(self):
+        return self._pairs
+
+    @pairs.setter
+    def pairs(self, pairs):
+        assert (len(pairs) == 10), "All 10 pairs must be wired, otherwise " \
+                                   "electrical signal could be lost during " \
+                                   "non-reciprocal substitution."
 
     @property
     def position(self):
