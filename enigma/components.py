@@ -556,6 +556,24 @@ class Uhr(_Rotatable):
         assert (len(pairs) == 10), "All 10 pairs must be wired, otherwise " \
                                    "electrical signal could be lost during " \
                                    "non-reciprocal substitution."
+    """Uhr has exacly 10 pairs of wires because it was the standard number of
+    plugboard connections during the war ( mathematically optimal number,
+    increases the possible pair number greatly in combinatorics )
+
+    1 pair: 325
+    2 pairs: 44.850
+    3 pairs: 3,453,450
+    4 pairs: 164,038,875
+    5 pairs: 5,019,589,575
+    6 pairs: 100,391,791,500
+    7 pairs: 1,305,093,289,500
+    8 pairs: 10,767.019,638,375
+    9 pairs: 58,835.098,191,875
+    10 pairs: 150,738,274,937,250
+    11 pairs: 205,552,193,096,250
+    12 pairs: 102,776,096,548,125
+    13 pairs: 7,905,853,580,625
+    """
 
     @property
     def position(self):
