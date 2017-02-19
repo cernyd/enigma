@@ -609,9 +609,14 @@ class Uhr(_Rotatable):
                 io_indexes = pair[cable_id]
                 break
 
-        target_index = self.indicator_board[self.back_board.index(io_indexes[0])]
+
         target_pair = None
         target_color = 'b' if 'a' in cable_id else 'a'
+        if target_color == 'b':
+            target_index = self.indicator_board[self.back_board.index(io_indexes[0])]
+        else:
+            target_index = self.back_board[
+                self.indicator_board.index(io_indexes[0])]
         for pair in self._black_red_plug_pairs:
             for plug_id, io_pair in pair.items():
                 if target_color in plug_id and target_index in io_pair:
