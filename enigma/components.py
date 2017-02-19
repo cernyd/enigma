@@ -602,7 +602,7 @@ class Uhr(_Rotatable):
             raise AssertionError(f'Invalid Uhr position of "{position}"')
         self._position = position
 
-    def pairs_route(self, letter):
+    def route(self, letter):
         cable_id = self._pairs[letter]
         for pair in self._black_red_plug_pairs:
             if cable_id in pair:
