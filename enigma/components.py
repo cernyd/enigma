@@ -537,15 +537,29 @@ class Uhr(_Rotatable):
         """On position 00, all bx cables are connected to corresponding ax
         cables. Position 00 is reciprocal and allows communication with non-uhr
         users."""
-        self.white_board = '00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 ' \
+        self.red_board = '26 11 24 21 02 31 00 25 30 39 28 13 22 35 20 37 06 ' \
+                         '23 04 33 34 19 32 09 18 07 16 17 10 03 08 01 38 27 ' \
+                         '36 29 14 15 12 05'
+
+        self.black_board = '00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 ' \
                            '17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 ' \
                            '34 35 36 37 38 39'
 
-        self.red_board =   '26 11 24 21 02 31 00 25 30 39 28 13 22 35 20 37 06 ' \
-                           '23 04 33 34 19 32 09 18 07 16 17 10 03 08 01 38 27 ' \
-                           '36 29 14 15 12 05'
+        self._black_red_plug_pairs = ({'1a': (0, 2), '1b': (4, 6)},
+                                      {'2a': (4, 6), '2b': (16, 18)},
+                                      {'3a': (8, 10), '3b': (28, 30)},
+                                      {'4a': (12, 14), '4b': (36, 38)},
+                                      {'5a': (16, 18), '5b': (24, 26)},
+                                      {'6a': (20, 22), '6b': (12, 14)},
+                                      {'7a': (24, 26), '7b': (0, 2)},
+                                      {'8a': (28, 30), '8b': (8, 10)},
+                                      {'9a': (32, 34), '9b': (20, 22)},
+                                      {'10a': (36, 38), '10b': (32, 34)})
 
-        self._pairs = None
+        self._pairs = []
+
+    def get_io(self, plug_id):
+        pass
 
     @property
     def pairs(self):
@@ -553,27 +567,32 @@ class Uhr(_Rotatable):
 
     @pairs.setter
     def pairs(self, pairs):
+        """Uhr has exacly 10 pairs of wires because it was the standard number of
+        plugboard connections during the war ( mathematically optimal number,
+        increases the possible pair number greatly in combinatorics )
+        1 pair: 325
+        2 pairs: 44.850
+        3 pairs: 3,453,450
+        4 pairs: 164,038,875
+        5 pairs: 5,019,589,575
+        6 pairs: 100,391,791,500
+        7 pairs: 1,305,093,289,500
+        8 pairs: 10,767.019,638,375
+        9 pairs: 58,835.098,191,875
+        10 pairs: 150,738,274,937,250
+        11 pairs: 205,552,193,096,250
+        12 pairs: 102,776,096,548,125
+        13 pairs: 7,905,853,580,625"""
         assert (len(pairs) == 10), "All 10 pairs must be wired, otherwise " \
                                    "electrical signal could be lost during " \
                                    "non-reciprocal substitution."
-    """Uhr has exacly 10 pairs of wires because it was the standard number of
-    plugboard connections during the war ( mathematically optimal number,
-    increases the possible pair number greatly in combinatorics )
 
-    1 pair: 325
-    2 pairs: 44.850
-    3 pairs: 3,453,450
-    4 pairs: 164,038,875
-    5 pairs: 5,019,589,575
-    6 pairs: 100,391,791,500
-    7 pairs: 1,305,093,289,500
-    8 pairs: 10,767.019,638,375
-    9 pairs: 58,835.098,191,875
-    10 pairs: 150,738,274,937,250
-    11 pairs: 205,552,193,096,250
-    12 pairs: 102,776,096,548,125
-    13 pairs: 7,905,853,580,625
-    """
+        for pair, plugs in zip(pairs, self._black_red_plug_pairs):
+            for letter, plug in zip(pair, plugs):
+                self._pairs.append((letter, plug))
+                print(letter, ' > ', plug)
+
+        print(self._pairs)
 
     @property
     def position(self):
@@ -586,7 +605,10 @@ class Uhr(_Rotatable):
         self._position = position
 
     def pairs_route(self, letter):
-        pass
+        for pair in self._pairs:
+            if letter in pair:
+                print(pair)
+                break
 
 
 __all__ = ['EnigmaFactory', 'RotorFactory', 'Enigma1', 'EnigmaM3', 'EnigmaM4',

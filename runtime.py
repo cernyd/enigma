@@ -24,3 +24,5 @@ from cfg_handler import Config
 #     root.mainloop()
 #
 uhr = Uhr()
+uhr.pairs = 'AB', 'CD', 'EF', 'GH', 'IJ', 'KL', 'MN', 'OP', 'QR', 'ST'
+uhr.pairs_route('A')
