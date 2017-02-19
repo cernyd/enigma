@@ -536,8 +536,6 @@ class Uhr(_Rotatable):
     position is 40. All other positions are not reciprocal ( encryption is not
     directly reversible: A > B, B > X ( not A! )."""
     def __init__(self, pairs=''):
-        self._position = 0
-
         """On position 00, all bx cables are connected to corresponding ax
         cables. Position 00 is reciprocal and allows communication with non-uhr
         users."""
@@ -594,33 +592,33 @@ class Uhr(_Rotatable):
 
     @property
     def position(self):
-        return self._position
+        return self.indicator_board[0]
 
     @position.setter
     def position(self, position):
         if position not in range(40):
             raise AssertionError(f'Invalid Uhr position of "{position}"')
-        self._position = position
+        while self.indicator_board[0] != position:
+            self._change_board_offset('indicator_board', 1)
 
     def route(self, letter):
+        """Routes letter trough the Uhr disk."""
         cable_id = self._pairs[letter]
         for pair in self._black_red_plug_pairs:
             if cable_id in pair:
                 io_indexes = pair[cable_id]
                 break
 
-
         target_pair = None
         target_color = 'b' if 'a' in cable_id else 'a'
         if target_color == 'b':
             target_index = self.indicator_board[self.back_board.index(io_indexes[0])]
         else:
-            target_index = self.back_board[
-                self.indicator_board.index(io_indexes[0])]
+            target_index = self.back_board[self.indicator_board.index(io_indexes[0])]
+
         for pair in self._black_red_plug_pairs:
             for plug_id, io_pair in pair.items():
                 if target_color in plug_id and target_index in io_pair:
-                    print(plug_id, io_pair)
                     target_pair = plug_id, io_pair
                     break
 
