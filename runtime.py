@@ -25,4 +25,4 @@ from cfg_handler import Config
 #
 uhr = Uhr()
 uhr.pairs = 'AB', 'CD', 'EF', 'GH', 'IJ', 'KL', 'MN', 'OP', 'QR', 'ST'
-print(uhr.pairs_route('F'))
+print(uhr.pairs_route('T'))
