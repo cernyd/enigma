@@ -419,16 +419,6 @@ class Stator(_RotorBase):
         return alphabet[self.back_board.index(letter)]
 
 
-def _compensate(func):
-    """Converts input to relative input and
-    relative output to absolute output, does some assertions too."""
-    @wraps(func)
-    def wrapper(self, letter):
-        relative_input = self.relative_board[alphabet.index(letter)]
-        return alphabet[self.relative_board.index(func(self, relative_input))]
-    return wrapper
-
-
 class Rotor(Stator, _Rotatable):
     """Inherited from RotorBase, adds rotation and ring setting functionality"""
     def __init__(self, label,  back_board, turnover=''):
@@ -440,6 +430,16 @@ class Rotor(Stator, _Rotatable):
         # relative_board = used in the actual wiring ( internal, between
         # position rings )
         self.position_ring, self.relative_board = [alphabet] * 2
+
+    def _compensate(func):
+        """Converts input to relative input and
+        relative output to absolute output, does some assertions too."""
+        @wraps(func)
+        def wrapper(self, letter):
+            relative_input = self.relative_board[alphabet.index(letter)]
+            return alphabet[
+                self.relative_board.index(func(self, relative_input))]
+        return wrapper
 
     @_compensate
     def forward(self, letter):
@@ -539,23 +539,36 @@ class Uhr(_Rotatable):
         """On position 00, all bx cables are connected to corresponding ax
         cables. Position 00 is reciprocal and allows communication with non-uhr
         users."""
-        self.back_board = 26, 11, 24, 21, 2, 31, 0, 25, 30, 39, 28, 13, 22, 35, \
-                         20, 37, 6, 23, 4, 33, 34, 19, 32, 9, 18, 7, 16, 17, 10,\
-                         3, 8, 1, 38, 27, 36, 29, 14, 15, 12, 5
+        self.back_board = 26, 11, 24, 21, 2, 31, 0, 25, 30, 39, 28, 13, 22, 35,\
+                          20, 37, 6, 23, 4, 33, 34, 19, 32, 9, 18, 7, 16, 17, \
+                          10,3, 8, 1, 38, 27, 36, 29, 14, 15, 12, 5
 
-        self.indicator_board = tuple(range(40))
+        self.relative_board = tuple(range(40))
+        # Relative and indicator boards are the same because Uhr did not have
+        # turnovers
 
         # Number pairs stand for ( SEND, RECEIVE )
-        self._black_red_plug_pairs = ({'1a': (0, 2), '1b': (4, 6)},
-                                      {'2a': (4, 6), '2b': (16, 18)},
-                                      {'3a': (8, 10), '3b': (28, 30)},
-                                      {'4a': (12, 14), '4b': (36, 38)},
-                                      {'5a': (16, 18), '5b': (24, 26)},
-                                      {'6a': (20, 22), '6b': (12, 14)},
-                                      {'7a': (24, 26), '7b': (0, 2)},
-                                      {'8a': (28, 30), '8b': (8, 10)},
-                                      {'9a': (32, 34), '9b': (20, 22)},
-                                      {'10a': (36, 38), '10b': (32, 34)})
+        # WARNING - These positions are absolute, only the wiring disc has offset
+        # self._black_red_plug_pairs = ({'1a': (0, 2), '1b': (4, 6)},
+        #                               {'2a': (4, 6), '2b': (16, 18)},
+        #                               {'3a': (8, 10), '3b': (28, 30)},
+        #                               {'4a': (12, 14), '4b': (36, 38)},
+        #                               {'5a': (16, 18), '5b': (24, 26)},
+        #                               {'6a': (20, 22), '6b': (12, 14)},
+        #                               {'7a': (24, 26), '7b': (0, 2)},
+        #                               {'8a': (28, 30), '8b': (8, 10)},
+        #                               {'9a': (32, 34), '9b': (20, 22)},
+        #                               {'10a': (36, 38), '10b': (32, 34)})
+        self._black_red_plug_pairs = {'1a': (0, 2), '1b': (4, 6),
+                                      '2a': (4, 6), '2b': (16, 18),
+                                      '3a': (8, 10), '3b': (28, 30),
+                                      '4a': (12, 14), '4b': (36, 38),
+                                      '5a': (16, 18), '5b': (24, 26),
+                                      '6a': (20, 22), '6b': (12, 14),
+                                      '7a': (24, 26), '7b': (0, 2),
+                                      '8a': (28, 30), '8b': (8, 10),
+                                      '9a': (32, 34), '9b': (20, 22),
+                                      '10a': (36, 38), '10b': (32, 34)}
 
         self._pairs = {}
 
@@ -587,44 +600,39 @@ class Uhr(_Rotatable):
 
         # Connects letter pairs to a corresponding aX - bX pair
         for pair, index in zip(pairs, range(1, 11)):
-            self._pairs[pair[0]] = str(index) + 'a'
-            self._pairs[pair[1]] = str(index) + 'b'
+            for letter, socket_id in zip(pair, 'ab'):
+                full_socket_id = str(index) + socket_id
+                socket_data = self._black_red_plug_pairs[full_socket_id]
+                self.pairs[letter] = (full_socket_id, socket_data)
 
     @property
     def position(self):
-        return self.indicator_board[0]
+        return self.relative_board[0]
 
     @position.setter
     def position(self, position):
         if position not in range(40):
             raise AssertionError(f'Invalid Uhr position of "{position}"')
-        while self.indicator_board[0] != position:
-            self._change_board_offset('indicator_board', 1)
+        while self.relative_board[0] != position:
+            self._change_board_offset('relative_board', 1)
+        print(self.relative_board)
+
+    def _route_forward(self, position):
+        """Routes letter from A board to B board, absolute! > does not
+        compensate for disc offset"""
+        return range(40)[self.back_board.index(position)]
+
+    def _route_backward(self, position):
+        """Routes letter from B board to A board, absolute! > does not
+        compensate for disc offset"""
+        return self.back_board[range(40).index(position)]
 
     def route(self, letter):
         """Routes letter trough the Uhr disk."""
-        cable_id = self._pairs[letter]
-        for pair in self._black_red_plug_pairs:
-            if cable_id in pair:
-                io_indexes = pair[cable_id]
-                break
-
-        target_pair = None
-        target_color = 'b' if 'a' in cable_id else 'a'
-        if target_color == 'b':
-            target_index = self.indicator_board[self.back_board.index(io_indexes[0])]
-        else:
-            target_index = self.back_board[self.indicator_board.index(io_indexes[0])]
-
-        for pair in self._black_red_plug_pairs:
-            for plug_id, io_pair in pair.items():
-                if target_color in plug_id and target_index in io_pair:
-                    target_pair = plug_id, io_pair
-                    break
-
-        for letter, plug_id in self._pairs.items():
-            if plug_id == target_pair[0]:
-                return letter
+        print(self._pairs[letter])
+        print(self.relative_board)
+        print(self.back_board)
+        print(self._route_forward(self._pairs[letter][1][0]))
 
 __all__ = ['EnigmaFactory', 'RotorFactory', 'Enigma1', 'EnigmaM3', 'EnigmaM4',
            'Reflector', 'Stator', 'Rotor', 'UKW_D', 'Uhr', 'Luckenfuller']
