@@ -539,26 +539,14 @@ class Uhr(_Rotatable):
         """On position 00, all bx cables are connected to corresponding ax
         cables. Position 00 is reciprocal and allows communication with non-uhr
         users."""
-        self.back_board = 26, 11, 24, 21, 2, 31, 0, 25, 30, 39, 28, 13, 22, 35,\
-                          20, 37, 6, 23, 4, 33, 34, 19, 32, 9, 18, 7, 16, 17, \
-                          10,3, 8, 1, 38, 27, 36, 29, 14, 15, 12, 5
-
+        self.back_board = [26, 11, 24, 21, 2, 31, 0, 25, 30, 39, 28, 13, 22, 35,
+                          20, 37, 6, 23, 4, 33, 34, 19, 32, 9, 18, 7, 16, 17,
+                          10, 3, 8, 1, 38, 27, 36, 29, 14, 15, 12, 5]
         self.relative_board = tuple(range(40))
-        # Relative and indicator boards are the same because Uhr did not have
-        # turnovers
+        # Relative and indicator boards are the same because Uhr did not have turnovers
 
         # Number pairs stand for ( SEND, RECEIVE )
-        # WARNING - These positions are absolute, only the wiring disc has offset
-        # self._black_red_plug_pairs = ({'1a': (0, 2), '1b': (4, 6)},
-        #                               {'2a': (4, 6), '2b': (16, 18)},
-        #                               {'3a': (8, 10), '3b': (28, 30)},
-        #                               {'4a': (12, 14), '4b': (36, 38)},
-        #                               {'5a': (16, 18), '5b': (24, 26)},
-        #                               {'6a': (20, 22), '6b': (12, 14)},
-        #                               {'7a': (24, 26), '7b': (0, 2)},
-        #                               {'8a': (28, 30), '8b': (8, 10)},
-        #                               {'9a': (32, 34), '9b': (20, 22)},
-        #                               {'10a': (36, 38), '10b': (32, 34)})
+        # WARNING - These positions are absolute, only the wiring disk has offset
         self._black_red_plug_pairs = {'1a': (0, 2), '1b': (4, 6),
                                       '2a': (4, 6), '2b': (16, 18),
                                       '3a': (8, 10), '3b': (28, 30),
@@ -629,10 +617,17 @@ class Uhr(_Rotatable):
 
     def route(self, letter):
         """Routes letter trough the Uhr disk."""
-        print(self._pairs[letter])
-        print(self.relative_board)
-        print(self.back_board)
-        print(self._route_forward(self._pairs[letter][1][0]))
+        letter_data = self._pairs[letter.upper()]
+        output_pin_index = letter_data[0][0]
+        letter_board = letter_data[0]
+        absolute_target = None
+        if 'a' in letter_board:
+            absolute_target = self._route_forward(output_pin_index)
+        elif 'b' in letter_board:
+            absolute_target = self._route_backward(output_pin_index)
+        assert absolute_target, "No absolute target index found!"
+
+        print(absolute_target)
 
 __all__ = ['EnigmaFactory', 'RotorFactory', 'Enigma1', 'EnigmaM3', 'EnigmaM4',
            'Reflector', 'Stator', 'Rotor', 'UKW_D', 'Uhr', 'Luckenfuller']
