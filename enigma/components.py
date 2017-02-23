@@ -618,16 +618,18 @@ class Uhr(_Rotatable):
     def route(self, letter):
         """Routes letter trough the Uhr disk."""
         letter_data = self._pairs[letter.upper()]
-        output_pin_index = letter_data[0][0]
-        letter_board = letter_data[0]
-        absolute_target = None
-        if 'a' in letter_board:
+        output_pin_index = letter_data[1][0]
+
+        if 'a' in letter_data[0]:
             absolute_target = self._route_forward(output_pin_index)
-        elif 'b' in letter_board:
+            for pair in self._pairs.items():
+                if 'b' in pair[1][0]:
+                    if absolute_target == pair[1][1][1]:
+                        return pair[0]
+        else:
             absolute_target = self._route_backward(output_pin_index)
         assert absolute_target, "No absolute target index found!"
 
-        print(absolute_target)
 
 __all__ = ['EnigmaFactory', 'RotorFactory', 'Enigma1', 'EnigmaM3', 'EnigmaM4',
            'Reflector', 'Stator', 'Rotor', 'UKW_D', 'Uhr', 'Luckenfuller']
