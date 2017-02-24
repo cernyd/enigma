@@ -603,7 +603,7 @@ class Uhr(_Rotatable):
             raise AssertionError(f'Invalid Uhr position of "{position}"')
         while self.relative_board[0] != position:
             self._change_board_offset('relative_board', 1)
-        print(self.relative_board)
+            self._change_board_offset('back_board', 1)
 
     def _route_forward(self, position):
         """Routes letter from A board to B board, absolute! > does not
@@ -615,20 +615,27 @@ class Uhr(_Rotatable):
         compensate for disc offset"""
         return self.back_board[range(40).index(position)]
 
+    def find_letter(self, board_letter, target):
+        """Finds letter based on the target index and target board"""
+        for pair in self._pairs.items():
+            if board_letter in pair[1][0]:
+                if target == pair[1][1][1]:
+                    return pair[0]
+
     def route(self, letter):
         """Routes letter trough the Uhr disk."""
         letter_data = self._pairs[letter.upper()]
         output_pin_index = letter_data[1][0]
-
         if 'a' in letter_data[0]:
-            absolute_target = self._route_forward(output_pin_index)
-            for pair in self._pairs.items():
-                if 'b' in pair[1][0]:
-                    if absolute_target == pair[1][1][1]:
-                        return pair[0]
+            relative_index = self.relative_board[output_pin_index]  # Correct
+            target_index = self._route_forward(relative_index)
+            absolute_target = range(40)[self.relative_board.index(target_index)]
+            letter = self.find_letter('b', absolute_target)
         else:
-            absolute_target = self._route_backward(output_pin_index)
-        assert absolute_target, "No absolute target index found!"
+            letter = self.find_letter('a',
+                                         self._route_backward(output_pin_index))
+        # assert letter, "No letter found!"
+        return letter
 
 
 __all__ = ['EnigmaFactory', 'RotorFactory', 'Enigma1', 'EnigmaM3', 'EnigmaM4',
