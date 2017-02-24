@@ -626,14 +626,15 @@ class Uhr(_Rotatable):
         """Routes letter trough the Uhr disk."""
         letter_data = self._pairs[letter.upper()]
         output_pin_index = letter_data[1][0]
+        relative_index = self.relative_board[output_pin_index]  # Correct
         if 'a' in letter_data[0]:
-            relative_index = self.relative_board[output_pin_index]  # Correct
             target_index = self._route_forward(relative_index)
             absolute_target = range(40)[self.relative_board.index(target_index)]
             letter = self.find_letter('b', absolute_target)
         else:
-            letter = self.find_letter('a',
-                                         self._route_backward(output_pin_index))
+            target_index = self._route_backward(relative_index)
+            absolute_target = range(40)[self.relative_board.index(target_index)]
+            letter = self.find_letter('a', absolute_target)
         # assert letter, "No letter found!"
         return letter
 

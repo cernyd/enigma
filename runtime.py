@@ -25,5 +25,5 @@ from cfg_handler import Config
 #
 uhr = Uhr()
 uhr.pairs = 'AB', 'CD', 'EF', 'GH', 'IJ', 'KL', 'MN', 'OP', 'QR', 'ST'
-# uhr.position = 3
+uhr.position = 8
 print(uhr.route('A'))
