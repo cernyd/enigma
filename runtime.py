@@ -25,4 +25,5 @@ from cfg_handler import Config
 #
 uhr = Uhr()
 uhr.pairs = 'AB', 'CD', 'EF', 'GH', 'IJ', 'KL', 'MN', 'OP', 'QR', 'ST'
-print(uhr.route('I'))
+# uhr.position = 3
+print(uhr.route('A'))
