@@ -605,11 +605,21 @@ class Uhr(_Rotatable):
             self._change_board_offset('relative_board', 1)
             self._change_board_offset('back_board', 1)
 
+    def _compensate(func):
+        @wraps(func)
+        def wrapper(self, absolute_input):
+            relative_input = self.relative_board[absolute_input]  # Correct
+            relative_output = func(self, relative_input)
+            return range(40)[self.relative_board.index(relative_output)]
+        return wrapper
+
+    @_compensate
     def _route_forward(self, position):
         """Routes letter from A board to B board, absolute! > does not
         compensate for disc offset"""
         return range(40)[self.back_board.index(position)]
 
+    @_compensate
     def _route_backward(self, position):
         """Routes letter from B board to A board, absolute! > does not
         compensate for disc offset"""
@@ -626,15 +636,12 @@ class Uhr(_Rotatable):
         """Routes letter trough the Uhr disk."""
         letter_data = self._pairs[letter.upper()]
         output_pin_index = letter_data[1][0]
-        relative_index = self.relative_board[output_pin_index]  # Correct
+
         if 'a' in letter_data[0]:
-            target_index = self._route_forward(relative_index)
-            absolute_target = range(40)[self.relative_board.index(target_index)]
-            letter = self.find_letter('b', absolute_target)
+            letter = self.find_letter('b', self._route_forward(output_pin_index))
         else:
-            target_index = self._route_backward(relative_index)
-            absolute_target = range(40)[self.relative_board.index(target_index)]
-            letter = self.find_letter('a', absolute_target)
+            letter = self.find_letter('a', self._route_backward(output_pin_index))
+
         # assert letter, "No letter found!"
         return letter
 
