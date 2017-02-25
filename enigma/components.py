@@ -608,9 +608,14 @@ class Uhr(_Rotatable):
     def _compensate(func):
         @wraps(func)
         def wrapper(self, absolute_input):
+            print('Absolute input > ', absolute_input)
             relative_input = self.relative_board[absolute_input]  # Correct
+            print('Relative input > ', relative_input)
             relative_output = func(self, relative_input)
-            return range(40)[self.relative_board.index(relative_output)]
+            print('Relative output > ', relative_output)
+            absolute_output = range(40)[self.relative_board.index(relative_output)]
+            print('Absolute output > ', absolute_output)
+            return absolute_output
         return wrapper
 
     @_compensate
