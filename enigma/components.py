@@ -128,7 +128,19 @@ class WiredPairs:
         return letter  # If no connection found
 
 
-# ENIGMA COMPONENTS
+# PLUGBOARD
+
+class Plugboard(WiredPairs):
+    def __init__(self, pairs=''):
+        WiredPairs.__init__(self, pairs)
+        self._uhr = Uhr()
+
+    @WiredPairs.setter
+    def pairs(self, normal_pairs=tuple(), uhr_pairs=tuple()):
+        pass
+
+
+# ENIGMA MODELS
 
 class EnigmaFactory:
     """Factory for producing enigma machines ( initialised more simply by
@@ -485,21 +497,36 @@ class Rotor(Stator, _Rotatable):
                              setting, lambda: self._change_board_offset('relative_board'))
 
 
+# HISTORICAL ENIGMA PECULIARITIES
+
+class Luckenfuller(Rotor):
+    """Rotor with adjustable turnover notches."""
+    def __init__(self, label, back_board, turnover):
+        Rotor.__init__(self, label, back_board, turnover)
+
+    @Rotor.turnover.setter
+    def turnover(self, turnover):
+        self._turnover = turnover
+
+
 class UKW_D:
     """Could be used in 3 rotor enigma versions, mostly used in EnigmaM4
-    ( replacing the thin reflector and extra rotor! )"""
+    ( replacing the thin reflector and extra rotor! ). UKW-D is a field
+    rewirable Enigma machine reflector."""
     def __init__(self, pairs=tuple()):
-        self._pairs = WiredPairs('BO')
-        self.alphabet =   "ACDEFGHIJKLMNPQRSTUVWXYZ"
+        self._pairs = WiredPairs('BO')  # BO pair is static!
+        self.alphabet =  "ACDEFGHIJKLMNPQRSTUVWXYZ"
         self.index_ring = "AZXWVUTSRQPONMLKIHGFEDCB"
         self.wiring_pairs = pairs
 
     @property
     def wiring_pairs(self):
+        """Wiring pairs of the reflector"""
         return self._pairs.pairs
 
     @wiring_pairs.setter
     def wiring_pairs(self, pairs):
+        """Sets up wiring pairs, BO is static!"""
         assert len(pairs) == 12, "Invalid number of pairs, " \
                                  "only number of pairs possible is 12!"
         new_pairs = []
@@ -514,21 +541,6 @@ class UKW_D:
     def reflect(self, letter):
         return self._pairs.pairs_route(letter)
 
-
-class Luckenfuller(Rotor):
-    def __init__(self, label, back_board, turnover):
-        Rotor.__init__(self, label, back_board, turnover)
-
-    @property
-    def turnover(self):
-        return self._turnover
-
-    @Rotor.turnover.setter
-    def turnover(self, turnover):
-        self._turnover = turnover
-
-
-# HISTORICAL ENIGMA EXTENSIONS
 
 class Uhr(_Rotatable):
     """Uhr is an enigma machine extension, allows the plugboard to be scrambled
