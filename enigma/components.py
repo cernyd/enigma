@@ -606,15 +606,12 @@ class Uhr(_Rotatable):
             self._change_board_offset('back_board', 1)
 
     def _compensate(func):
+        """Compensates for the rotor rotation"""
         @wraps(func)
         def wrapper(self, absolute_input):
-            print('Absolute input > ', absolute_input)
             relative_input = self.relative_board[absolute_input]  # Correct
-            print('Relative input > ', relative_input)
             relative_output = func(self, relative_input)
-            print('Relative output > ', relative_output)
             absolute_output = range(40)[self.relative_board.index(relative_output)]
-            print('Absolute output > ', absolute_output)
             return absolute_output
         return wrapper
 
@@ -622,13 +619,13 @@ class Uhr(_Rotatable):
     def _route_forward(self, position):
         """Routes letter from A board to B board, absolute! > does not
         compensate for disc offset"""
-        return range(40)[self.back_board.index(position)]
+        return self.relative_board[self.back_board.index(position)]
 
     @_compensate
     def _route_backward(self, position):
         """Routes letter from B board to A board, absolute! > does not
         compensate for disc offset"""
-        return self.back_board[range(40).index(position)]
+        return self.back_board[self.relative_board.index(position)]
 
     def find_letter(self, board_letter, target):
         """Finds letter based on the target index and target board"""
