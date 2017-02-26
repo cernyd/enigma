@@ -1,5 +1,5 @@
 from string import ascii_uppercase as alphabet
-from itertools import permutations
+from itertools import permutations, chain
 from cfg_handler import Config
 from functools import wraps
 import unittest
@@ -94,6 +94,15 @@ class TestEnigma(unittest.TestCase):
 
 # GENERIC COMPONENTS
 
+def join_list(lst):
+    return list(chain.from_iterable(lst))
+
+
+def are_unique(pairs, error_msg='Contains duplicate pairs!'):
+    value_list = join_list(pairs)
+    assert len(value_list) == len(set(value_list)), error_msg
+
+
 class WiredPairs:
     """Returns the other letter from pairs if one letter is given.
     IS FLEXIBLE!"""
@@ -108,15 +117,9 @@ class WiredPairs:
     def pairs(self, pairs):
         assert (len(pairs) <= 13), "Invalid number of pairs!"
 
-        used = []
-        new_pairs = []
-        for pair in pairs:
-            for letter in pair:
-                assert (letter not in used), "A letter can only be wired once!"
-                used.append(letter)
-            new_pairs.append(pair)
+        are_unique(pairs, 'A letter can only be wired once!')
 
-        self._pairs = new_pairs
+        self._pairs = pairs
 
     def pairs_route(self, letter):
         neighbour = []
@@ -130,14 +133,31 @@ class WiredPairs:
 
 # PLUGBOARD
 
-class Plugboard(WiredPairs):
-    def __init__(self, pairs=''):
-        WiredPairs.__init__(self, pairs)
-        self._uhr = Uhr()
+class Plugboard:
+    """Standard and Uhr pairs can be set"""
+    def __init__(self, normal_pairs=tuple(), uhr_pairs=tuple()):
+        self._wired_pairs = WiredPairs()  # Self steckered, no scrambling
+        self._normal_pairs = []
+        self._uhr = Uhr()  # Uhr steckered, always 10 pairs
+        self._uhr_pairs = []
+        # Pairs are stored additionally for easier searching, WILL REMOVE LATER
+        self.set_pairs(normal_pairs, uhr_pairs)
 
-    @WiredPairs.setter
-    def pairs(self, normal_pairs=tuple(), uhr_pairs=tuple()):
-        pass
+    def set_pairs(self, normal_pairs=tuple(), uhr_pairs=tuple()):
+        """Allows to set up to 13 normal pairs or 10 Uhr pairs + up to 3 normal
+        pairs"""
+        if uhr_pairs:
+            self._uhr.pairs = uhr_pairs
+            self._uhr_pairs = uhr_pairs
+        self._wired_pairs.pairs = normal_pairs
+        self._normal_pairs = normal_pairs
+
+    def route(self, letter):
+        """Routes letter either with Uhr or with normal pairs"""
+        if letter in join_list(self._uhr_pairs):
+            return self._uhr.route(letter)
+        else:
+            return self._wired_pairs.pairs_route(letter)
 
 
 # ENIGMA MODELS
@@ -597,6 +617,8 @@ class Uhr(_Rotatable):
         assert (len(pairs) == 10), "All 10 pairs must be wired, otherwise " \
                                    "electrical signal could be lost during " \
                                    "non-reciprocal substitution."
+
+        are_unique(pairs, 'Letters in Uhr pairs can only be wired once!')
 
         # Connects letter pairs to a corresponding aX - bX pair
         for pair, index in zip(pairs, range(1, 11)):
