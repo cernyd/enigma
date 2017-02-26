@@ -1,6 +1,7 @@
 # from gui import Root
 # from enigma.components import TestEnigma, unittest, EnigmaFactory, EnigmaM4
 from enigma.components import *
+from enigma.components import Plugboard
 from cfg_handler import Config
 
 
