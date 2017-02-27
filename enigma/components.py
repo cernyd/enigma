@@ -144,7 +144,7 @@ class Plugboard:
     def set_pairs(self, normal_pairs=tuple(), uhr_pairs=tuple()):
         """Allows to set up to 13 normal pairs or 10 Uhr pairs + up to 3 normal
         pairs"""
-        assert not set(join_list(normal_pairs)).intersection(set(join_list(uhr_pairs))), "A letter can only be wired once!"
+        are_unique(normal_pairs + uhr_pairs), "A letter can only be wired once!"
         if uhr_pairs:
             self._uhr.pairs = uhr_pairs
         self._wired_pairs.pairs = normal_pairs
@@ -171,6 +171,7 @@ class Plugboard:
     @uhr_position.setter
     def uhr_position(self, position):
         self._uhr.position = position
+
 
 # ENIGMA MODELS
 
@@ -304,24 +305,24 @@ class Enigma:
 class Enigma1(Enigma):
     """Adds plugboard functionality, compatible with all EnigmaM_ models
     except M4 ( Four rotors )"""
-    def __init__(self, reflector, rotors, stator, plugboard_pairs=''):
+    def __init__(self, reflector, rotors, stator, normal_pairs=tuple(), uhr_pairs=tuple()):
         Enigma.__init__(self, reflector, rotors, stator)
-        self._plugboard = WiredPairs(plugboard_pairs)
+        self._plugboard = Plugboard(normal_pairs, uhr_pairs)
 
     @property
     def plugboard(self):
         """Plugboard routing pairs"""
-        return self.plugboard.pairs
+        return self._plugboard.get_pairs()
 
     @plugboard.setter
-    def plugboard(self, pairs):
-        self._plugboard.pairs = pairs
+    def plugboard(self, normal_pairs=tuple(), uhr_pairs=tuple()):
+        self._plugboard.set_pairs(normal_pairs, uhr_pairs)
 
     def button_press(self, letter):
         """Wraps the base enigma routing with plugboard"""
-        output = self._plugboard.pairs_route(letter)
+        output = self._plugboard.route(letter)
         output = Enigma.button_press(self, output)
-        return self._plugboard.pairs_route(output)
+        return self._plugboard.route(output)
 
     def load_config(self, data):
         self._plugboard = data['plugboard']

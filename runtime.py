@@ -24,6 +24,7 @@ from cfg_handler import Config
 # if __name__ == '__main__':
 #     root.mainloop()
 #
-plugboard = Plugboard(uhr_pairs=['AB', 'CD', 'EF', 'GH', 'IJ', 'KL', 'MN', 'OP', 'QR', 'ST'])
-print(plugboard.route('A'))
-print(plugboard.uhr_connected)
+factory = EnigmaFactory(['enigma', 'historical_data.xml'])
+enigma = factory.produce('Enigma1', 'ETW', ['I', 'II', 'III'])
+enigma.plugboard = uhr_pairs = ('ST',)
+print(enigma.button_press('A'))
