@@ -137,28 +137,40 @@ class Plugboard:
     """Standard and Uhr pairs can be set"""
     def __init__(self, normal_pairs=tuple(), uhr_pairs=tuple()):
         self._wired_pairs = WiredPairs()  # Self steckered, no scrambling
-        self._normal_pairs = []
         self._uhr = Uhr()  # Uhr steckered, always 10 pairs
-        self._uhr_pairs = []
         # Pairs are stored additionally for easier searching, WILL REMOVE LATER
         self.set_pairs(normal_pairs, uhr_pairs)
 
     def set_pairs(self, normal_pairs=tuple(), uhr_pairs=tuple()):
         """Allows to set up to 13 normal pairs or 10 Uhr pairs + up to 3 normal
         pairs"""
+        assert not set(join_list(normal_pairs)).intersection(set(join_list(uhr_pairs))), "A letter can only be wired once!"
         if uhr_pairs:
             self._uhr.pairs = uhr_pairs
-            self._uhr_pairs = uhr_pairs
         self._wired_pairs.pairs = normal_pairs
-        self._normal_pairs = normal_pairs
+
+    def get_pairs(self):
+        """Returns list of all combined connected pairs"""
+        return {'uhr_pairs': self._uhr.simple_pairs, 'normal_pairs': self._wired_pairs.pairs}
 
     def route(self, letter):
         """Routes letter either with Uhr or with normal pairs"""
-        if letter in join_list(self._uhr_pairs):
+        if letter in join_list(self._uhr.simple_pairs):
             return self._uhr.route(letter)
         else:
             return self._wired_pairs.pairs_route(letter)
 
+    @property
+    def uhr_connected(self):
+        return len(self._uhr.simple_pairs) != 0
+
+    @property
+    def uhr_position(self):
+        return self._uhr.position
+
+    @uhr_position.setter
+    def uhr_position(self, position):
+        self._uhr.position = position
 
 # ENIGMA MODELS
 
@@ -549,14 +561,12 @@ class UKW_D:
         """Sets up wiring pairs, BO is static!"""
         assert len(pairs) == 12, "Invalid number of pairs, " \
                                  "only number of pairs possible is 12!"
-        new_pairs = []
-        for pair in pairs:
-            curr_pair = ''
-            for letter in pair:
-                curr_pair += self.alphabet[self.index_ring.index(letter)]
-            new_pairs.append(curr_pair)
-        new_pairs.append('BO')
-        self._pairs.pairs = new_pairs
+
+        all_letters = join_list(pairs)
+        assert 'B' not in all_letters and 'O' not in all_letters, \
+            "The 'BO' pair is hardwired and can not be rewired"
+        pairs.append('BO')
+        self._pairs.pairs = pairs
 
     def reflect(self, letter):
         return self._pairs.pairs_route(letter)
@@ -591,6 +601,12 @@ class Uhr(_Rotatable):
                                       '10a': (36, 38), '10b': (32, 34)}
 
         self._pairs = {}
+        self._simple_pairs = []  # THIS IS JUST A VIEW, REFACTOR ASAP
+        self.pairs = pairs
+
+    @property
+    def simple_pairs(self):
+        return self._simple_pairs
 
     @property
     def pairs(self):
@@ -614,18 +630,23 @@ class Uhr(_Rotatable):
         11 pairs: 205,552,193,096,250
         12 pairs: 102,776,096,548,125
         13 pairs: 7,905,853,580,625"""
-        assert (len(pairs) == 10), "All 10 pairs must be wired, otherwise " \
-                                   "electrical signal could be lost during " \
-                                   "non-reciprocal substitution."
 
-        are_unique(pairs, 'Letters in Uhr pairs can only be wired once!')
+        if len(pairs) > 0:
+            assert (len(pairs) == 10), "All 10 pairs must be wired, otherwise " \
+                                       "electrical signal could be lost during " \
+                                       "non-reciprocal substitution."
+            are_unique(pairs, 'Letters in Uhr pairs can only be wired once!')
+            # Connects letter pairs to a corresponding aX - bX pair
+            for pair, index in zip(pairs, range(1, 11)):
+                for letter, socket_id in zip(pair, 'ab'):
+                    full_socket_id = str(index) + socket_id
+                    socket_data = self._black_red_plug_pairs[full_socket_id]
+                    self.pairs[letter] = (full_socket_id, socket_data)
 
-        # Connects letter pairs to a corresponding aX - bX pair
-        for pair, index in zip(pairs, range(1, 11)):
-            for letter, socket_id in zip(pair, 'ab'):
-                full_socket_id = str(index) + socket_id
-                socket_data = self._black_red_plug_pairs[full_socket_id]
-                self.pairs[letter] = (full_socket_id, socket_data)
+            self._simple_pairs = pairs
+        else:
+            self._simple_pairs = []
+            self._pairs = {}
 
     @property
     def position(self):
@@ -678,7 +699,7 @@ class Uhr(_Rotatable):
         else:
             letter = self.find_letter('a', self._route_backward(output_pin_index))
 
-        # assert letter, "No letter found!"
+        assert letter, "No letter found!"
         return letter
 
 
