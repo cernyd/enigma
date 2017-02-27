@@ -24,7 +24,6 @@ from cfg_handler import Config
 # if __name__ == '__main__':
 #     root.mainloop()
 #
-uhr = Uhr()
-uhr.pairs = 'AB', 'CD', 'EF', 'GH', 'IJ', 'KL', 'MN', 'OP', 'QR', 'ST'
-uhr.position = 3
-print(uhr.route('A'))
+plugboard = Plugboard(uhr_pairs=['AB', 'CD', 'EF', 'GH', 'IJ', 'KL', 'MN', 'OP', 'QR', 'ST'])
+print(plugboard.route('A'))
+print(plugboard.uhr_connected)
