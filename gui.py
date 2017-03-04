@@ -7,7 +7,7 @@ from tkinter import messagebox
 from webbrowser import open as open_browser
 from winsound import PlaySound, SND_ASYNC
 
-from enigma.components import EnigmaM3, alphabet
+from enigma.components import EnigmaM3, alphabet, EnigmaFactory
 
 
 # MISC
@@ -93,7 +93,8 @@ class Root(Tk, Base):
         Tk.__init__(self, *args, **kwargs)
         Base.__init__(self, 'enigma.ico', enigma_cfg['model'])
 
-        self.enigma = TkEnigma(self, *enigma_cfg.values())
+        self.enigma_factory = EnigmaFactory(['enigma', 'historical_data.xml'])
+        self.enigma = self.enigma_factory.produce(**enigma_cfg)
         self.playback = Playback(self)
         self.root_menu = None
         self.cfg = cfg

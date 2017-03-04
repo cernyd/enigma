@@ -181,18 +181,27 @@ class EnigmaFactory:
     def __init__(self, cfg_path):
         self._rotor_factory = RotorFactory(cfg_path)
 
-    def produce(self, model, stator=None, rotors=None):
+    def produce(self, model, reflector=None, rotors=None, stator=None, ):
         """Produces an enigma machine given a specific model ( must be available
-        in the speicified cfg_path )"""
+        in the specified cfg_path )"""
         try:
             enigma_model = globals()[model]
         except KeyError:
             raise KeyError(f"No enigma model found for \"{model}\"!")
 
         model_data = self._rotor_factory.all_rotor_labels(model)
-        reflector = self._rotor_factory.produce(model, 'reflector', model_data['reflectors'][0])
-        rotors = [self._rotor_factory.produce(model, 'rotor', label) for label in model_data['rotors'][:enigma_model._rotor_count]]
-        stator = self._rotor_factory.produce(model, 'stator', model_data['stators'][0])
+        # This block generates default data if specific preferences were not specified
+        if not reflector:
+            reflector = model_data['reflectors'][0]
+        if not rotors:
+            rotors = model_data['rotors'][:enigma_model._rotor_count]
+        if not stator:
+            stator = model_data['stators'][0]
+
+        reflector = self._rotor_factory.produce(model, 'reflector', reflector)
+        rotors = [self._rotor_factory.produce(model, 'rotor', label) for label in rotors]
+        stator = self._rotor_factory.produce(model, 'stator', stator)
+
         return enigma_model(reflector, rotors, stator)
 
 
