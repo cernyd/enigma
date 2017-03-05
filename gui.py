@@ -3,11 +3,9 @@ from os import path
 from os import remove
 from re import sub
 from tkinter import *
-from tkinter import messagebox
 from webbrowser import open as open_browser
 from winsound import PlaySound, SND_ASYNC
-
-from enigma.components import EnigmaM3, alphabet, EnigmaFactory
+from enigma.components import alphabet, EnigmaFactory
 
 
 # MISC
@@ -26,52 +24,6 @@ class Playback:
 
         if sound_name in self.sounds and self.master_instance.sound_enabled:
             PlaySound(path.join('sounds', sound_name), SND_ASYNC)
-
-
-class TkEnigma(EnigmaM3):
-    """Enigma adjusted for Tk rotor lock,
-    ignore the property signatures please..."""
-    def __init__(self, master, *config):
-        EnigmaM3.__init__(self, *config)
-        self.master = master
-
-    def _rotate_primary(self, places=1):
-        if not self.master.rotor_lock:
-            EnigmaM3.step_primary(self, places)
-
-    @EnigmaM3.reflector.setter
-    def reflector(self, label):
-        try:
-            EnigmaM3.reflector.fset(self, label)
-        except AttributeError as err:
-            messagebox.showwarning('Invalid reflector', 'Invalid reflector,'
-                                                        ' please try '
-                                                        'again...')
-
-    @EnigmaM3.rotors.setter
-    def rotors(self, labels):
-        """Adds a visual error feedback ( used only in the tk implementation"""
-        try:
-            EnigmaM3.rotors.fset(self, labels)
-        except AttributeError as err:
-            messagebox.showwarning('Invalid rotor', 'Some of rotors are not \n'
-                                                    'valid, please try again...')
-
-    @property
-    def all_rotor_labels(self):
-        return self.rotor_factory.rotors
-
-    @property
-    def all_reflector_labels(self):
-        return self.rotor_factory.reflectors
-
-    @property
-    def labels(self):
-        return self.rotor_factory.labels
-
-    @property
-    def layout(self):
-        return self.rotor_factory.layout
 
 
 class Base:
@@ -94,7 +46,7 @@ class Root(Tk, Base):
         Base.__init__(self, 'enigma.ico', enigma_cfg['model'])
 
         self.enigma_factory = EnigmaFactory(['enigma', 'historical_data.xml'])
-        self.enigma = self.enigma_factory.produce(**enigma_cfg)
+        self.enigma = self.enigma_factory.produce(**enigma_cfg, master=self)
         self.playback = Playback(self)
         self.root_menu = None
         self.cfg = cfg
@@ -226,6 +178,7 @@ class Root(Tk, Base):
         return self._autorotate.get()
 
     def save_config(self):  # Not flexible
+        """
         choice = True
         if glob('settings.txt'):
             msg = 'Save file detected, do you wish to overwrite with new ' \
@@ -239,8 +192,10 @@ class Root(Tk, Base):
                                   rotor_lock=self._rotor_lock.get(),
                                   synchronised_scrolling=self._sync_scroll.get()),
                         enigma=self.enigma.dump_config())
+        """
 
     def load_config(self):  # Not flexible
+        """
         if glob('settings.txt'):
             try:
                 data = load_config()
@@ -257,6 +212,7 @@ class Root(Tk, Base):
                                                       'Error message:"{err}"')
         else:
             messagebox.showerror('Loading error', 'No save file found!')
+        """
 
 
 # PLUGBOARD MENU
