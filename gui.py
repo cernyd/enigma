@@ -110,7 +110,7 @@ class Root(Tk, Base):
         """Sets all settings to default"""
         self.enigma.reflector = self.enigma_cfg['reflector']
         self.enigma.rotors = self.enigma_cfg['rotors']
-        self.enigma.plugboard = []
+        self.enigma.plugboard = tuple()
         self.io_board.text_input.delete('0.0', 'end')
 
         self.__reset_setting_vars()
@@ -122,7 +122,7 @@ class Root(Tk, Base):
 
     def plugboard_menu(self):
         """Opens the plugboard GUI"""
-        self.wait_window(PlugboardMenu(self.enigma, self.enigma.layout, self.enigma.labels))
+        self.wait_window(PlugboardMenu(self.enigma, self.enigma.factory_data['layout'], self.enigma.factory_data['labels']))
 
     def rotor_menu(self):
         """Opens the rotor gui and applies new values after closing"""
@@ -432,7 +432,7 @@ class RotorMenu(Toplevel, Base):
         self.reflector = ReflectorSlot(self, main_frame, self.enigma.all_reflector_labels)
         self.reflector.pack(side='left', fill='y', padx=(10, 2), pady=5)
 
-        self.rotors = [RotorSlot(self, main_frame, index, self.enigma.labels, self.enigma.all_rotor_labels) for index in range(3)]
+        self.rotors = [RotorSlot(self, main_frame, index, self.enigma.factory_data['labels'], self.enigma.factory_data['rotors']) for index in range(self.enigma.rotor_count)]
         [rotor.pack(side='left', padx=2, pady=5, fill='y') for rotor in self.rotors]
 
         main_frame.pack(side='top', pady=(5, 0), padx=(0,10))
@@ -525,7 +525,7 @@ class ReflectorSlot(BaseSlot):
         BaseSlot.__init__(self, master, tk_master, 'REFLECTOR', *args, **kwargs)
 
         self.generate_contents(reflectors)
-        self.choice_var.set(self.master.enigma.reflector_label)
+        self.choice_var.set(self.master.enigma.reflector.label)
         self.choice_var.trace('w', self.update_selected)
 
     def update_selected(self, *event):
@@ -580,7 +580,7 @@ class RotorIndicator(Frame):
 
     def update_indicator(self, event=None):
         """Updates what is displayed on the indicator"""
-        raw = self.enigma.rotors[self.index].position
+        raw = self.enigma.positions[self.index]
         self.indicator.config(text=raw)
 
 
