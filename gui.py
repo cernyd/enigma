@@ -79,7 +79,7 @@ class Root(Tk, Base):
 
         # Container init
         self.io_board = IOBoard(self.enigma, self, self, self.playback, self.font)
-        self.lightboard = Lightboard(self, self.enigma.layout, self.bg)
+        self.lightboard = Lightboard(self, self.enigma.factory_data['layout'], self.bg)
         self.indicator_board = IndicatorBoard(self.enigma, self.rotor_container, self.playback, self.bg, self.font)
 
         self.indicator_board.pack()
@@ -256,7 +256,7 @@ class PlugboardMenu(Toplevel, Base):
         button_frame.pack(side='bottom', fill='x')
 
     def apply(self):
-        self.enigma.plugboard = self.pairs
+        self.enigma.plugboard = tuple(self.pairs)
         self.destroy()
 
     def delete_used(self, letter):
@@ -429,7 +429,7 @@ class RotorMenu(Toplevel, Base):
         button_frame.pack(side='bottom', fill='x')
 
         # Slots for settings
-        self.reflector = ReflectorSlot(self, main_frame, self.enigma.all_reflector_labels)
+        self.reflector = ReflectorSlot(self, main_frame, self.enigma.factory_data['reflectors'])
         self.reflector.pack(side='left', fill='y', padx=(10, 2), pady=5)
 
         self.rotors = [RotorSlot(self, main_frame, index, self.enigma.factory_data['labels'], self.enigma.factory_data['rotors']) for index in range(self.enigma.rotor_count)]

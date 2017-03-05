@@ -251,22 +251,6 @@ class EnigmaFactory:
                                                'Some of rotors are not \n'
                                                'valid, please try again...')
 
-                @property
-                def all_rotor_labels(self):
-                    return self.rotor_factory['rotors']
-
-                @property
-                def all_reflector_labels(self):
-                    return self.factory_data['reflectors']
-
-                @property
-                def labels(self):
-                    return self.factory_data['labels']
-
-                @property
-                def layout(self):
-                    return self.factory_data['layout']
-
             return TkEnigma(master, self._rotor_factory, *data)
         else:
             return ModelClass(*data)
