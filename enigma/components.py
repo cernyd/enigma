@@ -22,7 +22,7 @@ class TestEnigma(unittest.TestCase):
 
     def reset_subject(self):
         buffer = self.cfg.find('default_cfg')
-        self.subject = self.enigma_factory.produce('EnigmaM3')
+        self.subject = self.enigma_factory.produce_enigma('EnigmaM3')
 
     def test_encrypt_decrypt(self):
         """Tests if encryption and decryption are working properly"""
@@ -178,9 +178,10 @@ class Plugboard:
 
 class EnigmaFactory:
     """Factory for producing enigma machines ( initialised more simply by
-    choosing defaults from available config )"""
+    choosing defaults from available config ), Can create rotor objects too"""
     def __init__(self, cfg_path):
-        self._rotor_factory = RotorFactory(cfg_path)
+        self.cfg = Config(cfg_path)
+        self._base_path = "enigma[@model='{model}']"
 
     @staticmethod
     def _get_model_class(model):
@@ -191,7 +192,7 @@ class EnigmaFactory:
 
     def _get_model_data(self, enigma_model, reflector=None, rotors=None, stator=None):
         model = enigma_model.__name__
-        model_data = self._rotor_factory.model_data(model)
+        model_data = self.model_data(model)
 
         # This block generates default data if specific preferences were not specified
         if not reflector:
@@ -201,12 +202,14 @@ class EnigmaFactory:
         if not stator:
             stator = model_data['stators'][0]
 
-        return self._rotor_factory.produce(model, 'reflector', reflector), \
-               [self._rotor_factory.produce(model, 'rotor', label) for label in rotors], \
-               self._rotor_factory.produce(model, 'stator', stator), model_data
+        return self.produce_rotor(model, 'reflector', reflector), \
+               [self.produce_rotor(model, 'rotor', label) for label in rotors], \
+               self.produce_rotor(model, 'stator', stator), model_data
 
+    def all_models(self):
+        return [enigma['model'] for enigma in self.cfg.iter_find('enigma', 'SUBATTRS')]
 
-    def produce(self, model, reflector=None, rotors=None, stator=None, master=None):
+    def produce_enigma(self, model, reflector=None, rotors=None, stator=None, master=None):
         """Produces an enigma machine given a specific model ( must be available
         in the specified cfg_path )"""
         ModelClass = self._get_model_class(model)
@@ -216,8 +219,8 @@ class EnigmaFactory:
             class TkEnigma(ModelClass):
                 """Enigma adjusted for Tk rotor lock,
                     ignore the property signatures please..."""
-                def __init__(self, master, rotor_factory, *data):
-                    self._rotor_factory = rotor_factory
+                def __init__(self, master, enigma_factory, *data):
+                    self._enigma_factory = enigma_factory
                     ModelClass.__init__(self, *data)
                     self.master = master
 
@@ -229,7 +232,7 @@ class EnigmaFactory:
                 def reflector(self, reflector):
                     try:
                         if type(reflector) == str:
-                            ModelClass.reflector.fset(self, self._rotor_factory.produce(model, 'reflector', reflector))
+                            ModelClass.reflector.fset(self, self._enigma_factory.produce_rotor(model, 'reflector', reflector))
                         else:
                             ModelClass.reflector.fset(self, reflector)
                     except AttributeError as err:
@@ -243,7 +246,7 @@ class EnigmaFactory:
                     """Adds a visual error feedback ( used only in the tk implementation"""
                     try:
                         if type(rotors[0]) == str:
-                            ModelClass.rotors.fset(self, [self._rotor_factory.produce(model, 'rotor', label) for label in rotors])
+                            ModelClass.rotors.fset(self, [self._enigma_factory.produce_rotor(model, 'rotor', label) for label in rotors])
                         else:
                             ModelClass.rotors.fset(self, rotors)
                     except AttributeError as err:
@@ -251,9 +254,54 @@ class EnigmaFactory:
                                                'Some of rotors are not \n'
                                                'valid, please try again...')
 
-            return TkEnigma(master, self._rotor_factory, *data)
+            return TkEnigma(master, self, *data)
         else:
             return ModelClass(*data)
+
+    def produce_rotor(self, model, rotor_type, label):
+        """Creates and returns new object based on input"""
+        self.cfg.focus_buffer(self._base_path.format(model=model))
+        cfg = self.cfg.iter_find(rotor_type)
+
+        match = False
+        for item in cfg:
+            if item['label'] == label:
+                cfg = item
+                match = True
+                break
+
+        err_msg = f"No configuration found for label \"{label}\"!"
+        assert match, err_msg
+        if rotor_type == 'rotor':
+            return Rotor(**cfg)
+        elif rotor_type == 'reflector':
+            return Reflector(**cfg)
+        elif rotor_type == 'stator':
+            return Stator(**cfg)
+
+    def model_data(self, model):
+        """Returns all available rotor labels for the selected enigma model"""
+        model_data = {}
+
+        for row in self.cfg.find('layout', 'SUBATTRS'):
+            if not model_data.get('layout', None):
+                model_data['layout'] = [row['values']]
+            else:
+                model_data['layout'].append(row['values'])
+
+        # DUPLICATE KNOWLEDGE!
+        for row in self.cfg.find('labels', 'SUBATTRS'):
+            if not model_data.get('labels', None):
+                model_data['labels'] = row['values']
+            else:
+                model_data['labels'].extend(row['values'])
+
+        self.cfg.focus_buffer(self._base_path.format(model=model))
+        for item in ['rotors', 'reflectors', 'stators']:
+            model_data[item] = [rotor['label'] for rotor in
+                                self.cfg.find(item, 'SUBATTRS')]
+
+        return model_data
 
 
 class Enigma:
@@ -408,57 +456,6 @@ class EnigmaM4(EnigmaM3):
 
 
 # ROTOR COMPONENTS
-
-class RotorFactory:
-    """Factory for creating various enigma Rotor/Reflector objects"""
-    def __init__(self, cfg_path):
-        self.cfg = Config(cfg_path)
-        self._base_path = "enigma[@model='{model}']"
-
-    def model_data(self, model):
-        """Returns all available rotor labels for the selected enigma model"""
-        model_data = {}
-
-        for row in self.cfg.find('layout', 'SUBATTRS'):
-            if not model_data.get('layout', None):
-                model_data['layout'] = [row['values']]
-            else:
-                model_data['layout'].append(row['values'])
-
-        # DUPLICATE KNOWLEDGE!
-        for row in self.cfg.find('labels', 'SUBATTRS'):
-            if not model_data.get('labels', None):
-                model_data['labels'] = row['values']
-            else:
-                model_data['labels'].extend(row['values'])
-
-        self.cfg.focus_buffer(self._base_path.format(model=model))
-        for item in ['rotors', 'reflectors', 'stators']:
-            model_data[item] = [rotor['label'] for rotor in self.cfg.find(item, 'SUBATTRS')]
-
-        return model_data
-
-    def produce(self, model, rotor_type, label):
-        """Creates and returns new object based on input"""
-        self.cfg.focus_buffer(self._base_path.format(model=model))
-        cfg = self.cfg.iter_find(rotor_type)
-
-        match = False
-        for item in cfg:
-            if item['label'] == label:
-                cfg = item
-                match = True
-                break
-
-        err_msg = f"No configuration found for label \"{label}\"!"
-        assert match, err_msg
-        if rotor_type == 'rotor':
-            return Rotor(**cfg)
-        elif rotor_type == 'reflector':
-            return Reflector(**cfg)
-        elif rotor_type == 'stator':
-            return Stator(**cfg)
-
 
 class _RotorBase:
     """Base class for Rotors and Reflectors"""

@@ -46,7 +46,7 @@ class Root(Tk, Base):
         Base.__init__(self, 'enigma.ico', enigma_cfg['model'])
 
         self.enigma_factory = EnigmaFactory(['enigma', 'historical_data.xml'])
-        self.enigma = self.enigma_factory.produce(**enigma_cfg, master=self)
+        self.enigma = self.enigma_factory.produce_enigma(**enigma_cfg, master=self)
         self.playback = Playback(self)
         self.root_menu = None
         self.cfg = cfg
@@ -139,6 +139,8 @@ class Root(Tk, Base):
         self.root_menu.add_command(label='About', command=lambda: open_browser(
             'https://github.com/cernyd/enigma'))
         self.root_menu.add_command(label='Help')
+
+        # CONFIGURATION MENU
         config_menu = Menu(settings_menu, tearoff=0)
 
         config_menu.add_command(label='Save Configuration',
@@ -148,6 +150,7 @@ class Root(Tk, Base):
         config_menu.add_command(label='Delete Configuration',
                                 command=lambda: remove('settings.txt'))
 
+        # SAVING AND LOADING
         settings_menu.add_cascade(label='Saving and Loading', menu=config_menu)
 
         settings_menu.add_separator()
@@ -161,6 +164,11 @@ class Root(Tk, Base):
         settings_menu.add_checkbutton(label='Synchronised scrolling',
                                       variable=self._sync_scroll)
         settings_menu.add_separator()
+
+        # ENIGMA RESET AND MODEL SETTINGS
+        enigma_model_menu = Menu(settings_menu, tearoff=0)
+        # for model in self.enigma_factory
+        settings_menu.add_cascade(label='Enigma model', menu=enigma_model_menu)
         settings_menu.add_command(label='Reset all',
                                   command=self.reset_all)
 
@@ -227,11 +235,14 @@ class PlugboardMenu(Toplevel, Base):
         self.used = []  # All used letters
         self._pairs = self.enigma.plugboard  # Pairs to return
 
+        # PLUG PAIRS
         rows = []
         self.plug_sockets = []
 
+        plug_socket_frame = Frame(self)
+
         for row in layout:
-            new_row = Frame(self)
+            new_row = Frame(plug_socket_frame)
             for item in row:
                 self.plug_sockets.append(PlugSocket(self, new_row, self.enigma, labels[item]))
             rows.append(new_row)
@@ -242,7 +253,14 @@ class PlugboardMenu(Toplevel, Base):
         for item in self.plug_sockets:
             item.pack(side='left')
 
+        plug_socket_frame.pack(side='top')
+
+        # BUTTONS
         button_frame = Frame(self)
+
+        self.uhr_mode = IntVar(0)
+        self.uhr_mode_button = Checkbutton(button_frame, text='Uhr pairs', variable=self.uhr_mode)
+        self.uhr_mode_button.pack(side='left')
 
         self.apply_button = Button(button_frame, text='Apply', width=12,
                                    command=self.apply)
