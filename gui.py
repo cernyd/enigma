@@ -28,7 +28,7 @@ class Playback:
 
 class Base:
     """Base initiation class for Tk and TopLevel derivatives"""
-    def __init__(self, icon:str, wm_title:str):
+    def __init__(self, icon: str, wm_title: str):
         self.attributes("-alpha", 0.0)
         self.after(0, self.attributes, "-alpha", 1.0)
         self.resizable(False, False)
@@ -88,6 +88,8 @@ class Root(Tk, Base):
         self.io_board.pack(side='top')
 
         self.__make_root_menu()
+
+        UhrMenu()
 
         self.reset_all()
 
@@ -417,6 +419,21 @@ class PlugEntry(Entry):
         raw = sub('([\s]|[%s]|[^a-zA-Z])+' % forbidden, '', raw).upper()
         return raw[0] if raw else raw
 
+
+# UHR MENU
+
+class UhrMenu(Toplevel, Base):
+    """Menu for selecting Uhr position"""
+    def __init__(self, *args, **kwargs):
+        Toplevel.__init__(self, *args, **kwargs)
+        Base.__init__(self, '', 'Uhr menu')
+        self.left_button = Button(self, text='<', relief='raised')
+        self.position_indicator = Label(self, text='TEST', relief='sunken')
+        self.right_button = Button(self, text='>', relief='raised')
+
+        self.left_button.pack(side='left')
+        self.position_indicator.pack(side='left')
+        self.right_button.pack(side='left')
 
 # ROTOR MENU
 
