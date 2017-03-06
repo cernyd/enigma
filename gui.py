@@ -89,7 +89,7 @@ class Root(Tk, Base):
 
         self.__make_root_menu()
 
-        UhrMenu()
+        UhrMenu(self.enigma)
 
         self.reset_all()
 
@@ -264,14 +264,14 @@ class PlugboardMenu(Toplevel, Base):
         self.uhr_mode_button = Checkbutton(button_frame, text='Uhr pairs', variable=self.uhr_mode)
         self.uhr_mode_button.pack(side='left')
 
-        self.apply_button = Button(button_frame, text='Apply', width=12,
+        apply_button = Button(button_frame, text='Apply', width=12,
                                    command=self.apply)
 
-        self.storno_button = Button(button_frame, text='Storno', width=12,
+        storno_button = Button(button_frame, text='Storno', width=12,
                                     command=self.destroy)
 
-        self.apply_button.pack(side='right', padx=5, pady=5)
-        self.storno_button.pack(side='right', padx=5, pady=5)
+        apply_button.pack(side='right', padx=5, pady=5)
+        storno_button.pack(side='right', padx=5, pady=5)
 
         button_frame.pack(side='bottom', fill='x')
 
@@ -424,16 +424,36 @@ class PlugEntry(Entry):
 
 class UhrMenu(Toplevel, Base):
     """Menu for selecting Uhr position"""
-    def __init__(self, *args, **kwargs):
+    def __init__(self, enigma, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
         Base.__init__(self, '', 'Uhr menu')
-        self.left_button = Button(self, text='<', relief='raised')
-        self.position_indicator = Label(self, text='TEST', relief='sunken')
-        self.right_button = Button(self, text='>', relief='raised')
+
+        self.enigma = enigma
+
+        selector_frame = Frame(self)
+
+        self.left_button = Button(selector_frame, text='<', relief='raised', command=lambda: self.rotate(-1))
+        self.position_indicator = Label(selector_frame, relief='sunken')
+        self.right_button = Button(selector_frame, text='>', relief='raised', command=lambda: self.rotate(1))
 
         self.left_button.pack(side='left')
         self.position_indicator.pack(side='left')
         self.right_button.pack(side='left')
+
+        selector_frame.pack(side='top')
+
+        button_frame = Frame(self)
+        Button(button_frame, text='Close', command=self.destroy).pack(side='right')
+        button_frame.pack(side='bottom')
+
+        self.refresh_indicator()
+
+    def rotate(self, places=0):
+        self.enigma.uhr_position += places
+        self.refresh_indicator()
+
+    def refresh_indicator(self):
+        self.position_indicator.config(text=self.enigma.uhr_position)
 
 # ROTOR MENU
 

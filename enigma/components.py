@@ -419,6 +419,18 @@ class Enigma1(Enigma):
         self._plugboard = Plugboard(normal_pairs, uhr_pairs)
 
     @property
+    def uhr_position(self):
+        return self._plugboard.uhr_position
+
+    @uhr_position.setter
+    def uhr_position(self, position):
+        self._plugboard.uhr_position = position
+
+    @property
+    def uhr_connected(self):
+        return self._plugboard.uhr_connected
+
+    @property
     def plugboard(self):
         """Plugboard routing pairs"""
         return self._plugboard.get_pairs()
