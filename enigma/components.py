@@ -21,7 +21,6 @@ class TestEnigma(unittest.TestCase):
         self.reset_subject()
 
     def reset_subject(self):
-        buffer = self.cfg.find('default_cfg')
         self.subject = self.enigma_factory.produce_enigma('EnigmaM3')
 
     def test_encrypt_decrypt(self):
@@ -207,7 +206,9 @@ class EnigmaFactory:
                self.produce_rotor(model, 'stator', stator), model_data
 
     def all_models(self):
-        return [enigma['model'] for enigma in self.cfg.iter_find('enigma', 'SUBATTRS')]
+        """Returns all enigma models as a string list"""
+        self.cfg.clear_focus()
+        return [enigma['model'] for enigma in self.cfg.iter_find('enigma')]
 
     def produce_enigma(self, model, reflector=None, rotors=None, stator=None, master=None):
         """Produces an enigma machine given a specific model ( must be available
@@ -425,6 +426,10 @@ class Enigma1(Enigma):
     @uhr_position.setter
     def uhr_position(self, position):
         self._plugboard.uhr_position = position
+
+    @property
+    def uhr_connected(self):
+        return self._plugboard.uhr_connected
 
     @property
     def uhr_connected(self):

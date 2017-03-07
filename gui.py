@@ -68,11 +68,16 @@ class Root(Tk, Base):
                command=self.rotor_menu).pack(side='right', pady=5, padx=(15, 4))
 
         # Plugboard
-        self.open_plugboard = Button(self, text='Plugboard',
+        plugboard_frame = Frame(self)
+
+        self.open_plugboard = Button(plugboard_frame, text='Plugboard',
                                      command=self.plugboard_menu)
+        self.open_uhr = Button(plugboard_frame, text='Uhr', command=self.uhr_menu)
 
         # Plugboard init
-        self.open_plugboard.pack(side='bottom', fill='both', padx=3, pady=3)
+        self.open_plugboard.pack(side='left', padx=3, pady=3, fill='x', expand=True)
+        self.open_uhr.pack(side='left', padx=3, pady=3, fill='x', expand=True)
+        plugboard_frame.pack(side='bottom', fill='both')
 
         # Lid init
         self.rowconfigure(index=0, weight=1)
@@ -88,9 +93,7 @@ class Root(Tk, Base):
         self.io_board.pack(side='top')
 
         self.__make_root_menu()
-
-        UhrMenu(self.enigma)
-
+        self.refresh_uhr_button()
         self.reset_all()
 
     def __reset_setting_vars(self):
@@ -125,6 +128,13 @@ class Root(Tk, Base):
     def plugboard_menu(self):
         """Opens the plugboard GUI"""
         self.wait_window(PlugboardMenu(self.enigma, self.enigma.factory_data['layout'], self.enigma.factory_data['labels']))
+        self.refresh_uhr_button()
+
+    def refresh_uhr_button(self):
+        if self.enigma.uhr_connected:
+            self.open_uhr.config(state='active')
+        else:
+            self.open_uhr.config(state='disabled')
 
     def rotor_menu(self):
         """Opens the rotor gui and applies new values after closing"""
@@ -134,7 +144,12 @@ class Root(Tk, Base):
         self.update_indicators()
         self.lightboard.light_up('')
 
+    def uhr_menu(self):
+        """Opens the Uhr menu ( uhr settings are adjusted there )"""
+        self.wait_window(UhrMenu(self.enigma))
+
     def __make_root_menu(self):
+        """Creates the top bar menu with saving/loading, various settings etc."""
         self.root_menu = Menu(self, tearoff=0)
         settings_menu = Menu(self.root_menu, tearoff=0)
         self.root_menu.add_cascade(label='Settings', menu=settings_menu)
@@ -169,12 +184,18 @@ class Root(Tk, Base):
 
         # ENIGMA RESET AND MODEL SETTINGS
         enigma_model_menu = Menu(settings_menu, tearoff=0)
-        # for model in self.enigma_factory
+        # Current model var, must add some indication of current model into the enigma
+        self.current_model = StringVar(self.enigma.model)
+        for model in self.enigma_factory.all_models():
+            enigma_model_menu.add_radiobutton(label=model, command=lambda: self.change_model(model), variable=None)
         settings_menu.add_cascade(label='Enigma model', menu=enigma_model_menu)
-        settings_menu.add_command(label='Reset all',
-                                  command=self.reset_all)
+        settings_menu.add_command(label='Reset all', command=self.reset_all)
 
         self.config(menu=self.root_menu)
+
+    def change_model(self, model):
+        self.enigma = self.enigma_factory.produce_enigma(model)
+        self.reset_all()
 
     def update_indicators(self):
         self.indicator_board.update_indicators()
