@@ -40,7 +40,7 @@ class TestEnigma(unittest.TestCase):
         """Tests if rotors are assigned properly"""
         self.reset_subject()
         rotors = self.cfg.find('test_rotors')['rotors']
-        self.subject.rotors = [self.enigma_factory.produce_rotor('EnigmaM3', 'rotor', rotor) for rotor in rotors]
+        self.subject.rotors = self.enigma_factory.produce_rotor('EnigmaM3', 'rotor', rotors)
         self.assertEqual(self.subject.rotor_labels, rotors,
                          'Invalid rotor order assigned!')
 
@@ -184,12 +184,15 @@ class EnigmaFactory:
 
     @staticmethod
     def _get_model_class(model):
+        """Attempts to get object based on input name"""
         try:
             return globals()[model]
         except KeyError:
             raise KeyError(f"No enigma model found for \"{model}\"!")
 
     def _get_model_data(self, enigma_model, reflector=None, rotors=None, stator=None):
+        """Gets default configuration data, custom preferences can override default
+        data."""
         model = enigma_model.__name__
         model_data = self.model_data(model)
 
@@ -202,7 +205,7 @@ class EnigmaFactory:
             stator = model_data['stators'][0]
 
         return self.produce_rotor(model, 'reflector', reflector), \
-               [self.produce_rotor(model, 'rotor', label) for label in rotors], \
+               self.produce_rotor(model, 'rotor', rotors),\
                self.produce_rotor(model, 'stator', stator), model_data
 
     def all_models(self):
@@ -247,7 +250,7 @@ class EnigmaFactory:
                     """Adds a visual error feedback ( used only in the tk implementation"""
                     try:
                         if type(rotors[0]) == str:
-                            ModelClass.rotors.fset(self, [self._enigma_factory.produce_rotor(model, 'rotor', label) for label in rotors])
+                            ModelClass.rotors.fset(self, self._enigma_factory.produce_rotor(model, 'rotor', rotors))
                         else:
                             ModelClass.rotors.fset(self, rotors)
                     except AttributeError as err:
@@ -259,46 +262,57 @@ class EnigmaFactory:
         else:
             return ModelClass(*data)
 
-    def produce_rotor(self, model, rotor_type, label):
+    def produce_rotor(self, model, rotor_type, labels):
         """Creates and returns new object based on input"""
         self.cfg.focus_buffer(self._base_path.format(model=model))
         cfg = self.cfg.iter_find(rotor_type)
 
-        match = False
-        for item in cfg:
-            if item['label'] == label:
-                cfg = item
-                match = True
-                break
+        if type(labels) != list and type(labels) != tuple:
+            labels = [labels]
 
-        err_msg = f"No configuration found for label \"{label}\"!"
-        assert match, err_msg
-        if rotor_type == 'rotor':
-            return Rotor(**cfg)
-        elif rotor_type == 'reflector':
-            return Reflector(**cfg)
-        elif rotor_type == 'stator':
-            return Stator(**cfg)
+        return_rotors = []
+
+        for label in labels:
+            match = False
+            for item in cfg:
+                if item['label'] == label:
+                    cfg = item
+                    match = True
+                    break
+
+            err_msg = f"No configuration found for label \"{label}\"!"
+            assert match, err_msg
+            if rotor_type == 'rotor':
+                return_rotors.append(Rotor(**cfg))
+            elif rotor_type == 'reflector':
+                return_rotors.append(Reflector(**cfg))
+            elif rotor_type == 'stator':
+                return_rotors.append(Stator(**cfg))
+
+        if len(return_rotors) == 1:
+            return return_rotors[0]
+        return return_rotors
 
     def model_data(self, model):
         """Returns all available rotor labels for the selected enigma model"""
         model_data = {'model': model}
         self.cfg.clear_focus()
 
-        for row in self.cfg.find('layout', 'SUBATTRS'):
-            if not model_data.get('layout', None):
-                model_data['layout'] = [row['values']]
-            else:
-                model_data['layout'].append(row['values'])
-
-        # DUPLICATE KNOWLEDGE!
-        for row in self.cfg.find('labels', 'SUBATTRS'):
-            if not model_data.get('labels', None):
-                model_data['labels'] = row['values']
-            else:
-                model_data['labels'].extend(row['values'])
+        for item in 'layout', 'labels':
+            for row in self.cfg.find(item, 'SUBATTRS'):
+                if not model_data.get(item, None):
+                    if item == 'layout':
+                        model_data[item] = [row['values']]
+                    else:
+                        model_data['labels'] = row['values']
+                else:
+                    if item == 'layout':
+                        model_data[item].append(row['values'])
+                    else:
+                        model_data['labels'].extend(row['values'])
 
         self.cfg.focus_buffer(self._base_path.format(model=model))
+
         for item in ['rotors', 'reflectors', 'stators']:
             model_data[item] = [rotor['label'] for rotor in
                                 self.cfg.find(item, 'SUBATTRS')]
