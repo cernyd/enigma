@@ -40,7 +40,7 @@ class TestEnigma(unittest.TestCase):
         """Tests if rotors are assigned properly"""
         self.reset_subject()
         rotors = self.cfg.find('test_rotors')['rotors']
-        self.subject.rotors = rotors
+        self.subject.rotors = [self.enigma_factory.produce_rotor('EnigmaM3', 'rotor', rotor) for rotor in rotors]
         self.assertEqual(self.subject.rotor_labels, rotors,
                          'Invalid rotor order assigned!')
 
@@ -58,8 +58,8 @@ class TestEnigma(unittest.TestCase):
         """Tests if the reflector is set properly"""
         self.reset_subject()
         reflector = self.cfg.find('test_reflector')['reflector']
-        self.subject.reflector = reflector
-        self.assertEqual(self.subject.reflector_label, reflector,
+        self.subject.reflector = self.enigma_factory.produce_rotor('EnigmaM3', 'reflector', reflector)
+        self.assertEqual(self.subject.reflector.label, reflector,
                          'Invalid rotor assigned!')
         with self.assertRaises(AssertionError):
             self.subject.reflector = 'garbage_input'
@@ -79,7 +79,7 @@ class TestEnigma(unittest.TestCase):
         self.reset_subject()
         plug_pairs = self.cfg.find('test_plugboard')['pairs']
         self.subject.plugboard = plug_pairs
-        self.assertEqual(self.subject.plugboard, plug_pairs, 'Invalid plugboard'
+        self.assertEqual(self.subject.plugboard['normal_pairs'], plug_pairs, 'Invalid plugboard'
                                                              ' pairs assigned!')
         with self.assertRaises(AssertionError):
             self.subject.plugboard = 'garbage_input'
@@ -144,7 +144,7 @@ class Plugboard:
     def set_pairs(self, normal_pairs=tuple(), uhr_pairs=tuple()):
         """Allows to set up to 13 normal pairs or 10 Uhr pairs + up to 3 normal
         pairs"""
-        are_unique(normal_pairs + uhr_pairs), "A letter can only be wired once!"
+        are_unique(list(list(normal_pairs) + list(uhr_pairs))), "A letter can only be wired once!"
         if uhr_pairs:
             self._uhr.pairs = uhr_pairs
         self._wired_pairs.pairs = normal_pairs
@@ -283,6 +283,7 @@ class EnigmaFactory:
     def model_data(self, model):
         """Returns all available rotor labels for the selected enigma model"""
         model_data = {'model': model}
+        self.cfg.clear_focus()
 
         for row in self.cfg.find('layout', 'SUBATTRS'):
             if not model_data.get('layout', None):
@@ -354,6 +355,9 @@ class Enigma:
     @rotors.setter
     def rotors(self, rotors):
         """Sets rotors"""
+        for rotor in rotors:
+            err_msg = f"Invalid rotor class of \"{type(rotor).__name__}\"!"
+            assert isinstance(rotor, (Rotor, Luckenfuller)), err_msg
         assert len(rotors) == self.rotor_count, "Invalid number of rotors!"
         self._rotors = rotors
 
@@ -372,6 +376,8 @@ class Enigma:
 
     @reflector.setter
     def reflector(self, reflector):
+        err_msg = f"Invalid rotor class of \"{type(reflector).__name__}\"!"
+        assert isinstance(reflector, (Reflector, UKW_D)), err_msg
         self._reflector = reflector
 
     @property
