@@ -282,7 +282,7 @@ class EnigmaFactory:
 
     def model_data(self, model):
         """Returns all available rotor labels for the selected enigma model"""
-        model_data = {}
+        model_data = {'model': model}
 
         for row in self.cfg.find('layout', 'SUBATTRS'):
             if not model_data.get('layout', None):
