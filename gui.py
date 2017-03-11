@@ -113,8 +113,8 @@ class Root(Tk, Base):
 
     def reset_all(self):  # A bit too long?
         """Sets all settings to default"""
-        self.enigma.reflector = self.enigma_cfg['reflector']
-        self.enigma.rotors = self.enigma_cfg['rotors']
+        self.enigma.reflector = self.enigma_factory.produce_rotor(self.current_model.get(), 'reflector', self.enigma_cfg['reflector'])
+        self.enigma.rotors = self.enigma_factory.produce_rotor(self.current_model.get(), 'rotor', self.enigma_cfg['rotors'])
         self.enigma.plugboard = tuple(), tuple()
         self.io_board.text_input.delete('0.0', 'end')
 
@@ -188,13 +188,14 @@ class Root(Tk, Base):
         # Current model var, must add some indication of current model into the enigma
         self.current_model = StringVar(value=self.enigma.factory_data['model'])
         for model in self.enigma_factory.all_models():
-            enigma_model_menu.add_radiobutton(label=model, command=self.change_model, variable=self.current_model)
+            enigma_model_menu.add_radiobutton(label=model, variable=self.current_model)
+        self.current_model.trace('w', self.change_model)
         settings_menu.add_cascade(label='Enigma model', menu=enigma_model_menu)
         settings_menu.add_command(label='Reset all', command=self.reset_all)
 
         self.config(menu=self.root_menu)
 
-    def change_model(self):
+    def change_model(self, *event):
         self.enigma = self.enigma_factory.produce_enigma(self.current_model.get())
         self.reset_all()
 
@@ -617,7 +618,7 @@ class IndicatorBoard(Frame):
         Frame.__init__(self, tk_master, bg=bg, *args, **kwargs)
 
         self.indicators = []
-        for index in range(3):
+        for index in range(enigma.rotor_count):
             indicator = RotorIndicator(enigma, self, playback, index, bg, font)
             self.indicators.append(indicator)
             indicator.pack(side='left', fill='both', pady=10)
