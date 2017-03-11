@@ -115,7 +115,7 @@ class Root(Tk, Base):
         """Sets all settings to default"""
         self.enigma.reflector = self.enigma_cfg['reflector']
         self.enigma.rotors = self.enigma_cfg['rotors']
-        self.enigma.plugboard = tuple()
+        self.enigma.plugboard = tuple(), tuple()
         self.io_board.text_input.delete('0.0', 'end')
 
         self.__reset_setting_vars()
@@ -124,6 +124,7 @@ class Root(Tk, Base):
         self.lightboard.light_up('')
         self.io_board.format_entries()
         self.io_board.last_len = 0
+        self.wm_title(self.current_model.get())
 
     def plugboard_menu(self):
         """Opens the plugboard GUI"""
@@ -185,16 +186,16 @@ class Root(Tk, Base):
         # ENIGMA RESET AND MODEL SETTINGS
         enigma_model_menu = Menu(settings_menu, tearoff=0)
         # Current model var, must add some indication of current model into the enigma
-        self.current_model = StringVar(self.enigma.model)
+        self.current_model = StringVar(value=self.enigma.factory_data['model'])
         for model in self.enigma_factory.all_models():
-            enigma_model_menu.add_radiobutton(label=model, command=lambda: self.change_model(model), variable=None)
+            enigma_model_menu.add_radiobutton(label=model, command=self.change_model, variable=self.current_model)
         settings_menu.add_cascade(label='Enigma model', menu=enigma_model_menu)
         settings_menu.add_command(label='Reset all', command=self.reset_all)
 
         self.config(menu=self.root_menu)
 
-    def change_model(self, model):
-        self.enigma = self.enigma_factory.produce_enigma(model)
+    def change_model(self):
+        self.enigma = self.enigma_factory.produce_enigma(self.current_model.get())
         self.reset_all()
 
     def update_indicators(self):
