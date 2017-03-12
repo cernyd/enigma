@@ -113,8 +113,10 @@ class Root(Tk, Base):
 
     def reset_all(self):  # A bit too long?
         """Sets all settings to default"""
-        self.enigma.reflector = self.enigma_factory.produce_rotor(self.current_model.get(), 'reflector', self.enigma_cfg['reflector'])
-        self.enigma.rotors = self.enigma_factory.produce_rotor(self.current_model.get(), 'rotor', self.enigma_cfg['rotors'])
+        self.current_model.set('Enigma1')
+        self.enigma = self.enigma_factory.produce_enigma(self.current_model.get())
+        # self.enigma.reflector = self.enigma_factory.produce_rotor(self.current_model.get(), 'reflector', self.enigma_cfg['reflector'])
+        # self.enigma.rotors = self.enigma_factory.produce_rotor(self.current_model.get(), 'rotor', self.enigma_cfg['rotors'])
         self.enigma.clear_plugboard()
         self.io_board.text_input.delete('0.0', 'end')
 
@@ -569,7 +571,10 @@ class BaseSlot(Frame):
 
 class RotorSlot(BaseSlot):
     def __init__(self, master, tk_master, index, ring_labels, rotors, *args, **kwargs):
-        text = ('SLOW', 'MEDIUM', 'FAST')[index] + ' ROTOR'
+        try:
+            text = ('SLOW', 'MEDIUM', 'FAST')[index] + ' ROTOR'
+        except IndexError:
+            text = 'THIN ROTOR'
         BaseSlot.__init__(self, master, tk_master, text, *args, **kwargs)
 
         self.index = index
