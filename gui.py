@@ -85,6 +85,7 @@ class Root(Tk, Base):
         # Container init
         self.io_board = IOBoard(self.enigma, self, self, self.playback, self.font)
         self.lightboard = Lightboard(self, self.enigma.factory_data['layout'], self.bg)
+        # Object not updated after reset!
         self.indicator_board = IndicatorBoard(self.enigma, self.rotor_container, self.playback, self.bg, self.font)
 
         self.indicator_board.pack()
@@ -113,10 +114,8 @@ class Root(Tk, Base):
 
     def reset_all(self):  # A bit too long?
         """Sets all settings to default"""
-        self.current_model.set('Enigma1')
-        self.enigma = self.enigma_factory.produce_enigma(self.current_model.get())
-        # self.enigma.reflector = self.enigma_factory.produce_rotor(self.current_model.get(), 'reflector', self.enigma_cfg['reflector'])
-        # self.enigma.rotors = self.enigma_factory.produce_rotor(self.current_model.get(), 'rotor', self.enigma_cfg['rotors'])
+        self.enigma = self.enigma_factory.produce_enigma(self.current_model.get(), master=self)
+        print(self.enigma)
         self.enigma.clear_plugboard()
         self.io_board.text_input.delete('0.0', 'end')
 
