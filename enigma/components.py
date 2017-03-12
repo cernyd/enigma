@@ -385,7 +385,7 @@ class Enigma:
         for rotor in rotors:
             err_msg = f"Invalid rotor class of \"{type(rotor).__name__}\"!"
             assert isinstance(rotor, (Rotor, Luckenfuller)), err_msg
-        assert len(rotors) == self.rotor_count, "Invalid number of rotors!"
+        assert len(rotors) == self.__class__.rotor_count, "Invalid number of rotors!"
         self._rotors = rotors
 
     @property
