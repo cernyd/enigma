@@ -115,7 +115,7 @@ class Root(Tk, Base):
         """Sets all settings to default"""
         self.enigma.reflector = self.enigma_factory.produce_rotor(self.current_model.get(), 'reflector', self.enigma_cfg['reflector'])
         self.enigma.rotors = self.enigma_factory.produce_rotor(self.current_model.get(), 'rotor', self.enigma_cfg['rotors'])
-        self.enigma.plugboard = tuple(), tuple()
+        self.enigma.clear_plugboard()
         self.io_board.text_input.delete('0.0', 'end')
 
         self.__reset_setting_vars()
