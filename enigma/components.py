@@ -78,10 +78,10 @@ class TestEnigma(unittest.TestCase):
         """Checks if plugboard pairs are set propertly"""
         self.reset_subject()
         plug_pairs = self.cfg.find('test_plugboard')['pairs']
-        self.subject.plugboard = plug_pairs
+        self.subject.plugboard = {'normal_pairs': plug_pairs}
         self.assertEqual(self.subject.plugboard['normal_pairs'], plug_pairs, 'Invalid plugboard'
                                                              ' pairs assigned!')
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(AttributeError):
             self.subject.plugboard = 'garbage_input'
 
 
@@ -106,7 +106,7 @@ def are_unique(pairs, error_msg='Contains duplicate pairs!'):
 class WiredPairs:
     """Returns the other letter from pairs if one letter is given.
     IS FLEXIBLE!"""
-    def __init__(self, pairs=''):
+    def __init__(self, pairs=tuple()):
         self._pairs = pairs
 
     @property
@@ -116,7 +116,6 @@ class WiredPairs:
     @pairs.setter
     def pairs(self, pairs):
         assert (len(pairs) <= 13), "Invalid number of pairs!"
-
         are_unique(pairs, 'A letter can only be wired once!')
 
         self._pairs = pairs
@@ -135,23 +134,37 @@ class WiredPairs:
 
 class Plugboard:
     """Standard and Uhr pairs can be set"""
-    def __init__(self, normal_pairs=tuple(), uhr_pairs=tuple()):
+    def __init__(self, pairs=None):
         self._wired_pairs = WiredPairs()  # Self steckered, no scrambling
         self._uhr = Uhr()  # Uhr steckered, always 10 pairs
         # Pairs are stored additionally for easier searching, WILL REMOVE LATER
-        self.set_pairs(normal_pairs, uhr_pairs)
+        if pairs:
+            self.pairs = pairs
 
-    def set_pairs(self, normal_pairs=tuple(), uhr_pairs=tuple()):
+    @property
+    def pairs(self):
+        """Returns list of all combined connected pairs"""
+        return {'uhr_pairs': self._uhr.simple_pairs,
+                'normal_pairs': self._wired_pairs.pairs}
+
+    @pairs.setter
+    def pairs(self, pairs):
         """Allows to set up to 13 normal pairs or 10 Uhr pairs + up to 3 normal
         pairs"""
+        try:
+            normal_pairs = pairs.get('normal_pairs', tuple())
+            uhr_pairs = pairs.get('uhr_pairs', tuple())
+        except AttributeError:
+            raise AttributeError("Invalid pairs datatype!")
         are_unique(list(list(normal_pairs) + list(uhr_pairs))), "A letter can only be wired once!"
+
         if uhr_pairs:
             self._uhr.pairs = uhr_pairs
         self._wired_pairs.pairs = normal_pairs
 
-    def get_pairs(self):
-        """Returns list of all combined connected pairs"""
-        return {'uhr_pairs': self._uhr.simple_pairs, 'normal_pairs': self._wired_pairs.pairs}
+    def clear_pairs(self):
+        self._wired_pairs.pairs = tuple()
+        self._uhr.pairs = tuple()
 
     def route(self, letter):
         """Routes letter either with Uhr or with normal pairs"""
@@ -266,28 +279,28 @@ class EnigmaFactory:
         """Creates and returns new object based on input"""
         self.cfg.focus_buffer(self._base_path.format(model=model))
         cfg = self.cfg.iter_find(rotor_type)
+        return_rotors = []
 
         if type(labels) != list and type(labels) != tuple:
             labels = [labels]
 
-        return_rotors = []
-
         for label in labels:
+            curr_cfg = None
             match = False
             for item in cfg:
                 if item['label'] == label:
-                    cfg = item
+                    curr_cfg = item
                     match = True
                     break
 
             err_msg = f"No configuration found for label \"{label}\"!"
             assert match, err_msg
             if rotor_type == 'rotor':
-                return_rotors.append(Rotor(**cfg))
+                return_rotors.append(Rotor(**curr_cfg))
             elif rotor_type == 'reflector':
-                return_rotors.append(Reflector(**cfg))
+                return_rotors.append(Reflector(**curr_cfg))
             elif rotor_type == 'stator':
-                return_rotors.append(Stator(**cfg))
+                return_rotors.append(Stator(**curr_cfg))
 
         if len(return_rotors) == 1:
             return return_rotors[0]
@@ -437,7 +450,8 @@ class Enigma1(Enigma):
 
     def __init__(self, reflector, rotors, stator, factory_data, normal_pairs=tuple(), uhr_pairs=tuple()):
         Enigma.__init__(self, reflector, rotors, stator, factory_data)
-        self._plugboard = Plugboard(normal_pairs, uhr_pairs)
+        self._plugboard = Plugboard({'normal_pairs': normal_pairs,
+                                     'uhr_pairs': uhr_pairs})
 
     @property
     def uhr_position(self):
@@ -458,11 +472,14 @@ class Enigma1(Enigma):
     @property
     def plugboard(self):
         """Plugboard routing pairs"""
-        return self._plugboard.get_pairs()
+        return self._plugboard.pairs
 
     @plugboard.setter
-    def plugboard(self, normal_pairs=tuple(), uhr_pairs=tuple()):
-        self._plugboard.set_pairs(normal_pairs, uhr_pairs)
+    def plugboard(self, pairs):
+        self._plugboard.pairs = pairs
+
+    def clear_plugboard(self):
+        self._plugboard.clear_pairs()
 
     def button_press(self, letter):
         """Wraps the base enigma routing with plugboard"""
@@ -716,7 +733,7 @@ class Uhr(_Rotatable):
 
     @property
     def simple_pairs(self):
-        return self._simple_pairs
+        return tuple(self._simple_pairs)
 
     @property
     def pairs(self):
