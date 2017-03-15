@@ -466,10 +466,6 @@ class Enigma1(Enigma):
         return self._plugboard.uhr_connected
 
     @property
-    def uhr_connected(self):
-        return self._plugboard.uhr_connected
-
-    @property
     def plugboard(self):
         """Plugboard routing pairs"""
         return self._plugboard.pairs
