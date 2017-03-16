@@ -1,30 +1,12 @@
-from glob import glob
 from os import path
 from os import remove
 from re import sub
 from tkinter import *
 from webbrowser import open as open_browser
-from winsound import PlaySound, SND_ASYNC
-from enigma.components import alphabet, EnigmaFactory
+from enigma.components import alphabet
 from data_handler import DataHandler
 
 # MISC
-
-class Playback:
-    """Module for playing sounds from the sounds folder"""
-
-    def __init__(self, master_instance):
-        self.sounds = list(
-            map(lambda snd: snd[7:], glob(path.join('sounds', '*.wav'))))
-        self.master_instance = master_instance
-
-    def play(self, sound_name):
-        """Plays a sound based on the entered sound name"""
-        sound_name += '.wav'
-
-        if sound_name in self.sounds and self.master_instance.sound_enabled:
-            PlaySound(path.join('sounds', sound_name), SND_ASYNC)
-
 
 class Base:
     """Base initiation class for Tk and TopLevel derivatives"""
@@ -43,15 +25,10 @@ class Root(Tk, Base):
     """Root GUI class with enigma entry field, plugboard button, rotor button"""
     def __init__(self, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
-
-        self.data_handler = DataHandler()
-
+        self.data_handler = DataHandler(self)
         Base.__init__(self, 'enigma.ico', self.data_handler.enigma_cfg['model'])
-        self.enigma_factory = EnigmaFactory(['enigma', 'historical_data.xml'])
-        self.enigma = self.enigma_factory.produce_enigma(**self.data_handler.enigma_cfg, master=self)
-        self.playback = Playback(self)
         self.root_menu = None
-        print(self.enigma)
+
         # Settings vars
         self._sound_enabled = IntVar()
         self._autorotate = IntVar()
@@ -81,10 +58,11 @@ class Root(Tk, Base):
         self.rowconfigure(index=0, weight=1)
 
         # Container init
-        self.io_board = IOBoard(self.enigma, self, self, self.playback, self.data_handler.font)
-        self.lightboard = Lightboard(self, self.enigma.factory_data['layout'], self.data_handler.bg)
+        self.io_board = IOBoard(self, self, self.data_handler)
+        self.lightboard = Lightboard(self, self.data_handler)
+
         # Object not updated after reset!
-        self.indicator_board = IndicatorBoard(self.enigma, self.rotor_container, self.playback, self.data_handler.bg, self.data_handler.font)
+        self.indicator_board = IndicatorBoard(self.rotor_container, self.data_handler)
         self.indicator_board.pack()
         self.rotor_container.pack(fill='both', padx=5, pady=5, side='top')
         self.lightboard.pack(side='top', fill='both', padx=5)
@@ -111,8 +89,8 @@ class Root(Tk, Base):
 
     def reset_all(self):  # A bit too long?
         """Sets all settings to default"""
-        # self.enigma = self.enigma_factory.produce_enigma(self.current_model.get(), master=self)
-        self.enigma.clear_plugboard()
+        self.data_handler.switch_enigma(self.current_model.get())
+        self.data_handler.enigma.clear_plugboard()
         self.io_board.text_input.delete('0.0', 'end')
 
         self.__reset_setting_vars()
@@ -125,12 +103,11 @@ class Root(Tk, Base):
 
     def plugboard_menu(self):
         """Opens the plugboard GUI"""
-        print('Is it still the same enigma? > ', self.enigma)
         self.wait_window(PlugboardMenu(self.enigma, self.enigma.factory_data['layout'], self.enigma.factory_data['labels']))
         self.refresh_uhr_button()
 
     def refresh_uhr_button(self):
-        if self.enigma.uhr_connected:
+        if self.data_handler.enigma.uhr_connected:
             self.open_uhr.config(state='active')
         else:
             self.open_uhr.config(state='disabled')
@@ -184,8 +161,8 @@ class Root(Tk, Base):
         # ENIGMA RESET AND MODEL SETTINGS
         enigma_model_menu = Menu(settings_menu, tearoff=0)
         # Current model var, must add some indication of current model into the enigma
-        self.current_model = StringVar(value=self.enigma.factory_data['model'])
-        for model in self.enigma_factory.all_models():
+        self.current_model = StringVar(value=self.data_handler.enigma.factory_data['model'])
+        for model in self.data_handler.enigma_factory.all_models():
             enigma_model_menu.add_radiobutton(label=model, variable=self.current_model)
         self.current_model.trace('w', self.change_model)
         settings_menu.add_cascade(label='Enigma model', menu=enigma_model_menu)
@@ -250,13 +227,15 @@ class Root(Tk, Base):
 
 class PlugboardMenu(Toplevel, Base):
     """GUI for visual plugboard pairing setup"""
-    def __init__(self, enigma, layout, labels, *args, **kwargs):
+    def __init__(self, data_handler, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
         Base.__init__(self, 'plugboard.ico', 'Plugboard')
-        print(enigma)
-        self.enigma = enigma
+        self.data_handler = data_handler
         self.used = []  # All used letters
-        self._pairs = self.enigma.plugboard  # Pairs to return
+        self._pairs = self.data_handler.enigma.plugboard  # Pairs to return
+
+        labels = self.data_handler.enigma.factory_data['labels']
+        layout = self.data_handler.enigma.factory_data['layout']
 
         # PLUG PAIRS
         rows = []
@@ -297,7 +276,7 @@ class PlugboardMenu(Toplevel, Base):
         button_frame.pack(side='bottom', fill='x')
 
     def apply(self):
-        self.enigma.plugboard = {'normal_pairs': self.pairs}  # ADD UHR ASAP
+        self.data_handler.enigma.plugboard = {'normal_pairs': self.pairs}  # ADD UHR ASAP
         self.destroy()
 
     def delete_used(self, letter):
@@ -615,12 +594,15 @@ class ReflectorSlot(BaseSlot):
 
 class IndicatorBoard(Frame):
     """Contains all rotor indicators"""
-    def __init__(self, enigma, tk_master, playback, bg, font, *args, **kwargs):
+    def __init__(self, tk_master, data_handler, *args, **kwargs):
+        self.data_handler = data_handler
+        bg = self.data_handler.bg
         Frame.__init__(self, tk_master, bg=bg, *args, **kwargs)
 
+
         self.indicators = []
-        for index in range(enigma.rotor_count):
-            indicator = RotorIndicator(enigma, self, playback, index, bg, font)
+        for index in range(self.data_handler.enigma.rotor_count):
+            indicator = RotorIndicator(self, index, self.data_handler)
             self.indicators.append(indicator)
             indicator.pack(side='left', fill='both', pady=10)
 
@@ -631,13 +613,13 @@ class IndicatorBoard(Frame):
 
 class RotorIndicator(Frame):
     """Rotor indicator for indicating or rotating a rotor"""
-    def __init__(self, enigma, tk_master, playback, index, bg, font, *args, **kwargs):
+    def __init__(self, tk_master, index, data_handler, *args, **kwargs):
+        self.data_handler = data_handler
+        bg = self.data_handler.bg
         Frame.__init__(self, tk_master, bg=bg, *args, **kwargs)
         self.index = index
-        self.playback = playback
-        self.enigma = enigma
 
-        cfg = dict(font=font, width=1)
+        cfg = dict(font=self.data_handler.font, width=1)
 
         Button(self, text='+', command=lambda: self.rotate(1), **cfg).pack(
             side='top')
@@ -653,26 +635,25 @@ class RotorIndicator(Frame):
 
     def rotate(self, places=0):
         """Rotates the rotor with the selected index backward"""
-        self.playback.play('click')
-        self.enigma.rotors[self.index].rotate(places)
+        self.data_handler.playback.play('click')
+        self.data_handler.enigma.rotors[self.index].rotate(places)
         self.update_indicator()
 
     def update_indicator(self, event=None):
         """Updates what is displayed on the indicator"""
-        raw = self.enigma.positions[self.index]
+        raw = self.data_handler.enigma.positions[self.index]
         self.indicator.config(text=raw)
 
 
 # IOBOARD
 
 class IOBoard(Frame):
-    def __init__(self, enigma, tk_master, master, playback, font, *args, **kwargs):
+    def __init__(self, tk_master, master, data_handler, *args, **kwargs):
         Frame.__init__(self, tk_master, *args, *kwargs)
-        print(enigma)
-        self.enigma = enigma
+        self.data_handler = data_handler
         self.master = master
         self.master.bind('<Key>', self.press_event)
-        self.playback = playback
+        font = self.data_handler.font
 
         # Scrollbars
         self.input_scrollbar = Scrollbar(self, command=lambda *args: self.yview_sync(self.text_input, self.text_output, *args))
@@ -735,13 +716,13 @@ class IOBoard(Frame):
 
             if length_status:
                 if length_status == 'longer':
-                    self.playback.play('button_press')
+                    self.data_handler.playback.play('button_press')
                     for letter in self.input_box[-length_difference:]:
-                        self.output_box += self.enigma.button_press(letter)
+                        self.output_box += self.data_handler.enigma.button_press(letter)
 
                 elif length_status == 'shorter' and self.master.autorotate:
                     for _ in range(abs(length_difference)):
-                        self.enigma._rotate_primary(-1)
+                        self.data_handler.enigma._rotate_primary(-1)
 
             self.master.update_indicators()
 
@@ -790,13 +771,15 @@ class IOBoard(Frame):
 # LIGHTBOARD
 
 class Lightboard(Frame):
-    def __init__(self, tk_master, layout, bg, *args, **kwargs):
+    def __init__(self, tk_master, data_handler, *args, **kwargs):
+        self.data_handler = data_handler
+        bg = self.data_handler.bg
         Frame.__init__(self, tk_master, bd=1, relief='raised', bg=bg, *args, *kwargs)
 
         rows = []
         self.bulbs = []
 
-        for row in layout:
+        for row in self.data_handler.enigma.factory_data['layout']:
             new_row = Frame(self)
             for item in row:
                 text = alphabet[item]
