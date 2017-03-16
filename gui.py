@@ -29,11 +29,12 @@ class Root(Tk, Base):
         Base.__init__(self, 'enigma.ico', self.data_handler.enigma_cfg['model'])
         self.root_menu = None
 
-        # Settings vars
-        self._sound_enabled = IntVar()
-        self._autorotate = IntVar()
-        self._rotor_lock = IntVar()
-        self._sync_scroll = IntVar()
+        # Settings vars ( set by default to 1,1,0,1 as an emergency measure )
+        self._sound_enabled = IntVar(value=1)
+        self._autorotate = IntVar(value=1)
+        self._rotor_lock = IntVar(value=0)
+        self._sync_scroll = IntVar(value=1)
+        self.__reset_setting_vars()  #  Setting vars are not set correctly if not refreshed!
 
         # Frames
         self.rotor_container = Frame(self, bd=1, relief='raised', bg=self.data_handler.bg)
@@ -70,7 +71,7 @@ class Root(Tk, Base):
 
         self.__make_root_menu()
         self.refresh_uhr_button()
-        self.reset_all()
+        # self.reset_all()
 
     def __reset_setting_vars(self):
         var_config = self.data_handler.settings_vars
@@ -87,7 +88,7 @@ class Root(Tk, Base):
     def sound_enabled(self):
         return self._sound_enabled.get()
 
-    def reset_all(self):  # A bit too long?
+    def reset_all(self, *event):  # A bit too long?
         """Sets all settings to default"""
         self.data_handler.switch_enigma(self.current_model.get())
         self.data_handler.enigma.clear_plugboard()
@@ -100,10 +101,11 @@ class Root(Tk, Base):
         self.io_board.format_entries()
         self.io_board.last_len = 0
         self.wm_title(self.current_model.get())
+        self.refresh_uhr_button()
 
     def plugboard_menu(self):
         """Opens the plugboard GUI"""
-        self.wait_window(PlugboardMenu(self.enigma, self.enigma.factory_data['layout'], self.enigma.factory_data['labels']))
+        self.wait_window(PlugboardMenu(self.data_handler))
         self.refresh_uhr_button()
 
     def refresh_uhr_button(self):
@@ -114,7 +116,7 @@ class Root(Tk, Base):
 
     def rotor_menu(self):
         """Opens the rotor gui and applies new values after closing"""
-        self.wait_window(RotorMenu(self.enigma, self.data_handler.bg))
+        self.wait_window(RotorMenu(self.data_handler))
         self.io_board.text_input.delete('0.0', 'end')
         self.io_board.format_entries()
         self.update_indicators()
@@ -160,19 +162,16 @@ class Root(Tk, Base):
 
         # ENIGMA RESET AND MODEL SETTINGS
         enigma_model_menu = Menu(settings_menu, tearoff=0)
+
         # Current model var, must add some indication of current model into the enigma
         self.current_model = StringVar(value=self.data_handler.enigma.factory_data['model'])
         for model in self.data_handler.enigma_factory.all_models():
             enigma_model_menu.add_radiobutton(label=model, variable=self.current_model)
-        self.current_model.trace('w', self.change_model)
+        self.current_model.trace('w', self.reset_all)
         settings_menu.add_cascade(label='Enigma model', menu=enigma_model_menu)
         settings_menu.add_command(label='Reset all', command=self.reset_all)
 
         self.config(menu=self.root_menu)
-
-    def change_model(self, *event):
-        self.enigma = self.enigma_factory.produce_enigma(self.current_model.get())
-        self.reset_all()
 
     def update_indicators(self):
         self.indicator_board.update_indicators()
@@ -246,7 +245,7 @@ class PlugboardMenu(Toplevel, Base):
         for row in layout:
             new_row = Frame(plug_socket_frame)
             for item in row:
-                self.plug_sockets.append(PlugSocket(self, new_row, self.enigma, labels[item]))
+                self.plug_sockets.append(PlugSocket(self, new_row, self.data_handler.enigma, labels[item]))
             rows.append(new_row)
 
         for row in rows:
@@ -459,15 +458,17 @@ class UhrMenu(Toplevel, Base):
 
 class RotorMenu(Toplevel, Base):
     """GUI for setting rotor order, reflectors and ring settings"""
-    def __init__(self, enigma, bg, *args, **kwargs):
+    def __init__(self, data_handler, *args, **kwargs):
+        self.data_handler = data_handler
+        bg = self.data_handler.bg
+
         Toplevel.__init__(self, bg=bg, *args, **kwargs)
         Base.__init__(self, 'rotor.ico', 'Rotor order')
 
         # Enigma settings buffer
-        self.enigma = enigma
-        self.curr_rotors = [rotor.label for rotor in self.enigma.rotors]
-        self.curr_reflector = self.enigma.reflector.label
-        self.curr_ring_settings = self.enigma.ring_settings
+        self.curr_rotors = [rotor.label for rotor in self.data_handler.enigma.rotors]
+        self.curr_reflector = self.data_handler.enigma.reflector.label
+        self.curr_ring_settings = self.data_handler.enigma.ring_settings
 
         # Frames
         main_frame = Frame(self, bg=bg)
@@ -484,10 +485,10 @@ class RotorMenu(Toplevel, Base):
         button_frame.pack(side='bottom', fill='x')
 
         # Slots for settings
-        self.reflector = ReflectorSlot(self, main_frame, self.enigma.factory_data['reflectors'])
+        self.reflector = ReflectorSlot(self, main_frame, self.data_handler.enigma.factory_data['reflectors'])
         self.reflector.pack(side='left', fill='y', padx=(10, 2), pady=5)
 
-        self.rotors = [RotorSlot(self, main_frame, index, self.enigma.factory_data['labels'], self.enigma.factory_data['rotors']) for index in range(self.enigma.rotor_count)]
+        self.rotors = [RotorSlot(self, main_frame, index, self.data_handler.enigma.factory_data['labels'], self.data_handler.enigma.factory_data['rotors']) for index in range(self.data_handler.enigma.rotor_count)]
         [rotor.pack(side='left', padx=2, pady=5, fill='y') for rotor in self.rotors]
 
         main_frame.pack(side='top', pady=(5, 0), padx=(0,10))
@@ -496,9 +497,9 @@ class RotorMenu(Toplevel, Base):
 
     def apply(self):
         """Applies all settings to the global enigma instance"""
-        self.enigma.rotors = self.curr_rotors
-        self.enigma.reflector = self.curr_reflector
-        self.enigma.ring_settings = [alphabet[setting] for setting in self.curr_ring_settings]
+        self.data_handler.enigma.rotors = self.curr_rotors
+        self.data_handler.enigma.reflector = self.curr_reflector
+        self.data_handler.enigma.ring_settings = [alphabet[setting] for setting in self.curr_ring_settings]
         self.destroy()
 
     def update_all(self, *event):
@@ -558,7 +559,7 @@ class RotorSlot(BaseSlot):
         self.generate_contents(rotors)
 
         # Ring setting indicator
-        setting = self.master.enigma.ring_settings[index]
+        setting = self.master.data_handler.enigma.ring_settings[index]
 
         self.ring_var = StringVar(value=ring_labels[alphabet.index(setting)])
 
@@ -566,7 +567,7 @@ class RotorSlot(BaseSlot):
             side='top', fill='x', padx=4)
         OptionMenu(self, self.ring_var, *ring_labels).pack(side='top')
 
-        self.choice_var.set(self.master.enigma.rotors[index].label)
+        self.choice_var.set(self.master.data_handler.enigma.rotors[index].label)
         self.ring_var.trace('w', self.master.update_all)
 
     def update_selected(self, event=None):
@@ -583,7 +584,7 @@ class ReflectorSlot(BaseSlot):
         BaseSlot.__init__(self, master, tk_master, 'REFLECTOR', *args, **kwargs)
 
         self.generate_contents(reflectors)
-        self.choice_var.set(self.master.enigma.reflector.label)
+        self.choice_var.set(self.master.data_handler.enigma.reflector.label)
         self.choice_var.trace('w', self.update_selected)
 
     def update_selected(self, *event):
