@@ -201,19 +201,19 @@ class EnigmaFactory:
         try:
             return globals()[model]
         except KeyError:
-            raise KeyError(f"No enigma model found for \"{model}\"!")
+            print(f"No enigma model found for \"{model}\"! Attempting to return alternative object...")
+            return Enigma1
 
-    def _get_model_data(self, enigma_model, reflector=None, rotors=None, stator=None):
+    def _get_model_data(self, model, rotor_count, reflector=None, rotors=None, stator=None):
         """Gets default configuration data, custom preferences can override default
         data."""
-        model = enigma_model.__name__
         model_data = self.model_data(model)
 
         # This block generates default data if specific preferences were not specified
         if not reflector:
             reflector = model_data['reflectors'][0]
         if not rotors:
-            rotors = model_data['rotors'][:enigma_model.rotor_count]
+            rotors = model_data['rotors'][:rotor_count]
         if not stator:
             stator = model_data['stators'][0]
 
@@ -230,7 +230,7 @@ class EnigmaFactory:
         """Produces an enigma machine given a specific model ( must be available
         in the specified cfg_path )"""
         ModelClass = self._get_model_class(model)
-        data = self._get_model_data(ModelClass, reflector, rotors, stator)
+        data = self._get_model_data(model, ModelClass.rotor_count, reflector, rotors, stator)
 
         if master:
             class TkEnigma(ModelClass):

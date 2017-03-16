@@ -93,15 +93,14 @@ class Root(Tk, Base):
         self.data_handler.switch_enigma(self.current_model.get())
         self.data_handler.enigma.clear_plugboard()
         self.io_board.text_input.delete('0.0', 'end')
-
         self.__reset_setting_vars()
-
-        self.update_indicators()
         self.lightboard.light_up('')
         self.io_board.format_entries()
         self.io_board.last_len = 0
         self.wm_title(self.current_model.get())
         self.refresh_uhr_button()
+        self.indicator_board.reload_indicators()
+        self.update_indicators()
 
     def plugboard_menu(self):
         """Opens the plugboard GUI"""
@@ -600,8 +599,15 @@ class IndicatorBoard(Frame):
         bg = self.data_handler.bg
         Frame.__init__(self, tk_master, bg=bg, *args, **kwargs)
 
+        self.indicators = []
+        self.reload_indicators()
+
+    def reload_indicators(self):
+        for indicator in self.indicators:
+            indicator.destroy()
 
         self.indicators = []
+
         for index in range(self.data_handler.enigma.rotor_count):
             indicator = RotorIndicator(self, index, self.data_handler)
             self.indicators.append(indicator)
