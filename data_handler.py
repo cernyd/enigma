@@ -32,11 +32,8 @@ class DataHandler:
         self.playback = Playback(master)
         self.switch_enigma()
 
-    def switch_enigma(self, model=None):
-        cfg = self.enigma_cfg
-        if model:
-            cfg['model'] = model
-        self.enigma = self.enigma_factory.produce_enigma(**cfg, master=self.master)
+    def switch_enigma(self, model='Enigma1'):
+        self.enigma = self.enigma_factory.produce_enigma(model, master=self.master)
 
     @property
     def font(self):
