@@ -22,6 +22,7 @@ class Playback:
 
 
 class DataHandler:
+    """Holds all up to date data and distributes it accross the whole program"""
     def __init__(self, master):
         self.global_cfg = Config('config.xml')
         self.global_cfg.focus_buffer('globals')
@@ -29,9 +30,13 @@ class DataHandler:
         self.enigma_factory = EnigmaFactory(['enigma', 'historical_data.xml'])
         self.enigma = self.enigma_factory.produce_enigma(**self.enigma_cfg, master=master)
         self.playback = Playback(master)
+        self.switch_enigma()
 
-    def switch_enigma(self, model):
-        self.enigma = self.enigma_factory.produce_enigma(model, master=self)
+    def switch_enigma(self, model=None):
+        cfg = self.enigma_cfg
+        if model:
+            cfg['model'] = model
+        self.enigma = self.enigma_factory.produce_enigma(**cfg, master=self.master)
 
     @property
     def font(self):
