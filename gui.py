@@ -2,9 +2,9 @@ from os import path
 from os import remove
 from re import sub
 from tkinter import *
+from tkinter import messagebox
 from webbrowser import open as open_browser
 from enigma.components import alphabet
-from data_handler import DataHandler
 
 # MISC
 
@@ -115,6 +115,7 @@ class Root(Tk, Base):
             self.open_uhr.config(state='active')
         else:
             self.open_uhr.config(state='disabled')
+        # self.open_uhr.config(state='active')
 
     def rotor_menu(self):
         """Opens the rotor gui and applies new values after closing"""
@@ -126,7 +127,7 @@ class Root(Tk, Base):
 
     def uhr_menu(self):
         """Opens the Uhr menu ( uhr settings are adjusted there )"""
-        self.wait_window(UhrMenu(self.enigma))
+        self.wait_window(UhrMenu(self.data_handler))
 
     def __make_root_menu(self):
         """Creates the top bar menu with saving/loading, various settings etc."""
@@ -234,9 +235,15 @@ class PlugboardMenu(Toplevel, Base):
 
         self.data_handler = data_handler
         self.used = []  # All used letters
+        self._uhr_mode = IntVar(0)
 
         labels = self.data_handler.enigma.factory_data['labels']
         layout = self.data_handler.enigma.factory_data['layout']
+
+        # BUTTONS
+        button_frame = Frame(self)
+        self.apply_button = Button(button_frame, text='Apply', width=12,
+                                   command=self.apply)
 
         # PLUG PAIRS
         rows = []
@@ -263,33 +270,42 @@ class PlugboardMenu(Toplevel, Base):
         # Packing the whole frame
         plug_socket_frame.pack(side='top')
 
-        # BUTTONS
-        button_frame = Frame(self)
-
         # This uhr mode will be used to distinguish between choosing uhr vs
         # normal pairs > different colors.
-        self.uhr_mode = IntVar(0)
-        self.uhr_mode_button = Checkbutton(button_frame, text='Uhr pairs', variable=self.uhr_mode)
-        self.uhr_mode_button.pack(side='left')
 
-        apply_button = Button(button_frame, text='Apply', width=12,
-                                   command=self.apply)
+        self.uhr_mode_button = Checkbutton(button_frame, text='Uhr pairs', variable=self._uhr_mode)
+        self.uhr_mode_button.pack(side='left')
 
         storno_button = Button(button_frame, text='Storno', width=12,
                                     command=self.destroy)
 
-        apply_button.pack(side='right', padx=5, pady=5)
+        self.apply_button.pack(side='right', padx=5, pady=5)
         storno_button.pack(side='right', padx=5, pady=5)
 
         button_frame.pack(side='bottom', fill='x')
 
+    def refresh_apply_button(self):
+        if len(self.pairs['uhr_pairs']) in (10, 0):
+            self.apply_button.config(state='active')
+        else:
+            self.apply_button.config(state='disabled')
+
+    @property
+    def uhr_mode(self):
+        return self._uhr_mode.get()
+
     def apply(self):
         """Applies all new pairs to the plugboard"""
-        self.data_handler.enigma.plugboard = {'normal_pairs': self.pairs}  # ADD UHR ASAP
-        self.destroy()
+        try:
+            self.data_handler.enigma.plugboard = self.pairs
+            self.destroy()
+        except AssertionError:
+            messagebox.showerror('Invalid number of Uhr pairs', 'Exactly 10 Uhr '
+                                                                'pairs (red pairs) must be set before applying!')
 
     def delete_used(self, letter):
         """Removes letter from used letter list"""
+        self.refresh_apply_button()
         try:
             self.used.remove(letter)
         except ValueError:
@@ -297,6 +313,7 @@ class PlugboardMenu(Toplevel, Base):
 
     def add_used(self, letter):
         """Adds letter to used letter list"""
+        self.refresh_apply_button()
         if letter not in self.used:
             self.used.append(letter)
 
@@ -309,11 +326,20 @@ class PlugboardMenu(Toplevel, Base):
     @property
     def pairs(self):
         """Returns all pairs"""
-        pairs = []
+        pairs = {'normal_pairs': [], 'uhr_pairs': []}
+
         for socket in self.plug_sockets:
-            pair = [socket.label, socket.get_socket()]
-            if all(pair) and pair not in pairs and list(reversed(pair)) not in pairs:
-                pairs.append(pair)
+            pair = socket.pair['pair']
+            unique = True
+
+            for pair_type in 'normal_pairs', 'uhr_pairs':
+                if pair not in pairs[pair_type] and tuple(reversed(pair)) not in pairs[pair_type]:
+                    continue
+                unique = False
+                break
+
+            if all(pair) and unique:
+                pairs[socket.pair['type']].append(pair)
 
         return pairs
 
@@ -326,7 +352,8 @@ class PlugSocket(Frame):
         self._label = label
         self.master = master
         self.enigma = enigma
-        self.pair = None
+        self.pair_obj = None
+        self.pair_type = None
 
         Label(self, text=label).pack(side='top')
 
@@ -336,23 +363,37 @@ class PlugSocket(Frame):
 
         # Loading data
 
-        my_pair = None
-        my_pair_mode = None
         for key, value in self.enigma.plugboard.items():
             for pair in value:
                 if self.label in pair:
-                    my_pair_mode = key
-                    my_pair = pair
+                    self.pair_type = key
+                    if key == 'uhr_pairs':
+                        self.master._uhr_mode.set(1)
+
+                    if pair[0] != self.label:
+                        self.plug_socket.set(pair[0])
+                    else:
+                        self.plug_socket.set(pair[1])
+
+                    self.master._uhr_mode.set(0)
                     break
 
-        if my_pair:
-            if my_pair[0] != self.label:
-                self.plug_socket.set(my_pair[0])
-            else:
-                self.plug_socket.set(my_pair[1])
+    @property
+    def pair(self):
+        """Returns pair"""
+        return {'pair': (self.label, self.get_socket()), 'type': self.pair_type}
 
-    def link(self, target='', obj=None):  # This whole class is a mess
+    def link(self, target='', obj=None, type='normal_pairs'):  # This whole class is a mess
+        if self.master.uhr_mode:
+            type = 'uhr_pairs'
+            self.plug_socket.config(bg='red')
+        else:
+            self.plug_socket.config(bg='black', fg='white')
+
         if not obj:  # Link constructed locally
+            if self.master.uhr_mode:
+                self.plug_socket.config(bg='gray85')
+
             if target:
                 obj = self.master.get_target(target)
                 if obj:
@@ -362,17 +403,22 @@ class PlugSocket(Frame):
             else:
                 print('Invalid (empty) link call.')
                 return
+
+        self.pair_type = type
         self.plug_socket.set(obj.label)
-        self.pair = obj
+        self.pair_obj = obj
         self.master.add_used(self.label)
 
     def unlink(self, external=False):  # Attempting to unlink after each delete!
         self.master.delete_used(self.label)
-        if self.pair:
+        self.plug_socket.config(bg='white', fg='black')
+
+        if self.pair_obj:
             if not external:  # Would cause a loop presumably
-                self.pair.unlink(True)
+                self.pair_obj.unlink(True)
             self.plug_socket.clear()
-            self.pair = None
+            self.pair_obj = None
+            self.pair_type = None
         else:
             print('Invalid unlink attempt (object not linked).')
 
@@ -412,6 +458,7 @@ class PlugEntry(Entry):
         self.last_val = ''
 
     def event(self, *event):
+        """Reports an event to its plugsocket"""
         new_val = self.validate(self.get())  # Raw new data
         delete = self.last_val and not new_val
         write = not self.last_val and new_val
@@ -425,16 +472,20 @@ class PlugEntry(Entry):
             self.master.callback('WRITE')
 
     def clear(self):
+        """Clears the plugsocket"""
         self.delete('0', 'end')
 
     def set(self, string):
+        """Sets the plugsocket"""
         self.clear()
         self.insert(0, string)
 
     def get(self):
+        """Returns socket value"""
         return Entry.get(self).upper()
 
     def validate(self, raw):
+        """Validates socket contents"""
         forbidden = ''.join(self.master.local_forbidden)
         raw = sub('([\s]|[%s]|[^a-zA-Z])+' % forbidden, '', raw).upper()
         return raw[0] if raw else raw
@@ -444,12 +495,11 @@ class PlugEntry(Entry):
 
 class UhrMenu(Toplevel, Base):
     """Menu for selecting Uhr position"""
-    def __init__(self, enigma, *args, **kwargs):
+    def __init__(self, data_handler, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
         Base.__init__(self, '', 'Uhr menu')
 
-        self.enigma = enigma
-
+        self.data_handler = data_handler
         selector_frame = Frame(self)
 
         self.left_button = Button(selector_frame, text='<', relief='raised', command=lambda: self.rotate(-1))
@@ -457,23 +507,23 @@ class UhrMenu(Toplevel, Base):
         self.right_button = Button(selector_frame, text='>', relief='raised', command=lambda: self.rotate(1))
 
         self.left_button.pack(side='left')
-        self.position_indicator.pack(side='left')
+        self.position_indicator.pack(side='left', padx=10, pady=5)
         self.right_button.pack(side='left')
 
         selector_frame.pack(side='top')
 
         button_frame = Frame(self)
         Button(button_frame, text='Close', command=self.destroy).pack(side='right')
-        button_frame.pack(side='bottom')
+        button_frame.pack(side='bottom', padx=5, pady=5)
 
         self.refresh_indicator()
 
     def rotate(self, places=0):
-        self.enigma.uhr_position += places
+        self.data_handler.enigma.uhr_position += places
         self.refresh_indicator()
 
     def refresh_indicator(self):
-        self.position_indicator.config(text=self.enigma.uhr_position)
+        self.position_indicator.config(text=self.data_handler.enigma.uhr_position)
 
 # ROTOR MENU
 
