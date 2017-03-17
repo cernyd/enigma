@@ -23,9 +23,12 @@ class Base:
 
 class Root(Tk, Base):
     """Root GUI class with enigma entry field, plugboard button, rotor button"""
-    def __init__(self, *args, **kwargs):
+    def __init__(self, data_handler, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
-        self.data_handler = DataHandler(self)
+
+        self.data_handler = data_handler
+        self.data_handler.set_master(self)  # Sets up master for TkEnigma
+
         Base.__init__(self, 'enigma.ico', self.data_handler.enigma_cfg['model'])
         self.root_menu = None
 
@@ -228,9 +231,9 @@ class PlugboardMenu(Toplevel, Base):
     def __init__(self, data_handler, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
         Base.__init__(self, 'plugboard.ico', 'Plugboard')
+
         self.data_handler = data_handler
         self.used = []  # All used letters
-        self._pairs = self.data_handler.enigma.plugboard  # Pairs to return
 
         labels = self.data_handler.enigma.factory_data['labels']
         layout = self.data_handler.enigma.factory_data['layout']
@@ -239,25 +242,32 @@ class PlugboardMenu(Toplevel, Base):
         rows = []
         self.plug_sockets = []
 
+        # Frame in which all plugs are contained
         plug_socket_frame = Frame(self)
 
+        # Creating plug objects
         for row in layout:
             new_row = Frame(plug_socket_frame)
             for item in row:
                 self.plug_sockets.append(PlugSocket(self, new_row, self.data_handler.enigma, labels[item]))
             rows.append(new_row)
 
+        # Packs rows vertically
         for row in rows:
             row.pack(side='top')
 
+        # Packs item in a row
         for item in self.plug_sockets:
             item.pack(side='left')
 
+        # Packing the whole frame
         plug_socket_frame.pack(side='top')
 
         # BUTTONS
         button_frame = Frame(self)
 
+        # This uhr mode will be used to distinguish between choosing uhr vs
+        # normal pairs > different colors.
         self.uhr_mode = IntVar(0)
         self.uhr_mode_button = Checkbutton(button_frame, text='Uhr pairs', variable=self.uhr_mode)
         self.uhr_mode_button.pack(side='left')
@@ -274,31 +284,37 @@ class PlugboardMenu(Toplevel, Base):
         button_frame.pack(side='bottom', fill='x')
 
     def apply(self):
+        """Applies all new pairs to the plugboard"""
         self.data_handler.enigma.plugboard = {'normal_pairs': self.pairs}  # ADD UHR ASAP
         self.destroy()
 
     def delete_used(self, letter):
+        """Removes letter from used letter list"""
         try:
             self.used.remove(letter)
         except ValueError:
             pass
 
     def add_used(self, letter):
+        """Adds letter to used letter list"""
         if letter not in self.used:
             self.used.append(letter)
 
     def get_target(self, label):
+        """Returns object with the target label, presumably for linking."""
         for socket in self.plug_sockets:
             if socket.label == label:
                 return socket
 
     @property
     def pairs(self):
+        """Returns all pairs"""
         pairs = []
         for socket in self.plug_sockets:
             pair = [socket.label, socket.get_socket()]
             if all(pair) and pair not in pairs and list(reversed(pair)) not in pairs:
                 pairs.append(pair)
+
         return pairs
 
 
@@ -320,11 +336,16 @@ class PlugSocket(Frame):
 
         # Loading data
 
-        my_pair = [pair for pair in self.enigma.plugboard if
-                   self.label in pair]
+        my_pair = None
+        my_pair_mode = None
+        for key, value in self.enigma.plugboard.items():
+            for pair in value:
+                if self.label in pair:
+                    my_pair_mode = key
+                    my_pair = pair
+                    break
 
         if my_pair:
-            my_pair = my_pair[0]
             if my_pair[0] != self.label:
                 self.plug_socket.set(my_pair[0])
             else:
@@ -364,6 +385,7 @@ class PlugSocket(Frame):
 
     @property
     def local_forbidden(self):
+        """Adds the label of the current plug to filtered letters"""
         if self.label not in self.master.used:
             return [self.label] + self.master.used
         else:
