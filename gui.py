@@ -37,7 +37,10 @@ class Root(Tk, Base):
         self._autorotate = IntVar(value=1)
         self._rotor_lock = IntVar(value=0)
         self._sync_scroll = IntVar(value=1)
+        self._show_numbers = IntVar(value=0)
         self.__reset_setting_vars()  #  Setting vars are not set correctly if not refreshed!
+
+        self._show_numbers.trace('w', lambda *args: self.indicator_board.update_indicators())
 
         # Frames
         self.rotor_container = Frame(self, bd=1, relief='raised', bg=self.data_handler.bg)
@@ -82,6 +85,7 @@ class Root(Tk, Base):
         self._sound_enabled.set(var_config['sound_enabled'])
         self._sync_scroll.set(var_config['sync_scroll'])
         self._rotor_lock.set(var_config['rotor_lock'])
+        self._show_numbers.set(var_config['show_numbers'])
 
     @property
     def rotor_lock(self):
@@ -96,7 +100,6 @@ class Root(Tk, Base):
         self.data_handler.switch_enigma(self.current_model.get())
         self.data_handler.enigma.clear_plugboard()
         self.io_board.text_input.delete('0.0', 'end')
-        self.__reset_setting_vars()
         self.lightboard.light_up('')
         self.io_board.format_entries()
         self.io_board.last_len = 0
@@ -104,6 +107,7 @@ class Root(Tk, Base):
         self.refresh_uhr_button()
         self.indicator_board.reload_indicators()
         self.update_indicators()
+        self.__reset_setting_vars()
 
     def plugboard_menu(self):
         """Opens the plugboard GUI"""
@@ -115,7 +119,6 @@ class Root(Tk, Base):
             self.open_uhr.config(state='active')
         else:
             self.open_uhr.config(state='disabled')
-        # self.open_uhr.config(state='active')
 
     def rotor_menu(self):
         """Opens the rotor gui and applies new values after closing"""
@@ -161,6 +164,8 @@ class Root(Tk, Base):
                                       variable=self._rotor_lock)
         settings_menu.add_checkbutton(label='Synchronised scrolling',
                                       variable=self._sync_scroll)
+        settings_menu.add_checkbutton(label='Numbers on rotor indicators',
+                                      variable=self._show_numbers)
         settings_menu.add_separator()
 
         # ENIGMA RESET AND MODEL SETTINGS
@@ -361,14 +366,14 @@ class PlugSocket(Frame):
 
         self.plug_socket.pack(side='bottom', pady=5)
 
-        # Loading data
-
+        # Loading data ( the problem with plug color is most likely here )
         for key, value in self.enigma.plugboard.items():
             for pair in value:
                 if self.label in pair:
                     self.pair_type = key
                     if key == 'uhr_pairs':
                         self.master._uhr_mode.set(1)
+                        pass
 
                     if pair[0] != self.label:
                         self.plug_socket.set(pair[0])
@@ -383,7 +388,8 @@ class PlugSocket(Frame):
         """Returns pair"""
         return {'pair': (self.label, self.get_socket()), 'type': self.pair_type}
 
-    def link(self, target='', obj=None, type='normal_pairs'):  # This whole class is a mess
+    def link(self, target='', obj=None):  # This whole class is a mess
+        type = 'normal_pairs'
         if self.master.uhr_mode:
             type = 'uhr_pairs'
             self.plug_socket.config(bg='red')
@@ -497,13 +503,14 @@ class UhrMenu(Toplevel, Base):
     """Menu for selecting Uhr position"""
     def __init__(self, data_handler, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
-        Base.__init__(self, '', 'Uhr menu')
+        Base.__init__(self, 'uhr.ico', 'Uhr menu')
 
         self.data_handler = data_handler
         selector_frame = Frame(self)
+        self.geometry('225x85')
 
         self.left_button = Button(selector_frame, text='<', relief='raised', command=lambda: self.rotate(-1))
-        self.position_indicator = Label(selector_frame, relief='sunken')
+        self.position_indicator = Label(selector_frame, relief='sunken', width=2, font=('Arial', 25))
         self.right_button = Button(selector_frame, text='>', relief='raised', command=lambda: self.rotate(1))
 
         self.left_button.pack(side='left')
@@ -519,11 +526,12 @@ class UhrMenu(Toplevel, Base):
         self.refresh_indicator()
 
     def rotate(self, places=0):
+        self.data_handler.playback.play('click')
         self.data_handler.enigma.uhr_position += places
         self.refresh_indicator()
 
     def refresh_indicator(self):
-        self.position_indicator.config(text=self.data_handler.enigma.uhr_position)
+        self.position_indicator.config(text='{:0>2}'.format(self.data_handler.enigma.uhr_position))
 
 # ROTOR MENU
 
@@ -720,8 +728,10 @@ class RotorIndicator(Frame):
 
     def update_indicator(self, event=None):
         """Updates what is displayed on the indicator"""
-        raw = self.data_handler.enigma.positions[self.index]
-        self.indicator.config(text=raw)
+        text = self.data_handler.enigma.positions[self.index]
+        if self.data_handler.master._show_numbers.get():
+            text = '{:0>2}'.format(alphabet.index(text)+1)
+        self.indicator.config(text=text)
 
 
 # IOBOARD

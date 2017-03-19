@@ -345,7 +345,6 @@ class Enigma:
         self.rotors = rotors
         self._reflector = None
         self.reflector = reflector
-
         self.factory_data = factory_data  # All available components
 
     def step_primary(self, places):
@@ -777,9 +776,7 @@ class Uhr(_Rotatable):
 
     @position.setter
     def position(self, position):
-        if position not in range(40):
-            raise AssertionError(f'Invalid Uhr position of "{position}"')
-        while self.relative_board[0] != position:
+        while self.position != position % 40:
             self._change_board_offset('relative_board', 1)
             self._change_board_offset('back_board', 1)
 
