@@ -787,9 +787,23 @@ class IOBoard(Frame):
         else:
             return False, 0
 
+    def _split_text(self, string, group_length=4):
+        def splitter():
+            nonlocal  string
+            subgroup = ''
+            for letter in string:
+                subgroup += letter
+                if len(subgroup) == group_length:
+                    yield subgroup
+                    subgroup = ''
+
+            if subgroup: yield subgroup
+
+        return ' '.join(splitter())
+
     def format_entries(self):
         """Ensures input/output fields have the same length"""
-        sanitized_text = sub(r"[^A-Za-z]", '', self.input_box)
+        sanitized_text = self._split_text(sub(r"[^A-Za-z]", '', self.input_box))
         self.input_box = sanitized_text
         self.output_box = self.output_box[:len(sanitized_text)]
 
@@ -807,7 +821,9 @@ class IOBoard(Frame):
                 if length_status == 'longer':
                     self.data_handler.playback.play('button_press')
                     for letter in self.input_box[-length_difference:]:
-                        self.output_box += self.data_handler.enigma.button_press(letter)
+                        print('THE LETTER IS > ', letter)
+                        if letter != ' ':
+                            self.output_box += self.data_handler.enigma.button_press(letter)
 
                 elif length_status == 'shorter' and self.master.autorotate:
                     for _ in range(abs(length_difference)):
@@ -853,7 +869,7 @@ class IOBoard(Frame):
         """Sets output field to the value of string"""
         self.text_output.config(state='normal')
         self.text_output.delete('0.0', 'end')
-        self.text_output.insert('0.0', string)
+        self.text_output.insert('0.0', self._split_text(string))
         self.text_output.config(state='disabled')
 
 
