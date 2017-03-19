@@ -8,7 +8,7 @@
         <bg color="gray85"/>
         <unit_tests startup_test="True"/>
         <historical_cfg data_dir="enigma\historical_data.xml"/>
-        <setting_vars toint="*" sound_enabled="1" autorotate="1" sync_scroll="1" rotor_lock="0"/>
+        <setting_vars toint="*" sound_enabled="1" autorotate="1" sync_scroll="1" rotor_lock="0" show_numbers="0"/>
     </globals>
     <test_cfg>
         <!--Data for enigma unit tests-->
