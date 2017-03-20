@@ -773,8 +773,8 @@ class IOBoard(Frame):
 
     def status(self):
         """Checks for any changes in the entered text length"""
-        self.format_entries()
         input_length = len(self.input_box)
+
         if self.last_len != input_length:
             len_difference = input_length - self.last_len
 
@@ -789,7 +789,7 @@ class IOBoard(Frame):
 
     def _split_text(self, string, group_length=4):
         def splitter():
-            nonlocal  string
+            nonlocal string
             subgroup = ''
             for letter in string:
                 subgroup += letter
@@ -803,27 +803,31 @@ class IOBoard(Frame):
 
     def format_entries(self):
         """Ensures input/output fields have the same length"""
-        sanitized_text = self._split_text(sub(r"[^A-Za-z]", '', self.input_box))
+        sanitized_text = self.format_string(self.input_box)
         self.input_box = sanitized_text
         self.output_box = self.output_box[:len(sanitized_text)]
 
+    def format_string(self, string): return sub(r"[^A-Za-z]", '', string)
+
     def press_event(self, event=None):
-        """Activates if any key is pressed"""
+        """Activates if any key is pressed, performs analysis on what happened,
+        if text was correctly edited, it adds encrypted letters from the enigma
+        to output box."""
         correct_widget = type(event.widget) == Text and hasattr(event.widget,
                                                                 'is_input_widget')
 
         not_keystroke = event.state != 12 and 'Control' not in event.keysym
 
         if correct_widget and (not_keystroke or event.keysym in 'vVxX'):  # Because I can't trace it...
+            self.format_entries()
             length_status, length_difference = self.status()
 
             if length_status:
                 if length_status == 'longer':
                     self.data_handler.playback.play('button_press')
+
                     for letter in self.input_box[-length_difference:]:
-                        print('THE LETTER IS > ', letter)
-                        if letter != ' ':
-                            self.output_box += self.data_handler.enigma.button_press(letter)
+                        self.output_box += self.data_handler.enigma.button_press(letter)
 
                 elif length_status == 'shorter' and self.master.autorotate:
                     for _ in range(abs(length_difference)):
@@ -869,7 +873,7 @@ class IOBoard(Frame):
         """Sets output field to the value of string"""
         self.text_output.config(state='normal')
         self.text_output.delete('0.0', 'end')
-        self.text_output.insert('0.0', self._split_text(string))
+        self.text_output.insert('0.0', string)
         self.text_output.config(state='disabled')
 
 
