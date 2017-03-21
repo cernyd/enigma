@@ -360,6 +360,9 @@ class PlugSocket(Frame):
         self.pair_obj = None
         self.pair_type = None
 
+        # Everything is done unnecessarily twice when linking
+        self.skip_next = False
+
         Label(self, text=label).pack(side='top')
 
         self.plug_socket = PlugEntry(self, self, width=2, justify='center')
@@ -388,32 +391,35 @@ class PlugSocket(Frame):
         """Returns pair"""
         return {'pair': (self.label, self.get_socket()), 'type': self.pair_type}
 
-    def link(self, target='', obj=None):  # This whole class is a mess
-        type = 'normal_pairs'
-        if self.master.uhr_mode:
-            type = 'uhr_pairs'
-            self.plug_socket.config(bg='red')
-        else:
-            self.plug_socket.config(bg='black', fg='white')
-
-        if not obj:  # Link constructed locally
+    def link(self, target='', obj=None, type='normal_pairs'):  # This whole class is a mess
+        print(f'LABEL > {self.label} | TARGET > {target} | OBJECT > {obj}')
+        if not self.skip_next:
             if self.master.uhr_mode:
-                self.plug_socket.config(bg='gray85')
-
-            if target:
-                obj = self.master.get_target(target)
-                if obj:
-                    obj.link(obj=self)
-                else:
-                    return
+                type = 'uhr_pairs'
+                self.plug_socket.config(bg='red')
             else:
-                print('Invalid (empty) link call.')
-                return
+                self.plug_socket.config(bg='black', fg='white')
 
-        self.pair_type = type
-        self.plug_socket.set(obj.label)
-        self.pair_obj = obj
-        self.master.add_used(self.label)
+            if not obj:  # Link constructed locally
+                if self.master.uhr_mode:
+                    self.plug_socket.config(bg='gray85')
+
+                if target:
+                    obj = self.master.get_target(target)
+                    if obj:
+                        obj.link(obj=self)
+                    else:
+                        return
+                else:
+                    print('Invalid (empty) link call.')
+                    return
+
+            self.pair_type = type
+            self.skip_next = True
+            self.plug_socket.set(obj.label)
+            self.skip_next = False
+            self.pair_obj = obj
+            self.master.add_used(self.label)
 
     def unlink(self, external=False):  # Attempting to unlink after each delete!
         self.master.delete_used(self.label)
@@ -532,6 +538,7 @@ class UhrMenu(Toplevel, Base):
 
     def refresh_indicator(self):
         self.position_indicator.config(text='{:0>2}'.format(self.data_handler.enigma.uhr_position))
+
 
 # ROTOR MENU
 
