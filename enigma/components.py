@@ -5,6 +5,7 @@ from functools import wraps
 import unittest
 from tkinter import messagebox
 
+
 # UNIT TEST
 
 class TestEnigma(unittest.TestCase):
@@ -83,13 +84,6 @@ class TestEnigma(unittest.TestCase):
                                                              ' pairs assigned!')
         with self.assertRaises(AttributeError):
             self.subject.plugboard = 'garbage_input'
-
-
-    # def test_cfg_io(self):
-    #     """Tests if rotor data is dumped and loaded correctly"""
-    #
-    # def test_enigma_cfg_io(self):
-    #     """Tests if enigma data is dumped and loaded correctly"""
 
 
 # GENERIC COMPONENTS
@@ -432,14 +426,8 @@ class Enigma:
 
     def dump_config(self):
         """Dumps the whole enigma data config"""
-        return dict(reflector=self.reflector.dump_config(),
-                    rotors=[rotor.dump_config() for rotor in self._rotors])
-
-    def load_config(self, data):
-        """Loads everything from the data config"""
-        self._reflector.config(**data['reflector'])
-        for rotor, config in zip(self._rotors, data['rotors']):
-            rotor.config(**config)
+        return dict(reflector=self.reflector.label,
+                    rotors=' '.join(self.rotor_labels))
 
 
 class Enigma1(Enigma):
@@ -482,13 +470,11 @@ class Enigma1(Enigma):
         output = Enigma.button_press(self, output)
         return self._plugboard.route(output)
 
-    def load_config(self, data):
-        self._plugboard = data['plugboard']
-        Enigma.load_config(self, data)
-
     def dump_config(self):
         config = Enigma.dump_config(self)
-        config.update(plugboard=self._plugboard)
+        normal_pairs = ' '.join(self._plugboard.pairs['normal_pairs'])
+        uhr_pairs = ' '.join(self._plugboard.pairs['uhr_pairs'])
+        config.update(normal_pairs=normal_pairs, uhr_pairs=uhr_pairs)
         return config
 
 
@@ -508,11 +494,8 @@ class EnigmaM4(EnigmaM3):
 
 class _RotorBase:
     """Base class for Rotors and Reflectors"""
-    def __init__(self, label, back_board, valid_cfg=tuple()):
-        """All parameters except should be passed in **config, valid_cfg is a
-        tuple of additional configuration data for config loading and dumping"""
-        self.valid_cfg = ['back_board', 'label']
-        self.valid_cfg.extend(valid_cfg)
+    def __init__(self, label, back_board):
+        """All parameters except should be passed in **config"""
 
         self.back_board = back_board  # Defines internal wiring
         self.label = label
@@ -538,22 +521,6 @@ class _RotorBase:
     def _route_forward(self, letter):
         """Routes letters from front board to back board"""
         return self.back_board[alphabet.index(letter)]
-
-    def config(self, **attrs):
-        """Loads rotor configuration data"""
-        for attr in attrs.keys():
-            if attr not in self.valid_cfg:
-                raise AttributeError(f'Invalid attribute "{attr}"!')
-            value = attrs.get(attr)
-            if value:
-                setattr(self, attr, value)
-
-    def dump_config(self):
-        """Dumps rotor configuration data"""
-        cfg = {}
-        for attr in self.valid_cfg:
-            cfg[attr] = self.__dict__[attr]
-        return cfg
 
 
 class _Rotatable:
@@ -588,8 +555,7 @@ class Stator(_RotorBase):
 class Rotor(Stator, _Rotatable):
     """Inherited from RotorBase, adds rotation and ring setting functionality"""
     def __init__(self, label,  back_board, turnover=''):
-        Stator.__init__(self, label, back_board,
-                            valid_cfg=('position_ring', '_Rotor_turnover', 'relative_board'))
+        Stator.__init__(self, label, back_board)
         self._turnover = turnover  # Letter shown on turnover position
 
         # position_ring = position currently shown in the position window,
@@ -668,7 +634,7 @@ class UKW_D:
     ( replacing the thin reflector and extra rotor! ). UKW-D is a field
     rewirable Enigma machine reflector."""
     def __init__(self, pairs=tuple()):
-        self._pairs = WiredPairs('BO')  # BO pair is static!
+        self._pairs = WiredPairs(('BO', ))  # BO pair is static!
         self.alphabet =  "ACDEFGHIJKLMNPQRSTUVWXYZ"
         self.index_ring = "AZXWVUTSRQPONMLKIHGFEDCB"
         self.wiring_pairs = pairs

@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET
-from re import findall
 from functools import wraps
+from re import findall
 from os import path
 
 
@@ -12,7 +12,10 @@ class Config:
         try:
             if type(buffer_path) == list:
                 buffer_path = path.join(*buffer_path)
-            self.__buffer_data = ET.parse(buffer_path).getroot()
+
+            self.buffer_path = buffer_path
+            self.tree = ET.parse(buffer_path)
+            self.__buffer_data = self.tree.getroot()
         except FileNotFoundError as err:
             err.message = "Requested configuration file not found!"
             raise
@@ -37,7 +40,8 @@ class Config:
             return func(self, path, *args, **kwargs)
         return wrapper
 
-    def __buffer(self):
+    @property
+    def buffer(self):
         if self.__curr_focus:
             return self.__buffer_data.find(self.__curr_focus)
         else:
@@ -111,7 +115,7 @@ class Config:
     @__check_context
     def find(self, data_path, data_type='ATTRS'):
         """Returns data based on data type and data path specified"""
-        data = self.__buffer().find(data_path)  # Should somehow iterate over results
+        data = self.buffer.find(data_path)  # Should somehow iterate over results
         err_msg = f"No data found for path \"{data_path}\"!"
         assert data != None, err_msg
 
@@ -121,12 +125,19 @@ class Config:
     @__check_context
     def iter_find(self, data_path, data_type='ATTRS'):
         """Finds all data iteratively in the current buffer scope."""
-        data = list(self.__buffer().iter(data_path))
+        data = list(self.buffer.iter(data_path))
         err_msg = f"No data found for path \"{data_path}\"!"
         assert data != None and data != [], err_msg
 
         return [Config.__process_data(item, data_type) for item in data]
 
-    def save_data(self, save_path, data):
+    def save_data(self, data):
         """Saves the edited data buffer back to the original file"""
-        pass
+        self.clear_focus()
+
+        save_location = self.buffer.find('saved')
+
+        ET.SubElement(save_location, 'gui', attrib=dict(split='*', toint='*', **data['gui']))
+        ET.SubElement(save_location, 'enigma', attrib=dict(split='rotors uhr_pairs normal_pairs', **data['enigma']))
+
+        self.tree.write(self.buffer_path)
