@@ -193,41 +193,17 @@ class Root(Tk, Base):
         return self._autorotate.get()
 
     def save_config(self):  # Not flexible
-        """
-        choice = True
-        if glob('settings.txt'):
-            msg = 'Save file detected, do you wish to overwrite with new ' \
-                  'configuration data?'
-
-            choice = messagebox.askyesno('Save file detected', msg)
-
-        if choice:
-            data = dict(root=dict(sound_enabled=self._sound_enabled.get(),
-                                  autorotate=self._autorotate.get(),
-                                  rotor_lock=self._rotor_lock.get(),
-                                  synchronised_scrolling=self._sync_scroll.get()),
-                        enigma=self.enigma.dump_config())
-        """
+        self.data_handler.save_config()
 
     def load_config(self):  # Not flexible
-        """
-        if glob('settings.txt'):
-            try:
-                data = load_config()
-                self._sound_enabled.set(data['root']['sound_enabled'])
-                self._autorotate.set(data['root']['autorotate'])
-                self._rotor_lock.set(data['root']['rotor_lock'])
-                self._sync_scroll.set(data['root']['synchronised_scrolling'])
-                self.reset_all()
-                self.enigma.load_config(data['enigma'])
-                self.update_indicators()
-            except Exception as err:
-                messagebox.showerror('Loading error', f'Failed to load '
-                                                      'configuration,'
-                                                      'Error message:"{err}"')
-        else:
-            messagebox.showerror('Loading error', 'No save file found!')
-        """
+        pass
+        # self._sound_enabled.set(data['root']['sound_enabled'])
+        # self._autorotate.set(data['root']['autorotate'])
+        # self._rotor_lock.set(data['root']['rotor_lock'])
+        # self._sync_scroll.set(data['root']['synchronised_scrolling'])
+        # self.reset_all()
+        # self.enigma.load_config(data['enigma'])
+        # self.update_indicators()
 
 
 # PLUGBOARD MENU

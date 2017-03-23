@@ -1,7 +1,7 @@
-from cfg_handler import Config
 from enigma.components import EnigmaFactory
-from glob import glob
 from winsound import PlaySound, SND_ASYNC
+from cfg_handler import Config
+from glob import glob
 from os import path
 
 
@@ -58,3 +58,16 @@ class DataHandler:
     @property
     def settings_vars(self):
         return self.global_cfg.find('setting_vars')
+
+    def save_config(self):
+        data = dict(gui=dict(sound_enabled=str(self.master.sound_enabled),
+                    autorotate=str(self.master.autorotate),
+                    rotor_lock=str(self.master.rotor_lock),
+                    synchronised_scrolling=str(self.master.sync_scroll)),
+                    enigma=dict(self.enigma.dump_config()))
+
+        self.global_cfg.save_data(data)
+
+    def load_config(self):
+        pass
+
