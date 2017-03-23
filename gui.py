@@ -392,34 +392,30 @@ class PlugSocket(Frame):
         return {'pair': (self.label, self.get_socket()), 'type': self.pair_type}
 
     def link(self, target='', obj=None, type='normal_pairs'):  # This whole class is a mess
-        print(f'LABEL > {self.label} | TARGET > {target} | OBJECT > {obj}')
-        if not self.skip_next:
+        if self.master.uhr_mode:
+            type = 'uhr_pairs'
+            self.plug_socket.config(bg='red')
+        else:
+            self.plug_socket.config(bg='black', fg='white')
+
+        if not obj:  # Link constructed locally
             if self.master.uhr_mode:
-                type = 'uhr_pairs'
-                self.plug_socket.config(bg='red')
-            else:
-                self.plug_socket.config(bg='black', fg='white')
+                self.plug_socket.config(bg='gray85')
 
-            if not obj:  # Link constructed locally
-                if self.master.uhr_mode:
-                    self.plug_socket.config(bg='gray85')
-
-                if target:
-                    obj = self.master.get_target(target)
-                    if obj:
-                        obj.link(obj=self)
-                    else:
-                        return
+            if target:
+                obj = self.master.get_target(target)
+                if obj:
+                    obj.link(obj=self)
                 else:
-                    print('Invalid (empty) link call.')
                     return
+            else:
+                print('Invalid (empty) link call.')
+                return
 
-            self.pair_type = type
-            self.skip_next = True
-            self.plug_socket.set(obj.label)
-            self.skip_next = False
-            self.pair_obj = obj
-            self.master.add_used(self.label)
+        self.pair_type = type
+        self.plug_socket.set(obj.label)
+        self.pair_obj = obj
+        self.master.add_used(self.label)
 
     def unlink(self, external=False):  # Attempting to unlink after each delete!
         self.master.delete_used(self.label)
