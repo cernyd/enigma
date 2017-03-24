@@ -247,6 +247,7 @@ class PlugboardMenu(Toplevel, Base):
         button_frame = Frame(self)
         self.apply_button = Button(button_frame, text='Apply', width=12,
                                    command=self.apply)
+        self.clear_button = Button(button_frame, text='Clear all pairs', width=12, command=self.clear_all)
 
         # PLUG PAIRS
         rows = []
@@ -283,6 +284,7 @@ class PlugboardMenu(Toplevel, Base):
                                     command=self.destroy)
 
         self.apply_button.pack(side='right', padx=5, pady=5)
+        self.clear_button.pack(side='right', padx=5, pady=5)
         storno_button.pack(side='right', padx=5, pady=5)
 
         button_frame.pack(side='bottom', fill='x')
@@ -319,6 +321,12 @@ class PlugboardMenu(Toplevel, Base):
         self.refresh_apply_button()
         if letter not in self.used:
             self.used.append(letter)
+
+    def clear_all(self):
+        """Clears all plugboard pairs"""
+        self.data_handler.enigma.clear_plugboard()
+        for socket in self.plug_sockets:
+            socket.unlink()
 
     def get_target(self, label):
         """Returns object with the target label, presumably for linking."""
@@ -357,63 +365,68 @@ class PlugSocket(Frame):
         self.enigma = enigma
         self.pair_obj = None
         self.pair_type = None
-
-        # Everything is done unnecessarily twice when linking
         self.skip_next = False
 
         Label(self, text=label).pack(side='top')
 
         self.plug_socket = PlugEntry(self, self, width=2, justify='center')
 
-        self.plug_socket.pack(side='bottom', pady=5)
+        self.plug_socket.pack(side='bottom', pady=5, padx=12)
 
         # Loading data ( the problem with plug color is most likely here )
-        for key, value in self.enigma.plugboard.items():
-            for pair in value:
-                if self.label in pair:
-                    self.pair_type = key
-                    if key == 'uhr_pairs':
-                        self.master._uhr_mode.set(1)
-                        pass
+        if self.label not in ''.join(self.master.used):
+            for key, value in self.enigma.plugboard.items():
+                for pair in value:
+                    if self.label in pair:
+                        self.pair_type = key
+                        if key == 'uhr_pairs':
+                            self.master._uhr_mode.set(1)
+                            pass
+                        if pair[0] != self.label:
+                            self.plug_socket.set(pair[0])
+                        else:
+                            self.plug_socket.set(pair[1])
 
-                    if pair[0] != self.label:
-                        self.plug_socket.set(pair[0])
-                    else:
-                        self.plug_socket.set(pair[1])
-
-                    self.master._uhr_mode.set(0)
-                    break
+                        self.master._uhr_mode.set(0)
+                        break
 
     @property
     def pair(self):
         """Returns pair"""
         return {'pair': (self.label + self.get_socket()), 'type': self.pair_type}
 
-    def link(self, target='', obj=None, type='normal_pairs'):  # This whole class is a mess
-        if self.master.uhr_mode:
-            type = 'uhr_pairs'
-            self.plug_socket.config(bg='red')
+    def link(self, target='', obj=None):  # This whole class is a mess
+        type = 'normal_pairs'
+
+        if self.skip_next:
+            self.skip_next = False
         else:
             self.plug_socket.config(bg='black', fg='white')
-
-        if not obj:  # Link constructed locally
-            if self.master.uhr_mode:
-                self.plug_socket.config(bg='gray85')
-
-            if target:
-                obj = self.master.get_target(target)
-                if obj:
-                    obj.link(obj=self)
+            if not obj:  # Link constructed locally
+                if self.master.uhr_mode:
+                    type = 'uhr_pairs'
+                    self.plug_socket.config(bg='red')
+                else:
+                    pass
+                if target:
+                    obj = self.master.get_target(target)
+                    if obj:
+                        obj.link(obj=self)
+                        if self.master.uhr_mode:
+                            obj.plug_socket.config(bg='gray', fg='white')
+                        else:
+                            obj.plug_socket.config(bg='black', fg='white')
+                    else:
+                        return
                 else:
                     return
-            else:
-                print('Invalid (empty) link call.')
-                return
 
-        self.pair_type = type
-        self.plug_socket.set(obj.label)
-        self.pair_obj = obj
-        self.master.add_used(self.label)
+            self.pair_type = type
+            self.skip_next = True
+            self.plug_socket.set(obj.label)
+            self.skip_next = False
+            self.pair_obj = obj
+            self.master.add_used(self.label)
 
     def unlink(self, external=False):  # Attempting to unlink after each delete!
         self.master.delete_used(self.label)
@@ -425,8 +438,6 @@ class PlugSocket(Frame):
             self.plug_socket.clear()
             self.pair_obj = None
             self.pair_type = None
-        else:
-            print('Invalid unlink attempt (object not linked).')
 
     @property
     def label(self):
@@ -459,23 +470,26 @@ class PlugEntry(Entry):
                        textvariable=self.internal_tracer)
 
         self.internal_tracer.trace('w', self.event)
-
         self.master = master
         self.last_val = ''
 
     def event(self, *event):
         """Reports an event to its plugsocket"""
         new_val = self.validate(self.get())  # Raw new data
-        delete = self.last_val and not new_val
-        write = not self.last_val and new_val
+
+        if self.last_val and not new_val:
+            this_action = 'DELETE'
+        elif (not self.last_val and new_val):
+            this_action = 'WRITE'
+        else:
+            this_action = None
 
         self.set(new_val)
         self.last_val = new_val
+        self.last_action = this_action
 
-        if delete:
-            self.master.callback('DELETE')
-        elif write:
-            self.master.callback('WRITE')
+        if this_action:
+            self.master.callback(this_action)
 
     def clear(self):
         """Clears the plugsocket"""
