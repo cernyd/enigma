@@ -20,5 +20,5 @@
     </test_cfg>
     <saved>
         
-    <gui autorotate="1" rotor_lock="0" sound_enabled="1" synchronised_scrolling="1" toint="*" /><enigma model="Enigma1" normal_pairs="QA WS ED" reflector="UKW-A" ring_settings="A A A" rotor_positions="A A A" rotors="I II III" split="rotors uhr_pairs normal_pairs rotor_positions ring_settings" toint="uhr_position" uhr_pairs="" uhr_position="0" /></saved>
+    <gui autorotate="1" rotor_lock="0" sound_enabled="1" synchronised_scrolling="1" toint="*" /><gui autorotate="1" rotor_lock="0" sound_enabled="1" synchronised_scrolling="1" toint="*" /><enigma model="EnigmaM3" normal_pairs="" reflector="UKW-B" ring_settings="A A A" rotor_positions="B A A" rotors="I II III" split="rotors uhr_pairs normal_pairs rotor_positions ring_settings" toint="uhr_position" uhr_pairs="" uhr_position="0" /></saved>
 </cfg>

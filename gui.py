@@ -51,16 +51,16 @@ class Root(Tk, Base):
 
         # Plugboard
         if self.data_handler.enigma.has_plugboard:
-            plugboard_frame = Frame(self)
+            self.plugboard_frame = Frame(self)
 
-            self.open_plugboard = Button(plugboard_frame, text='Plugboard',
+            self.open_plugboard = Button(self.plugboard_frame, text='Plugboard',
                                          command=self.plugboard_menu)
-            self.open_uhr = Button(plugboard_frame, text='Uhr', command=self.uhr_menu)
+            self.open_uhr = Button(self.plugboard_frame, text='Uhr', command=self.uhr_menu)
 
             # Plugboard init
             self.open_plugboard.pack(side='left', padx=3, pady=3, fill='x', expand=True)
             self.open_uhr.pack(side='left', padx=3, pady=3, fill='x', expand=True)
-            plugboard_frame.pack(side='bottom', fill='both')
+            self.plugboard_frame.pack(side='bottom', fill='both')
 
         # Lid init
         self.rowconfigure(index=0, weight=1)
@@ -108,11 +108,27 @@ class Root(Tk, Base):
         self.indicator_board.reload_indicators()
         self.update_indicators()
         self.__reset_setting_vars()
+        self.reload_plugboard_buttons()
 
     def plugboard_menu(self):
         """Opens the plugboard GUI"""
         self.wait_window(PlugboardMenu(self.data_handler))
         self.refresh_uhr_button()
+
+    def reload_plugboard_buttons(self):
+        self.plugboard_frame.destroy()
+        if self.data_handler.enigma.has_plugboard:
+            self.plugboard_frame = Frame(self)
+
+            self.open_plugboard = Button(self.plugboard_frame, text='Plugboard',
+                                         command=self.plugboard_menu)
+            self.open_uhr = Button(self.plugboard_frame, text='Uhr', command=self.uhr_menu)
+
+            # Plugboard init
+            self.open_plugboard.pack(side='left', padx=3, pady=3, fill='x', expand=True)
+            self.open_uhr.pack(side='left', padx=3, pady=3, fill='x', expand=True)
+            self.plugboard_frame.pack(side='bottom', fill='both')
+
 
     def refresh_uhr_button(self):
         if self.data_handler.enigma.uhr_connected:
