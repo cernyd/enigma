@@ -93,8 +93,8 @@ class DataHandler:
         except AssertionError:
             messagebox.showerror('Configuration loading error', 'No configuration available')
         finally:
-            return data
             self.global_cfg.focus_buffer('globals')
+            return data
 
     def remove_config(self):
         """Clears configuration data"""
