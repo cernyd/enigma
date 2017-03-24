@@ -50,16 +50,17 @@ class Root(Tk, Base):
                command=self.rotor_menu).pack(side='right', pady=5, padx=(15, 4))
 
         # Plugboard
-        plugboard_frame = Frame(self)
+        if self.data_handler.enigma.has_plugboard:
+            plugboard_frame = Frame(self)
 
-        self.open_plugboard = Button(plugboard_frame, text='Plugboard',
-                                     command=self.plugboard_menu)
-        self.open_uhr = Button(plugboard_frame, text='Uhr', command=self.uhr_menu)
+            self.open_plugboard = Button(plugboard_frame, text='Plugboard',
+                                         command=self.plugboard_menu)
+            self.open_uhr = Button(plugboard_frame, text='Uhr', command=self.uhr_menu)
 
-        # Plugboard init
-        self.open_plugboard.pack(side='left', padx=3, pady=3, fill='x', expand=True)
-        self.open_uhr.pack(side='left', padx=3, pady=3, fill='x', expand=True)
-        plugboard_frame.pack(side='bottom', fill='both')
+            # Plugboard init
+            self.open_plugboard.pack(side='left', padx=3, pady=3, fill='x', expand=True)
+            self.open_uhr.pack(side='left', padx=3, pady=3, fill='x', expand=True)
+            plugboard_frame.pack(side='bottom', fill='both')
 
         # Lid init
         self.rowconfigure(index=0, weight=1)
@@ -77,7 +78,6 @@ class Root(Tk, Base):
 
         self.__make_root_menu()
         self.refresh_uhr_button()
-        # self.reset_all()
 
     def __reset_setting_vars(self):
         var_config = self.data_handler.settings_vars
@@ -149,7 +149,7 @@ class Root(Tk, Base):
         config_menu.add_command(label='Load Configuration',
                                 command=self.load_config)
         config_menu.add_command(label='Delete Configuration',
-                                command=lambda: remove('settings.txt'))
+                                command=self.data_handler.remove_config)
 
         # SAVING AND LOADING
         settings_menu.add_cascade(label='Saving and Loading', menu=config_menu)
@@ -196,14 +196,36 @@ class Root(Tk, Base):
         self.data_handler.save_config()
 
     def load_config(self):  # Not flexible
-        pass
-        # self._sound_enabled.set(data['root']['sound_enabled'])
-        # self._autorotate.set(data['root']['autorotate'])
-        # self._rotor_lock.set(data['root']['rotor_lock'])
-        # self._sync_scroll.set(data['root']['synchronised_scrolling'])
-        # self.reset_all()
-        # self.enigma.load_config(data['enigma'])
-        # self.update_indicators()
+        data = self.data_handler.load_config()
+
+        if data:
+            self._sound_enabled.set(data['gui']['sound_enabled'])
+            self._autorotate.set(data['gui']['autorotate'])
+            self._rotor_lock.set(data['gui']['rotor_lock'])
+            self._sync_scroll.set(data['gui']['synchronised_scrolling'])
+
+            enigma_cfg = data['enigma']
+            plugboard_data = dict(normal_pairs=enigma_cfg.pop('normal_pairs'), uhr_pairs=enigma_cfg.pop('uhr_pairs'))
+            position_data = dict(rotor_positions=enigma_cfg.pop('rotor_positions'), ring_settings=enigma_cfg.pop('ring_settings'))
+            uhr_position = enigma_cfg.pop('uhr_position')
+
+            self.current_model.set(enigma_cfg['model'])
+            self.data_handler.switch_enigma(**enigma_cfg)
+            self.data_handler.enigma.plugboard = plugboard_data
+            self.data_handler.enigma.positions = position_data['rotor_positions']
+            self.data_handler.enigma.ring_settings = position_data['ring_settings']
+            self.data_handler.enigma.uhr_position = uhr_position
+
+            # NOT DRY, REFACTOR ASAP
+            self.io_board.text_input.delete('0.0', 'end')
+            self.lightboard.light_up('')
+            self.io_board.format_entries()
+            self.io_board.last_len = 0
+            self.wm_title(self.current_model.get())
+            self.refresh_uhr_button()
+            self.indicator_board.reload_indicators()
+            self.update_indicators()
+            # END OF REFACTORING PART
 
 
 # PLUGBOARD MENU
@@ -311,15 +333,15 @@ class PlugboardMenu(Toplevel, Base):
 
         for socket in self.plug_sockets:
             pair = socket.pair['pair']
-            unique = True
 
+            unique = True
             for pair_type in 'normal_pairs', 'uhr_pairs':
-                if pair not in pairs[pair_type] and tuple(reversed(pair)) not in pairs[pair_type]:
+                if pair not in pairs[pair_type] and pair[::-1] not in pairs[pair_type]:
                     continue
                 unique = False
                 break
 
-            if all(pair) and unique:
+            if all(pair) and unique and socket.pair['type']:
                 pairs[socket.pair['type']].append(pair)
 
         return pairs
@@ -365,7 +387,7 @@ class PlugSocket(Frame):
     @property
     def pair(self):
         """Returns pair"""
-        return {'pair': (self.label, self.get_socket()), 'type': self.pair_type}
+        return {'pair': (self.label + self.get_socket()), 'type': self.pair_type}
 
     def link(self, target='', obj=None, type='normal_pairs'):  # This whole class is a mess
         if self.master.uhr_mode:

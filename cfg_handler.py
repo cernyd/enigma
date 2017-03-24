@@ -116,7 +116,7 @@ class Config:
     @__check_context
     def find(self, data_path, data_type='ATTRS'):
         """Returns data based on data type and data path specified"""
-        data = self.buffer.find(data_path)  # Should somehow iterate over results
+        data = self.buffer.find(data_path)
         err_msg = f"No data found for path \"{data_path}\"!"
         assert data != None, err_msg
 
@@ -132,19 +132,22 @@ class Config:
 
         return [Config.__process_data(item, data_type) for item in data]
 
-    def save_data(self, data):
-        """Saves the edited data buffer back to the original file"""
+    def clear_children(self, path):
+        """"""
         self.clear_focus()
+        obj = self.find(path, 'OBJ')
+        for child in obj:
+            obj.remove(child)
 
-        save_location = self.buffer.find('saved')
+    @__compose_path
+    @__check_context
+    def new_subelement(self, master_path, tag, **attrib):
+        """Creates a new subelement of and existing element in the parsed tree"""
+        self.clear_focus()
+        master_obj = self.find(master_path, 'OBJ')
+        ET.SubElement(master_obj, tag, attrib=attrib)
 
-        ET.SubElement(save_location, 'gui', split='*', toint='*', **data['gui'])
-        ET.SubElement(save_location, 'enigma', split='rotors uhr_pairs normal_pairs', **data['enigma'])
-
+    def write(self):
+        """Writes changes to the config file. Unfortunately, this makes the xml
+        save look bad because it does not split to new line."""
         self.tree.write(self.buffer_path)
-
-    def load_data(self):
-        """Loads data from the 'saved' sector."""
-        self.clear_focus()
-        self.focus_buffer('saved')
-        return dict(enigma=self.find('enigma'), gui=self.find('gui'))
