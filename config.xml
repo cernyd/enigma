@@ -1,27 +1,24 @@
-<?xml version='1.0' encoding='UTF-8' ?>
 <cfg>
-    <!--"split" parameters tell the config handler what string data to split to
-    lists before returning-->
+    
     <globals>
-        <enigma_defaults split="rotors" model="Enigma1" reflector="UKW-B" rotors="I II III"/>
-        <font toint="size" style="Arial" size="10"/>
-        <bg color="gray85"/>
-        <unit_tests startup_test="True"/>
-        <historical_cfg data_dir="enigma\historical_data.xml"/>
-        <setting_vars toint="*" sound_enabled="1" autorotate="1" sync_scroll="1" rotor_lock="0" show_numbers="0"/>
+        <enigma_defaults model="Enigma1" reflector="UKW-B" rotors="I II III" split="rotors" />
+        <font size="10" style="Arial" toint="size" />
+        <bg color="gray85" />
+        <unit_tests startup_test="True" />
+        <historical_cfg data_dir="enigma\historical_data.xml" />
+        <setting_vars autorotate="1" rotor_lock="0" show_numbers="0" sound_enabled="1" sync_scroll="1" toint="*" />
     </globals>
     <test_cfg>
-        <!--Data for enigma unit tests-->
-        <default_cfg split="rotors" reflector="UKW-B" rotors="I II III"/>
-        <test_encrypt_decrypt encrypted="FQGAHWLMJAMTJAANUNPDY"
-                              decrypted="ENIGMAUNITTESTMESSAGE"/>
-        <test_rotors split="rotors" rotors="III I II"/>
-        <test_positions split="positions" positions="A B C"/>
-        <test_reflector reflector="UKW-B"/>
-        <test_ring_settings split="ring_settings" ring_settings="C B A"/>
-        <test_plugboard split="pairs" pairs="AQ XP FG DR"/>
+        
+        <default_cfg reflector="UKW-B" rotors="I II III" split="rotors" />
+        <test_encrypt_decrypt decrypted="ENIGMAUNITTESTMESSAGE" encrypted="FQGAHWLMJAMTJAANUNPDY" />
+        <test_rotors rotors="III I II" split="rotors" />
+        <test_positions positions="A B C" split="positions" />
+        <test_reflector reflector="UKW-B" />
+        <test_ring_settings ring_settings="C B A" split="ring_settings" />
+        <test_plugboard pairs="AQ XP FG DR" split="pairs" />
     </test_cfg>
     <saved>
-        <!--Save config here!-->
-    </saved>
+        
+    <gui autorotate="1" rotor_lock="0" sound_enabled="1" split="*" synchronised_scrolling="1" toint="*" /><enigma normal_pairs="" reflector="UKW-A" rotors="I II III" split="rotors uhr_pairs normal_pairs" uhr_pairs="" /></saved>
 </cfg>
