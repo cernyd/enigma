@@ -3,6 +3,7 @@ from winsound import PlaySound, SND_ASYNC
 from cfg_handler import Config
 from glob import glob
 from os import path
+from tkinter import messagebox
 
 
 class Playback:
@@ -32,11 +33,11 @@ class DataHandler:
         self.playback = Playback(master)
         self.switch_enigma()
 
-    def switch_enigma(self, model='Enigma1'):
+    def switch_enigma(self, model='Enigma1', **config):
         if self.master:
-            self.enigma = self.enigma_factory.produce_enigma(model, master=self.master)
+            self.enigma = self.enigma_factory.produce_enigma(model, **config, master=self.master)
         else:
-            self.enigma = self.enigma_factory.produce_enigma(model)
+            self.enigma = self.enigma_factory.produce_enigma(model, **config)
 
     def set_master(self, master):
         self.master = master
@@ -45,7 +46,10 @@ class DataHandler:
 
     @property
     def font(self):
-        return list(self.global_cfg.find('font').values())
+        font = self.global_cfg.find('font')
+        # Apparently the xml parser likes to mess with font attribute order
+        # Tkinter does not like that...
+        return font['style'], font['size']
 
     @property
     def bg(self):
@@ -60,14 +64,41 @@ class DataHandler:
         return self.global_cfg.find('setting_vars')
 
     def save_config(self):
+        """Saves all important configuration to the global_cfg file"""
         data = dict(gui=dict(sound_enabled=str(self.master.sound_enabled),
                     autorotate=str(self.master.autorotate),
                     rotor_lock=str(self.master.rotor_lock),
                     synchronised_scrolling=str(self.master.sync_scroll)),
                     enigma=dict(self.enigma.dump_config()))
 
-        self.global_cfg.save_data(data)
+        self.global_cfg.clear_children('saved')
+
+        self.global_cfg.new_subelement('saved', 'gui', toint='*', **data['gui'])
+
+        self.global_cfg.new_subelement('saved', 'enigma', split='rotors uhr_pairs normal_pairs '
+                                                                'rotor_positions ring_settings', toint='uhr_position', **data['enigma'])
+
+        self.global_cfg.focus_buffer('globals')
+
+        self.global_cfg.write()
 
     def load_config(self):
-        pass
+        """Returns data for configuration loading"""
+        self.global_cfg.clear_focus()
+        data = None
+        try:
+            self.global_cfg.focus_buffer('saved')
+            data = dict(enigma=self.global_cfg.find('enigma'),
+                        gui=self.global_cfg.find('gui'))
+        except AssertionError:
+            messagebox.showerror('Configuration loading error', 'No configuration available')
+        finally:
+            return data
+            self.global_cfg.focus_buffer('globals')
 
+    def remove_config(self):
+        """Clears configuration data"""
+        self.global_cfg.clear_focus()
+        self.global_cfg.clear_children('saved')
+        self.global_cfg.focus_buffer('globals')
+        self.global_cfg.write()

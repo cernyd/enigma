@@ -20,5 +20,5 @@
     </test_cfg>
     <saved>
         
-    <gui autorotate="1" rotor_lock="0" sound_enabled="1" split="*" synchronised_scrolling="1" toint="*" /><enigma normal_pairs="" reflector="UKW-A" rotors="I II III" split="rotors uhr_pairs normal_pairs" uhr_pairs="" /></saved>
+    <gui autorotate="1" rotor_lock="0" sound_enabled="1" synchronised_scrolling="1" toint="*" /></saved>
 </cfg>

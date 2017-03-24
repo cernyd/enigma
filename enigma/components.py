@@ -331,7 +331,7 @@ class Enigma:
     """Base for all enigma objects, has no plugboard, default rotor count for
     all enigma machines is 3."""
     rotor_count = 3
-    plugboard = False
+    has_plugboard = False
 
     def __init__(self, reflector, rotors, stator, factory_data=None):
         self._stator = stator
@@ -427,13 +427,16 @@ class Enigma:
     def dump_config(self):
         """Dumps the whole enigma data config"""
         return dict(reflector=self.reflector.label,
-                    rotors=' '.join(self.rotor_labels))
+                    rotors=' '.join(self.rotor_labels),
+                    rotor_positions=' '.join(self.positions),
+                    ring_settings=' '.join(self.ring_settings),
+                    model=self.factory_data['model'])
 
 
 class Enigma1(Enigma):
     """Adds plugboard functionality, compatible with all EnigmaM_ models
     except M4 ( Four rotors )"""
-    plugboard = True
+    has_plugboard = True
 
     def __init__(self, reflector, rotors, stator, factory_data, normal_pairs=tuple(), uhr_pairs=tuple()):
         Enigma.__init__(self, reflector, rotors, stator, factory_data)
@@ -474,7 +477,8 @@ class Enigma1(Enigma):
         config = Enigma.dump_config(self)
         normal_pairs = ' '.join(self._plugboard.pairs['normal_pairs'])
         uhr_pairs = ' '.join(self._plugboard.pairs['uhr_pairs'])
-        config.update(normal_pairs=normal_pairs, uhr_pairs=uhr_pairs)
+        config.update(normal_pairs=normal_pairs, uhr_pairs=uhr_pairs,
+                      uhr_position=str(self._plugboard.uhr_position))
         return config
 
 
@@ -702,7 +706,8 @@ class Uhr(_Rotatable):
 
     @pairs.setter
     def pairs(self, pairs):
-        """Uhr has exacly 10 pairs of wires because it was the standard number of
+        """
+        Uhr has exacly 10 pairs of wires because it was the standard number of
         plugboard connections during the war ( mathematically optimal number,
         increases the possible pair number greatly in combinatorics )
         1 pair: 325
@@ -717,7 +722,8 @@ class Uhr(_Rotatable):
         10 pairs: 150,738,274,937,250
         11 pairs: 205,552,193,096,250
         12 pairs: 102,776,096,548,125
-        13 pairs: 7,905,853,580,625"""
+        13 pairs: 7,905,853,580,625
+        """
 
         if len(pairs) > 0:
             assert (len(pairs) == 10), "All 10 pairs must be wired, otherwise " \
