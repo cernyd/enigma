@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 from functools import wraps
 from re import findall
 from os import path
+from copy import copy
 
 
 class Config:
@@ -86,11 +87,11 @@ class Config:
         if data_type == 'SUBTAGS':
             return [item.tag for item in element]
         elif data_type == 'SUBATTRS':
-            return [Config.__process_attribs(item.attrib) for item in element]
+            return [Config.__process_attribs(copy(item.attrib)) for item in element]
         elif data_type == 'TEXT':
             return element.text
         elif data_type == 'ATTRS':
-            return Config.__process_attribs(element.attrib)
+            return Config.__process_attribs(copy(element.attrib))
         elif data_type == 'TAG':
             return element.tag
         elif data_type == 'OBJ':
@@ -137,7 +138,13 @@ class Config:
 
         save_location = self.buffer.find('saved')
 
-        ET.SubElement(save_location, 'gui', attrib=dict(split='*', toint='*', **data['gui']))
-        ET.SubElement(save_location, 'enigma', attrib=dict(split='rotors uhr_pairs normal_pairs', **data['enigma']))
+        ET.SubElement(save_location, 'gui', split='*', toint='*', **data['gui'])
+        ET.SubElement(save_location, 'enigma', split='rotors uhr_pairs normal_pairs', **data['enigma'])
 
         self.tree.write(self.buffer_path)
+
+    def load_data(self):
+        """Loads data from the 'saved' sector."""
+        self.clear_focus()
+        self.focus_buffer('saved')
+        return dict(enigma=self.find('enigma'), gui=self.find('gui'))
