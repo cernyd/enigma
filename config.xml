@@ -2,7 +2,7 @@
     
     <globals>
         <enigma_defaults model="Enigma1" reflector="UKW-B" rotors="I II III" split="rotors" />
-        <font size="10" style="Arial" toint="size" />
+        <font size="10" style="Courier" toint="size" />
         <bg color="gray85" />
         <unit_tests startup_test="True" />
         <historical_cfg data_dir="enigma\historical_data.xml" />

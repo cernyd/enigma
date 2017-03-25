@@ -32,6 +32,8 @@ class Root(Tk, Base):
         Base.__init__(self, 'enigma.ico', self.data_handler.enigma_cfg['model'])
         self.root_menu = None
 
+        self.option_add("*font", self.data_handler.font)
+
         # Settings vars ( set by default to 1,1,0,1 as an emergency measure )
         self._sound_enabled = IntVar(value=1)
         self._autorotate = IntVar(value=1)
@@ -544,7 +546,7 @@ class UhrMenu(Toplevel, Base):
         self.geometry('225x85')
 
         self.left_button = Button(selector_frame, text='<', relief='raised', command=lambda: self.rotate(-1))
-        self.position_indicator = Label(selector_frame, relief='sunken', width=2, font=('Arial', 25))
+        self.position_indicator = Label(selector_frame, relief='sunken', width=2, font=(25))
         self.right_button = Button(selector_frame, text='>', relief='raised', command=lambda: self.rotate(1))
 
         self.left_button.pack(side='left')
@@ -589,8 +591,11 @@ class RotorMenu(Toplevel, Base):
         button_frame = Frame(self, bg=bg)
 
         # Buttons
+        self.ukw_D_setup = Button(button_frame, text='UKW-D Pairs')
+        self.ukw_D_setup.pack(side='left', padx=10, pady=5)
+
         Button(button_frame, text='Apply', width=12, command=self.apply).pack(
-            side='right', padx=5, pady=5)
+            side='right', padx=10, pady=5)
 
 
         Button(button_frame, text='Storno', width=12,
@@ -618,6 +623,7 @@ class RotorMenu(Toplevel, Base):
 
     def update_all(self, *event):
         """Updates available radios for all slots"""
+        print('UPDATE')
         try:
             for rotor in self.rotors:
                 rotor.update_selected()
@@ -625,6 +631,27 @@ class RotorMenu(Toplevel, Base):
                 rotor.update_available()
         except AttributeError: # If the rotor group does not exist yet
             pass
+
+        self.refresh_ukw_d_button()
+
+    def refresh_ukw_d_button(self):
+        """Activates the UKW-D setup menu if possible"""
+        if hasattr(self, 'reflector'):
+            if self.reflector.choice_var.get() == 'UKW-D':
+                self.ukw_D_setup.config(state='active')
+            else:
+                self.ukw_D_setup.config(state='disabled')
+
+
+class UKWDMenu(Toplevel, Base):
+    def __init__(self, *args, **kwargs):
+        Base.__init__(self, '', 'UKW-D Settings')
+        Toplevel.__init__(self, *args, **kwargs)
+
+        button_frame = Frame(self)
+
+        storno_button = Button(button_frame, label='Storno', command=self.destroy)
+        apply_button = Button(button_frame, label='Apply', command=None)
 
 
 class BaseSlot(Frame):
@@ -704,6 +731,8 @@ class ReflectorSlot(BaseSlot):
         BaseSlot.__init__(self, master, tk_master, 'REFLECTOR', *args, **kwargs)
 
         self.generate_contents(reflectors)
+        radio = Radiobutton(self, text='UKW-D', variable=self.choice_var, value='UKW-D')
+        radio.pack(side='bottom', pady=5)
         self.choice_var.set(self.master.data_handler.enigma.reflector.label)
         self.choice_var.trace('w', self.update_selected)
 
@@ -747,7 +776,7 @@ class RotorIndicator(Frame):
         Frame.__init__(self, tk_master, bg=bg, *args, **kwargs)
         self.index = index
 
-        cfg = dict(font=self.data_handler.font, width=1)
+        cfg = dict(width=1)
 
         Button(self, text='+', command=lambda: self.rotate(1), **cfg).pack(
             side='top')
@@ -783,21 +812,21 @@ class IOBoard(Frame):
         self.data_handler = data_handler
         self.master = master
         self.master.bind('<Key>', self.press_event)
-        font = self.data_handler.font
+
 
         # Scrollbars
         self.input_scrollbar = Scrollbar(self, command=lambda *args: self.yview_sync(self.text_input, self.text_output, *args))
         self.output_scrollbar = Scrollbar(self, command=lambda *args: self.yview_sync(self.text_output, self.text_input, *args))
 
         # IO init
-        Label(self, text='Input', font=font).grid(row=0, column=0)
+        Label(self, text='Input').grid(row=0, column=0)
 
         self.text_input = Text(self, width=25, height=5,
                                yscrollcommand=lambda *args: self.yscrollcommand_sync(self.input_scrollbar, self.output_scrollbar, *args))
 
         self.text_input.is_input_widget = True
 
-        Label(self, text='Output', font=font).grid(row=2, column=0)
+        Label(self, text='Output').grid(row=2, column=0)
 
         self.text_output = Text(self, width=25, height=5,
                                 yscrollcommand=lambda *args: self.yscrollcommand_sync(self.output_scrollbar, self.input_scrollbar, *args),
@@ -933,7 +962,7 @@ class Lightboard(Frame):
             new_row = Frame(self)
             for item in row:
                 text = alphabet[item]
-                self.bulbs.append(Label(new_row, text=text, font=('Arial', 14), bg=bg, padx=2))
+                self.bulbs.append(Label(new_row, text=text, font=(14), bg=bg, padx=2))
             rows.append(new_row)
 
         for row in rows:
