@@ -270,8 +270,11 @@ class EnigmaFactory:
         else:
             return ModelClass(*data)
 
-    def produce_rotor(self, model, rotor_type, labels, luckenfuller=False):
+    def produce_rotor(self, model, rotor_type, labels):
         """Creates and returns new object based on input"""
+        if labels == 'UKW-D':
+            return UKW_D()
+
         self.cfg.focus_buffer(self._base_path.format(model=model))
         cfg = self.cfg.iter_find(rotor_type)
         return_rotors = []
@@ -296,10 +299,7 @@ class EnigmaFactory:
                 return_rotors.append(Reflector(**curr_cfg))
             elif rotor_type == 'stator':
                 return_rotors.append(Stator(**curr_cfg))
-            elif rotor_type == 'ukw_d':
-                pairs = combinations('ACDEFGHIJKLMNPQRSTUVWXYZ', 2)
-                # Making random pairs by default
-                return UKW_D(shuffle(pairs)[:12])
+
 
         if len(return_rotors) == 1:
             return return_rotors[0]
@@ -642,11 +642,13 @@ class UKW_D:
     """Could be used in 3 rotor enigma versions, mostly used in EnigmaM4
     ( replacing the thin reflector and extra rotor! ). UKW-D is a field
     rewirable Enigma machine reflector."""
-    def __init__(self, pairs=tuple()):
+    def __init__(self, pairs=['AC', 'DE', 'FG', 'HI', 'JK', 'LM', 'NP', 'QR',
+                              'ST', 'UV', 'WX', 'YZ']):
         self._pairs = WiredPairs(('BO', ))  # BO pair is static!
         self.alphabet =  "ACDEFGHIJKLMNPQRSTUVWXYZ"
         self.index_ring = "AZXWVUTSRQPONMLKIHGFEDCB"
         self.wiring_pairs = pairs
+        self.label = 'UKW-D'
 
     @property
     def wiring_pairs(self):
