@@ -95,7 +95,7 @@ class Root(Tk, Base):
     def sound_enabled(self):
         return self._sound_enabled.get()
 
-    def reset_all(self, *event):  # A bit too long?
+    def reset_all(self, *event):
         """Sets all settings to default"""
         self.data_handler.switch_enigma(self.current_model.get())
         self.data_handler.enigma.clear_plugboard()
@@ -150,12 +150,12 @@ class Root(Tk, Base):
 
     def __make_root_menu(self):
         """Creates the top bar menu with saving/loading, various settings etc."""
-        self.root_menu = Menu(self, tearoff=0)
-        settings_menu = Menu(self.root_menu, tearoff=0)
-        self.root_menu.add_cascade(label='Settings', menu=settings_menu)
-        self.root_menu.add_command(label='About', command=lambda: open_browser(
+        root_menu = Menu(self, tearoff=0)
+        settings_menu = Menu(root_menu, tearoff=0)
+        root_menu.add_cascade(label='Settings', menu=settings_menu)
+        root_menu.add_command(label='About', command=lambda: open_browser(
             'https://github.com/cernyd/enigma'))
-        self.root_menu.add_command(label='Help')
+        root_menu.add_command(label='Help')
 
         # CONFIGURATION MENU
         config_menu = Menu(settings_menu, tearoff=0)
@@ -171,18 +171,18 @@ class Root(Tk, Base):
         settings_menu.add_cascade(label='Saving and Loading', menu=config_menu)
 
         settings_menu.add_separator()
-        settings_menu.add_checkbutton(label='Enable sound', onvalue=1,
-                                      offvalue=0,
-                                      variable=self._sound_enabled)
+        settings_menu.add_checkbutton(label='Enable sound',
+                                           variable=self._sound_enabled)
         settings_menu.add_checkbutton(label='Autorotate',
-                                      variable=self._autorotate)
+                                           variable=self._autorotate)
         settings_menu.add_checkbutton(label='Rotor lock',
-                                      variable=self._rotor_lock)
+                                           variable=self._rotor_lock)
         settings_menu.add_checkbutton(label='Synchronised scrolling',
-                                      variable=self._sync_scroll)
+                                           variable=self._sync_scroll)
         settings_menu.add_checkbutton(label='Numbers on rotor indicators',
-                                      variable=self._show_numbers)
+                                           variable=self._show_numbers)
         settings_menu.add_separator()
+
 
         # ENIGMA RESET AND MODEL SETTINGS
         enigma_model_menu = Menu(settings_menu, tearoff=0)
@@ -195,7 +195,7 @@ class Root(Tk, Base):
         settings_menu.add_cascade(label='Enigma model', menu=enigma_model_menu)
         settings_menu.add_command(label='Reset all', command=self.reset_all)
 
-        self.config(menu=self.root_menu)
+        self.config(menu=root_menu)
 
     def update_indicators(self):
         self.indicator_board.update_indicators()
@@ -204,6 +204,10 @@ class Root(Tk, Base):
     def sync_scroll(self):
         return self._sync_scroll.get()
 
+    @property
+    def show_numbers(self):
+        return self._show_numbers.get()
+    
     @property
     def autorotate(self):
         return self._autorotate.get()
@@ -215,17 +219,18 @@ class Root(Tk, Base):
         data = self.data_handler.load_config()
 
         if data:
-            self._sound_enabled.set(data['gui']['sound_enabled'])
-            self._autorotate.set(data['gui']['autorotate'])
-            self._rotor_lock.set(data['gui']['rotor_lock'])
-            self._sync_scroll.set(data['gui']['synchronised_scrolling'])
-
             enigma_cfg = data['enigma']
             plugboard_data = dict(normal_pairs=enigma_cfg.pop('normal_pairs'), uhr_pairs=enigma_cfg.pop('uhr_pairs'))
             position_data = dict(rotor_positions=enigma_cfg.pop('rotor_positions'), ring_settings=enigma_cfg.pop('ring_settings'))
             uhr_position = enigma_cfg.pop('uhr_position')
 
             self.current_model.set(enigma_cfg['model'])
+
+            self._sound_enabled.set(data['gui']['sound_enabled'])
+            self._autorotate.set(data['gui']['autorotate'])
+            self._rotor_lock.set(data['gui']['rotor_lock'])
+            self._sync_scroll.set(data['gui']['synchronised_scrolling'])
+            self._show_numbers.set(data['gui']['show_numbers'])
             self.data_handler.switch_enigma(**enigma_cfg)
             self.data_handler.enigma.plugboard = plugboard_data
             self.data_handler.enigma.positions = position_data['rotor_positions']
@@ -240,7 +245,6 @@ class Root(Tk, Base):
             self.wm_title(self.current_model.get())
             self.refresh_uhr_button()
             self.indicator_board.reload_indicators()
-            self.update_indicators()
             # END OF REFACTORING PART
 
 
@@ -598,7 +602,7 @@ class RotorMenu(Toplevel, Base):
         self.reflector = ReflectorSlot(self, main_frame, self.data_handler.enigma.factory_data['reflectors'])
         self.reflector.pack(side='left', fill='y', padx=(10, 2), pady=5)
 
-        self.rotors = [RotorSlot(self, main_frame, index, self.data_handler.enigma.factory_data['labels'], self.data_handler.enigma.factory_data['rotors']) for index in range(self.data_handler.enigma.rotor_count)]
+        self.rotors = [RotorSlot(self, main_frame, index, self.data_handler)for index in range(self.data_handler.enigma.rotor_count)]
         [rotor.pack(side='left', padx=2, pady=5, fill='y') for rotor in self.rotors]
 
         main_frame.pack(side='top', pady=(5, 0), padx=(0,10))
@@ -656,11 +660,17 @@ class BaseSlot(Frame):
 
 
 class RotorSlot(BaseSlot):
-    def __init__(self, master, tk_master, index, ring_labels, rotors, *args, **kwargs):
-        try:
-            text = ('SLOW', 'MEDIUM', 'FAST')[index] + ' ROTOR'
-        except IndexError:
-            text = 'THIN ROTOR'
+    def __init__(self, master, tk_master, index, data_handler, *args, **kwargs):
+        ring_labels = data_handler.enigma.factory_data['labels']
+        rotors = data_handler.enigma.factory_data['rotors']
+
+        labels = ['SLOW', 'MEDIUM', 'FAST']
+
+        if data_handler.enigma.rotor_count == 4:
+            labels.insert(0, 'THIN')
+
+        text = labels[index] + ' ROTOR'
+
         BaseSlot.__init__(self, master, tk_master, text, *args, **kwargs)
 
         self.index = index
