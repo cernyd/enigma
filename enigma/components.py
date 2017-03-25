@@ -1,9 +1,10 @@
 from string import ascii_uppercase as alphabet
-from itertools import permutations, chain
+from itertools import permutations, chain, combinations
 from cfg_handler import Config
 from functools import wraps
 import unittest
 from tkinter import messagebox
+from random import shuffle
 
 
 # UNIT TEST
@@ -269,7 +270,7 @@ class EnigmaFactory:
         else:
             return ModelClass(*data)
 
-    def produce_rotor(self, model, rotor_type, labels):
+    def produce_rotor(self, model, rotor_type, labels, luckenfuller=False):
         """Creates and returns new object based on input"""
         self.cfg.focus_buffer(self._base_path.format(model=model))
         cfg = self.cfg.iter_find(rotor_type)
@@ -295,6 +296,10 @@ class EnigmaFactory:
                 return_rotors.append(Reflector(**curr_cfg))
             elif rotor_type == 'stator':
                 return_rotors.append(Stator(**curr_cfg))
+            elif rotor_type == 'ukw_d':
+                pairs = combinations('ACDEFGHIJKLMNPQRSTUVWXYZ', 2)
+                # Making random pairs by default
+                return UKW_D(shuffle(pairs)[:12])
 
         if len(return_rotors) == 1:
             return return_rotors[0]

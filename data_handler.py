@@ -68,7 +68,8 @@ class DataHandler:
         data = dict(gui=dict(sound_enabled=str(self.master.sound_enabled),
                     autorotate=str(self.master.autorotate),
                     rotor_lock=str(self.master.rotor_lock),
-                    synchronised_scrolling=str(self.master.sync_scroll)),
+                    synchronised_scrolling=str(self.master.sync_scroll),
+                    show_numbers=str(self.master.show_numbers)),
                     enigma=dict(self.enigma.dump_config()))
 
         self.global_cfg.clear_children('saved')
