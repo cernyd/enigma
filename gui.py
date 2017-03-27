@@ -143,7 +143,7 @@ class Root(Tk, Base):
         self.wait_window(RotorMenu(self.data_handler))
         self.io_board.text_input.delete('0.0', 'end')
         self.io_board.format_entries()
-        self.update_indicators()
+        self.indicator_board.reload_indicators()
         self.lightboard.light_up('')
 
     def uhr_menu(self):
@@ -586,8 +586,10 @@ class RotorMenu(Toplevel, Base):
         self.curr_reflector = self.data_handler.enigma.reflector.label
         self.curr_ring_settings = self.data_handler.enigma.ring_settings
 
+        self.last_reflector = self.data_handler.enigma.reflector.label
+
         # Frames
-        main_frame = Frame(self, bg=bg)
+        self.main_frame = Frame(self, bg=bg)
         button_frame = Frame(self, bg=bg)
 
         # Buttons
@@ -604,15 +606,28 @@ class RotorMenu(Toplevel, Base):
         button_frame.pack(side='bottom', fill='x')
 
         # Slots for settings
-        self.reflector = ReflectorSlot(self, main_frame, self.data_handler.enigma.factory_data['reflectors'])
+        self.reflector = ReflectorSlot(self, self.main_frame, self.data_handler.enigma.factory_data['reflectors'])
         self.reflector.pack(side='left', fill='y', padx=(10, 2), pady=5)
 
-        self.rotors = [RotorSlot(self, main_frame, index, self.data_handler)for index in range(self.data_handler.enigma.rotor_count)]
+        self.rotors = [RotorSlot(self, self.main_frame, index, self.data_handler)for index in range(self.data_handler.enigma.rotor_count)]
         [rotor.pack(side='left', padx=2, pady=5, fill='y') for rotor in self.rotors]
 
-        main_frame.pack(side='top', pady=(5, 0), padx=(0,10))
+        self.main_frame.pack(side='top', pady=(5, 0), padx=(0,10))
 
-        self.update_all()
+        self.update_rotors()
+
+    def reload_rotor_slots(self):
+        for rotor in self.rotors:
+            # Tracer needs to be deleted before removing obj
+            # rotor.choice_var.trace_vdelete('w')
+            rotor.destroy()
+        self.rotors = [RotorSlot(self, self.main_frame, index, self.data_handler) for
+                       index in range(self.data_handler.enigma.rotor_count)]
+        [rotor.pack(side='left', padx=2, pady=5, fill='y') for rotor in
+         self.rotors]
+
+        self.curr_rotors = [rotor.label for rotor in
+                            self.data_handler.enigma.rotors]
 
     def apply(self):
         """Applies all settings to the global enigma instance"""
@@ -621,9 +636,8 @@ class RotorMenu(Toplevel, Base):
         self.data_handler.enigma.ring_settings = [alphabet[setting] for setting in self.curr_ring_settings]
         self.destroy()
 
-    def update_all(self, *event):
+    def update_rotors(self, *event):
         """Updates available radios for all slots"""
-        print('UPDATE')
         try:
             for rotor in self.rotors:
                 rotor.update_selected()
@@ -632,15 +646,17 @@ class RotorMenu(Toplevel, Base):
         except AttributeError: # If the rotor group does not exist yet
             pass
 
-        self.refresh_ukw_d_button()
-
-    def refresh_ukw_d_button(self):
-        """Activates the UKW-D setup menu if possible"""
+    def update_reflector(self, *event):
         if hasattr(self, 'reflector'):
-            if self.reflector.choice_var.get() == 'UKW-D':
+            reflector_val = self.reflector.choice_var.get()
+            if reflector_val == 'UKW-D':
+                self.reload_rotor_slots()
                 self.ukw_D_setup.config(state='active')
-            else:
+            elif self.last_reflector == 'UKW-D' and reflector_val != 'UKW-D':
+                self.reload_rotor_slots()
                 self.ukw_D_setup.config(state='disabled')
+
+            self.last_reflector = reflector_val
 
 
 class UKWDMenu(Toplevel, Base):
@@ -665,8 +681,6 @@ class BaseSlot(Frame):
         self.master = master
         self.choice_var = StringVar()
         self.radio_group = []
-
-        self.choice_var.trace('w', self.master.update_all)
 
     def generate_contents(self, contents):
         """
@@ -699,6 +713,7 @@ class RotorSlot(BaseSlot):
         text = labels[index] + ' ROTOR'
 
         BaseSlot.__init__(self, master, tk_master, text, *args, **kwargs)
+        self.choice_var.trace('w', self.master.update_rotors)
 
         self.index = index
         self.labels = ring_labels
@@ -715,7 +730,7 @@ class RotorSlot(BaseSlot):
         OptionMenu(self, self.ring_var, *ring_labels).pack(side='top')
 
         self.choice_var.set(self.master.data_handler.enigma.rotors[index].label)
-        self.ring_var.trace('w', self.master.update_all)
+        self.ring_var.trace('w', self.master.update_rotors)
 
     def update_selected(self, event=None):
         self.master.curr_rotors[self.index] = self.choice_var.get()
@@ -729,6 +744,7 @@ class RotorSlot(BaseSlot):
 class ReflectorSlot(BaseSlot):
     def __init__(self, master, tk_master, reflectors, *args, **kwargs):
         BaseSlot.__init__(self, master, tk_master, 'REFLECTOR', *args, **kwargs)
+        self.choice_var.trace('w', self.master.update_reflector)
 
         self.generate_contents(reflectors)
         radio = Radiobutton(self, text='UKW-D', variable=self.choice_var, value='UKW-D')

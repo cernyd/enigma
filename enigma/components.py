@@ -498,6 +498,17 @@ class EnigmaM4(EnigmaM3):
     and thin reflector are replaced."""
     rotor_count = 4
 
+    @EnigmaM3.reflector.setter
+    def reflector(self, reflector):
+        EnigmaM3.reflector.fset(self, reflector)
+
+        if self.reflector.label == 'UKW-D':
+            self.__class__.rotor_count = 3
+            self.rotors = self.rotors[1:]
+        else:
+            self.__class__.rotor_count = 4
+
+
 
 # ROTOR COMPONENTS
 
@@ -647,6 +658,7 @@ class UKW_D:
         self._pairs = WiredPairs(('BO', ))  # BO pair is static!
         self.alphabet =  "ACDEFGHIJKLMNPQRSTUVWXYZ"
         self.index_ring = "AZXWVUTSRQPONMLKIHGFEDCB"
+        print(pairs)
         self.wiring_pairs = pairs
         self.label = 'UKW-D'
 
