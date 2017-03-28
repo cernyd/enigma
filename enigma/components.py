@@ -141,10 +141,8 @@ class Plugboard:
             if letter == key:
                 color = value[0]
                 if 'a' in color:
-                    print('RED')
                     return {'bg': 'red', 'fg': 'white'}
                 elif 'b' in color:
-                    print('GRAY')
                     return {'bg': 'gray', 'fg': 'white'}
 
         return {'bg': 'black', 'fg': 'white'}
