@@ -93,9 +93,9 @@ def join_list(lst):
     return list(chain.from_iterable(lst))
 
 
-def are_unique(pairs, error_msg='Contains duplicate pairs!'):
+def are_unique(pairs):
     value_list = join_list(pairs)
-    assert len(value_list) == len(set(value_list)), error_msg
+    return len(value_list) == len(set(value_list))
 
 
 class WiredPairs:
@@ -111,7 +111,7 @@ class WiredPairs:
     @pairs.setter
     def pairs(self, pairs):
         assert (len(pairs) <= 13), "Invalid number of pairs!"
-        are_unique(pairs, 'A letter can only be wired once!')
+        assert are_unique(pairs), 'A letter can only be wired once!'
 
         self._pairs = pairs
 
@@ -162,7 +162,7 @@ class Plugboard:
             uhr_pairs = pairs.get('uhr_pairs', tuple())
         except AttributeError:
             raise AttributeError("Invalid pairs datatype!")
-        are_unique(list(list(normal_pairs) + list(uhr_pairs))), "A letter can only be wired once!"
+        assert are_unique(list(list(normal_pairs) + list(uhr_pairs))), "A letter can only be wired once!"
 
         if uhr_pairs:
             self._uhr.pairs = uhr_pairs
@@ -516,12 +516,14 @@ class EnigmaM4(EnigmaM3):
     def reflector(self, reflector):
         EnigmaM3.reflector.fset(self, reflector)
 
-        if self.reflector.label == 'UKW-D':
+        if reflector.label == 'UKW-D':
             self.__class__.rotor_count = 3
-            self.rotors = self.rotors[1:]
+            self.removed_rotor = self.rotors.pop(0)
+            self._reflector = reflector
         else:
             self.__class__.rotor_count = 4
-
+            if len(self.rotors) == 3:
+                self.rotors = [self.removed_rotor] + self.rotors
 
 
 # ROTOR COMPONENTS
@@ -667,10 +669,10 @@ class UKW_D:
     """Could be used in 3 rotor enigma versions, mostly used in EnigmaM4
     ( replacing the thin reflector and extra rotor! ). UKW-D is a field
     rewirable Enigma machine reflector."""
-    def __init__(self, pairs=['AC', 'DE', 'FG', 'HI', 'JK', 'LM', 'NP', 'QR',
-                              'ST', 'UV', 'WX', 'YZ']):
+    def __init__(self, pairs=['AB', 'CD', 'EF', 'GH', 'IK', 'LM', 'NO', 'PQ',
+                              'RS', 'TU', 'VW', 'XZ']):
         self._pairs = WiredPairs(('BO', ))  # BO pair is static!
-        self.alphabet =  "ACDEFGHIJKLMNPQRSTUVWXYZ"
+        self.alphabet = "ACDEFGHIJKLMNPQRSTUVWXYZ"
         self.index_ring = "AZXWVUTSRQPONMLKIHGFEDCB"
         self.wiring_pairs = pairs
         self.label = 'UKW-D'
@@ -682,15 +684,26 @@ class UKW_D:
 
     @wiring_pairs.setter
     def wiring_pairs(self, pairs):
-        """Sets up wiring pairs, BO is static!"""
+        """Sets up wiring pairs, BO is static! ( will appear as 'JY' while setting)"""
         assert len(pairs) == 12, "Invalid number of pairs, " \
                                  "only number of pairs possible is 12!"
 
         all_letters = join_list(pairs)
-        assert 'B' not in all_letters and 'O' not in all_letters, \
-            "The 'BO' pair is hardwired and can not be rewired"
+        assert 'J' not in all_letters and 'Y' not in all_letters, \
+            "The 'JY' pair is hardwired and can not be rewired"
+        pairs = self.convert_pairs(pairs)
         pairs.append('BO')
         self._pairs.pairs = pairs
+
+    def convert_pairs(self, pairs):
+        def to_real_alphabet(letter):
+            return self.alphabet[self.index_ring.index(letter)]
+
+        converted_pairs = []
+        for pair in pairs:
+            converted_pairs.append(list(map(to_real_alphabet, pair)))
+
+        return converted_pairs
 
     def reflect(self, letter):
         return self._pairs.pairs_route(letter)
@@ -761,7 +774,7 @@ class Uhr(_Rotatable):
             assert (len(pairs) == 10), "All 10 pairs must be wired, otherwise " \
                                        "electrical signal could be lost during " \
                                        "non-reciprocal substitution."
-            are_unique(pairs, 'Letters in Uhr pairs can only be wired once!')
+            assert are_unique(pairs), 'Letters in Uhr pairs can only be wired once!'
             # Connects letter pairs to a corresponding aX - bX pair
             for pair, index in zip(pairs, range(1, 11)):
                 for letter, socket_id in zip(pair, 'ab'):

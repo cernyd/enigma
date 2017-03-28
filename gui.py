@@ -1,10 +1,10 @@
 from os import path
-from re import sub
+from re import sub, findall
 from _tkinter import TclError
 from tkinter import *
 from tkinter import messagebox
 from webbrowser import open as open_browser
-from enigma.components import alphabet
+from enigma.components import alphabet, are_unique
 from itertools import chain
 
 # MISC
@@ -420,6 +420,7 @@ class PlugSocket(Frame):
         return {'pair': (self.label + self.get_socket()), 'type': self.pair_type}
 
     def link(self, target='', obj=None):
+        """Links with another object of the same type"""
         pair_type = 'normal_pairs'
 
         if self.skip_next:
@@ -456,7 +457,8 @@ class PlugSocket(Frame):
                 color = self.enigma.uhr_letter_color(self.label)
                 self.set_color(**color)
 
-    def unlink(self, external=False):  # Attempting to unlink after each delete!
+    def unlink(self, external=False):
+        """Unlinks a letter pair"""
         if self.skip_next:
             self.skip_next = False
         else:
@@ -473,6 +475,7 @@ class PlugSocket(Frame):
                 self.pair_type = None
 
     def set_color(self, fg='black', bg='white'):
+        """Sets bg and fg color while updating the nondefault_color indicator"""
         if fg == 'black' and bg == 'white':
             self.nondefault_color = False
         else:
@@ -602,16 +605,17 @@ class RotorMenu(Toplevel, Base):
         # Enigma settings buffer
         self.curr_rotors = [rotor.label for rotor in self.data_handler.enigma.rotors]
         self.curr_reflector = self.data_handler.enigma.reflector.label
+        self.last_reflector = self.data_handler.enigma.reflector.label
         self.curr_ring_settings = self.data_handler.enigma.ring_settings
 
-        self.last_reflector = self.data_handler.enigma.reflector.label
+        self.ukw_D_pairs = []
 
         # Frames
         self.main_frame = Frame(self, bg=bg)
         button_frame = Frame(self, bg=bg)
 
         # Buttons
-        self.ukw_D_setup = Button(button_frame, text='UKW-D Pairs')
+        self.ukw_D_setup = Button(button_frame, text='UKW-D Pairs', command=self.ukw_D_menu)
         self.ukw_D_setup.pack(side='left', padx=10, pady=5)
 
         Button(button_frame, text='Apply', width=12, command=self.apply).pack(
@@ -633,14 +637,19 @@ class RotorMenu(Toplevel, Base):
         self.main_frame.pack(side='top', pady=(5, 0), padx=(0,10))
 
         self.update_rotors()
+        self.update_reflector()
+
+    def ukw_D_menu(self):
+        self.wait_window(UKWDMenu(self))
 
     def reload_rotor_slots(self):
         for rotor in self.rotors:
             # Tracer needs to be deleted before removing obj
-            # rotor.choice_var.trace_vdelete('w')
             rotor.destroy()
+
         self.rotors = [RotorSlot(self, self.main_frame, index, self.data_handler) for
                        index in range(self.data_handler.enigma.rotor_count)]
+
         [rotor.pack(side='left', padx=2, pady=5, fill='y') for rotor in
          self.rotors]
 
@@ -670,22 +679,51 @@ class RotorMenu(Toplevel, Base):
             if reflector_val == 'UKW-D':
                 self.reload_rotor_slots()
                 self.ukw_D_setup.config(state='active')
+                if self.data_handler.enigma.rotor_count == 4:
+                    self.rotors[0].destroy()
             elif self.last_reflector == 'UKW-D' and reflector_val != 'UKW-D':
                 self.reload_rotor_slots()
+                self.ukw_D_setup.config(state='disabled')
+            else:
                 self.ukw_D_setup.config(state='disabled')
 
             self.last_reflector = reflector_val
 
 
 class UKWDMenu(Toplevel, Base):
-    def __init__(self, *args, **kwargs):
-        Base.__init__(self, '', 'UKW-D Settings')
+    def __init__(self, master, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
+        Base.__init__(self, '', 'UKW-D Settings')
 
         button_frame = Frame(self)
+        self.master = master
 
-        storno_button = Button(button_frame, label='Storno', command=self.destroy)
-        apply_button = Button(button_frame, label='Apply', command=None)
+        self.apply_button = Button(button_frame, text='Apply', command=self.apply)
+        self.apply_button.pack(side='right', padx=10, pady=5)
+        Button(button_frame, text='Storno', command=self.destroy).pack(side='right', padx=10, pady=5)
+        button_frame.pack(side='bottom')
+
+        self.entry_var = StringVar()
+        self.pair_entry = Entry(self, textvariable=self.entry_var, width=50)
+        self.pair_entry.pack(side='top', padx=10, pady=5)
+        self.entry_var.trace('w', self.refresh_apply_button)
+
+    def apply(self):
+        self.master.ukw_D_pairs = ''
+        self.destroy()
+
+    def refresh_apply_button(self, *event):
+        validated_text = sub('[^a-zA-Z ]+', '', self.pair_entry.get()).upper()
+        self.pair_entry.delete('0', 'end')
+        self.pair_entry.insert('0', validated_text)
+
+        if not findall('(\s[^\s]\s)|[^\s]{3,}|JY', validated_text) and are_unique(validated_text.split()) and len(validated_text.split()) == 12:
+            self.apply_button.config(state='active')
+        else:
+            self.apply_button.config(state='disabled')
+
+        if not(validated_text):
+            self.apply_button.config(state='active')
 
 
 class BaseSlot(Frame):
