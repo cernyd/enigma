@@ -136,6 +136,19 @@ class Plugboard:
         if pairs:
             self.pairs = pairs
 
+    def uhr_letter_color(self, letter):
+        for key, value in self._uhr.pairs.items():
+            if letter == key:
+                color = value[0]
+                if 'a' in color:
+                    print('RED')
+                    return {'bg': 'red', 'fg': 'white'}
+                elif 'b' in color:
+                    print('GRAY')
+                    return {'bg': 'gray', 'fg': 'white'}
+
+        return {'bg': 'black', 'fg': 'white'}
+
     @property
     def pairs(self):
         """Returns list of all combined connected pairs"""
@@ -459,6 +472,9 @@ class Enigma1(Enigma):
     @property
     def uhr_connected(self):
         return self._plugboard.uhr_connected
+
+    def uhr_letter_color(self, letter):
+        return self._plugboard.uhr_letter_color(letter)
 
     @property
     def plugboard(self):
