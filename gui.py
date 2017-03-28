@@ -1,6 +1,6 @@
 from os import path
-from os import remove
 from re import sub
+from _tkinter import TclError
 from tkinter import *
 from tkinter import messagebox
 from webbrowser import open as open_browser
@@ -692,12 +692,15 @@ class BaseSlot(Frame):
             self.radio_group.append(radio)
 
     def update_available(self, radio_value, event=None):
-        for radio in self.radio_group:
-            if radio['value'] in radio_value:
-                if radio['value'] != self.choice_var.get():
-                    radio.config(state='disabled')
-            else:
-                radio.config(state='active')
+        try:
+            for radio in self.radio_group:
+                if radio['value'] in radio_value:
+                    if radio['value'] != self.choice_var.get():
+                        radio.config(state='disabled')
+                else:
+                    radio.config(state='active')
+        except TclError:
+            pass
 
 
 class RotorSlot(BaseSlot):
@@ -732,7 +735,7 @@ class RotorSlot(BaseSlot):
         self.choice_var.set(self.master.data_handler.enigma.rotors[index].label)
         self.ring_var.trace('w', self.master.update_rotors)
 
-    def update_selected(self, event=None):
+    def update_selected(self, *event):
         self.master.curr_rotors[self.index] = self.choice_var.get()
         ring_setting = self.labels.index(self.ring_var.get())
         self.master.curr_ring_settings[self.index] = ring_setting
