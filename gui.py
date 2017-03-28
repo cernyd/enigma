@@ -389,6 +389,7 @@ class PlugSocket(Frame):
         self.pair_obj = None
         self.pair_type = None
         self.skip_next = False
+        self.nondefault_color = False
 
         Label(self, text=label).pack(side='top')
 
@@ -397,20 +398,21 @@ class PlugSocket(Frame):
         self.plug_socket.pack(side='bottom', pady=5, padx=12)
 
         # Loading data ( the problem with plug color is most likely here )
-        for key, value in self.enigma.plugboard.items():
-            for pair in value:
-                if self.label in pair:
-                    self.pair_type = key
-                    if key == 'uhr_pairs':
-                        self.master._uhr_mode.set(1)
-                        pass
-                    if pair[0] != self.label:
-                        self.plug_socket.set(pair[0])
-                    else:
-                        self.plug_socket.set(pair[1])
+        if self.label not in ''.join(self.master.used):
+            for key, value in self.enigma.plugboard.items():
+                for pair in value:
+                    if self.label in pair:
+                        self.pair_type = key
+                        if key == 'uhr_pairs':
+                            self.master._uhr_mode.set(1)
+                            pass
+                        if pair[0] != self.label:
+                            self.plug_socket.set(pair[0])
+                        else:
+                            self.plug_socket.set(pair[1])
 
-                    self.master._uhr_mode.set(0)
-                    break
+                        self.master._uhr_mode.set(0)
+                        break
 
     @property
     def pair(self):
@@ -418,54 +420,64 @@ class PlugSocket(Frame):
         return {'pair': (self.label + self.get_socket()), 'type': self.pair_type}
 
     def link(self, target='', obj=None):
-        print('LINK')
-        type = 'normal_pairs'
+        pair_type = 'normal_pairs'
 
         if self.skip_next:
             self.skip_next = False
         else:
-            self.plug_socket.config(bg='black', fg='white')
             if not obj:  # Link constructed locally
                 if self.master.uhr_mode:
-                    type = 'uhr_pairs'
-                    self.plug_socket.config(bg='red')
+                    pair_type = 'uhr_pairs'
+                    self.set_color(bg='red', fg='white')
                 else:
-                    pass
+                    self.set_color(bg='black', fg='white')
                 if target:
                     obj = self.master.get_target(target)
                     if obj:
-                        obj.link(obj=self)
                         if self.master.uhr_mode:
-                            obj.plug_socket.config(bg='gray', fg='white')
+                            if not obj.nondefault_color:
+                                obj.set_color(bg='gray', fg='white')
                         else:
-                            obj.plug_socket.config(bg='black', fg='white')
+                            obj.set_color(bg='black', fg='white')
+                        obj.link(obj=self)
                     else:
                         return
                 else:
                     return
 
-            if self.label in ''.join(
-                    list(chain(self.enigma.plugboard['uhr_pairs']))):
-                self.plug_socket.config(
-                    **self.enigma.uhr_letter_color(self.label))
-
-            self.pair_type = type
+            self.pair_type = pair_type
             self.skip_next = True
             self.plug_socket.set(obj.label)
             self.skip_next = False
             self.pair_obj = obj
             self.master.add_used(self.label)
 
-    def unlink(self, external=False):  # Attempting to unlink after each delete!
-        self.master.delete_used(self.label)
-        self.plug_socket.config(bg='white', fg='black')
+            if self.label in ''.join(chain(self.enigma.plugboard['uhr_pairs'])):
+                color = self.enigma.uhr_letter_color(self.label)
+                self.set_color(**color)
 
-        if self.pair_obj:
-            if not external:  # Would cause a loop presumably
-                self.pair_obj.unlink(True)
-            self.plug_socket.clear()
-            self.pair_obj = None
-            self.pair_type = None
+    def unlink(self, external=False):  # Attempting to unlink after each delete!
+        if self.skip_next:
+            self.skip_next = False
+        else:
+            self.master.delete_used(self.label)
+            self.set_color(bg='white', fg='black')
+
+            if self.pair_obj:
+                if not external:  # Would cause a loop presumably
+                    self.pair_obj.unlink(True)
+                self.skip_next = True
+                self.plug_socket.clear()
+                self.skip_next = False
+                self.pair_obj = None
+                self.pair_type = None
+
+    def set_color(self, fg='black', bg='white'):
+        if fg == 'black' and bg == 'white':
+            self.nondefault_color = False
+        else:
+            self.nondefault_color = True
+        self.plug_socket.config(fg=fg, bg=bg)
 
     @property
     def label(self):
