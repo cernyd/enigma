@@ -658,7 +658,6 @@ class UKW_D:
         self._pairs = WiredPairs(('BO', ))  # BO pair is static!
         self.alphabet =  "ACDEFGHIJKLMNPQRSTUVWXYZ"
         self.index_ring = "AZXWVUTSRQPONMLKIHGFEDCB"
-        print(pairs)
         self.wiring_pairs = pairs
         self.label = 'UKW-D'
 
