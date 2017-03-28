@@ -5,6 +5,7 @@ from tkinter import *
 from tkinter import messagebox
 from webbrowser import open as open_browser
 from enigma.components import alphabet
+from itertools import chain
 
 # MISC
 
@@ -269,7 +270,7 @@ class PlugboardMenu(Toplevel, Base):
         button_frame = Frame(self)
         self.apply_button = Button(button_frame, text='Apply', width=12,
                                    command=self.apply)
-        self.clear_button = Button(button_frame, text='Clear all pairs', width=12, command=self.clear_all)
+        self.clear_button = Button(button_frame, text='Clear all pairs', width=15, command=self.clear_all)
 
         # PLUG PAIRS
         rows = []
@@ -396,28 +397,28 @@ class PlugSocket(Frame):
         self.plug_socket.pack(side='bottom', pady=5, padx=12)
 
         # Loading data ( the problem with plug color is most likely here )
-        if self.label not in ''.join(self.master.used):
-            for key, value in self.enigma.plugboard.items():
-                for pair in value:
-                    if self.label in pair:
-                        self.pair_type = key
-                        if key == 'uhr_pairs':
-                            self.master._uhr_mode.set(1)
-                            pass
-                        if pair[0] != self.label:
-                            self.plug_socket.set(pair[0])
-                        else:
-                            self.plug_socket.set(pair[1])
+        for key, value in self.enigma.plugboard.items():
+            for pair in value:
+                if self.label in pair:
+                    self.pair_type = key
+                    if key == 'uhr_pairs':
+                        self.master._uhr_mode.set(1)
+                        pass
+                    if pair[0] != self.label:
+                        self.plug_socket.set(pair[0])
+                    else:
+                        self.plug_socket.set(pair[1])
 
-                        self.master._uhr_mode.set(0)
-                        break
+                    self.master._uhr_mode.set(0)
+                    break
 
     @property
     def pair(self):
         """Returns pair"""
         return {'pair': (self.label + self.get_socket()), 'type': self.pair_type}
 
-    def link(self, target='', obj=None):  # This whole class is a mess
+    def link(self, target='', obj=None):
+        print('LINK')
         type = 'normal_pairs'
 
         if self.skip_next:
@@ -442,6 +443,11 @@ class PlugSocket(Frame):
                         return
                 else:
                     return
+
+            if self.label in ''.join(
+                    list(chain(self.enigma.plugboard['uhr_pairs']))):
+                self.plug_socket.config(
+                    **self.enigma.uhr_letter_color(self.label))
 
             self.pair_type = type
             self.skip_next = True
