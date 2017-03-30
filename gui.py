@@ -646,7 +646,6 @@ class RotorMenu(Toplevel, Base):
 
     def reload_rotor_slots(self):
         for rotor in self.rotors:
-            # Tracer needs to be deleted before removing obj
             rotor.destroy()
 
         self.rotors = [RotorSlot(self, self.main_frame, index, self.data_handler) for
@@ -660,8 +659,8 @@ class RotorMenu(Toplevel, Base):
 
     def apply(self):
         """Applies all settings to the global enigma instance"""
-        self.data_handler.enigma.rotors = self.curr_rotors
         self.data_handler.enigma.reflector = self.curr_reflector
+        self.data_handler.enigma.rotors = self.curr_rotors
         self.data_handler.enigma.ring_settings = [alphabet[setting] for setting in self.curr_ring_settings]
         self.destroy()
 
@@ -682,7 +681,7 @@ class RotorMenu(Toplevel, Base):
                 self.reload_rotor_slots()
                 self.ukw_D_setup.config(state='active')
                 if self.data_handler.enigma.rotor_count == 4:
-                    self.rotors[0].destroy()
+                    self.reload_rotor_slots()
             elif self.last_reflector == 'UKW-D' and reflector_val != 'UKW-D':
                 self.reload_rotor_slots()
                 self.ukw_D_setup.config(state='disabled')
