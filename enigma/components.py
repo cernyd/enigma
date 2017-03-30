@@ -406,7 +406,7 @@ class Enigma:
         for rotor in rotors:
             err_msg = f"Invalid rotor class of \"{type(rotor).__name__}\"!"
             assert isinstance(rotor, (Rotor, Luckenfuller)), err_msg
-        assert len(rotors) == self.__class__.rotor_count, "Invalid number of rotors!"
+        assert len(rotors) == self.rotor_count, "Invalid number of rotors!"
         self._rotors = rotors
 
     @property
@@ -533,12 +533,12 @@ class EnigmaM4(EnigmaM3):
     def reflector(self, reflector):
         EnigmaM3.reflector.fset(self, reflector)
 
-        if reflector.label == 'UKW-D':
-            self.__class__.rotor_count = 3
+        if reflector.label == 'UKW-D' and self.rotor_count == 4:
+            self.rotor_count = 3
             self.removed_rotor = self.rotors.pop(0)
             self._reflector = reflector
         else:
-            self.__class__.rotor_count = 4
+            self.rotor_count = 4
             if len(self.rotors) == 3:
                 self.rotors = [self.removed_rotor] + self.rotors
 
