@@ -17,3 +17,8 @@ if data_handler.global_cfg.find(['unit_tests'])['startup_test'] == "True":
 
 if __name__ == '__main__':
     root.mainloop()
+
+# from enigma.components import UKW_D
+# test = UKW_D()
+# print(test.wiring_pairs)
+# print(test.reflect('A'))
