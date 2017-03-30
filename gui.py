@@ -224,6 +224,7 @@ class Root(Tk, Base):
         if data:
             enigma_cfg = data['enigma']
             plugboard_data = dict(normal_pairs=enigma_cfg.pop('normal_pairs'), uhr_pairs=enigma_cfg.pop('uhr_pairs'))
+            reflector_pairs = enigma_cfg.get('reflector_pairs', [])
             position_data = dict(rotor_positions=enigma_cfg.pop('rotor_positions'), ring_settings=enigma_cfg.pop('ring_settings'))
             uhr_position = enigma_cfg.pop('uhr_position')
 
@@ -238,6 +239,7 @@ class Root(Tk, Base):
             self.data_handler.enigma.plugboard = plugboard_data
             self.data_handler.enigma.positions = position_data['rotor_positions']
             self.data_handler.enigma.ring_settings = position_data['ring_settings']
+            self.data_handler.enigma.reflector_pairs = reflector_pairs
             self.data_handler.enigma.uhr_position = uhr_position
 
             # NOT DRY, REFACTOR ASAP
@@ -714,8 +716,10 @@ class UKWDMenu(Toplevel, Base):
 
     def refresh_apply_button(self, *event):
         validated_text = sub('[^a-zA-Z ]+', '', self.pair_entry.get()).upper()
-        self.pair_entry.delete('0', 'end')
-        self.pair_entry.insert('0', validated_text)
+
+        if validated_text != self.pair_entry.get():
+            self.pair_entry.delete('0', 'end')
+            self.pair_entry.insert('0', validated_text)
 
         if not findall('(\s[^\s]\s)|[^\s]{3,}|JY', validated_text) and are_unique(validated_text.split()) and len(validated_text.split()) == 12:
             self.apply_button.config(state='active')

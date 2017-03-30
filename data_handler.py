@@ -77,7 +77,8 @@ class DataHandler:
         self.global_cfg.new_subelement('saved', 'gui', toint='*', **data['gui'])
 
         self.global_cfg.new_subelement('saved', 'enigma', split='rotors uhr_pairs normal_pairs '
-                                                                'rotor_positions ring_settings', toint='uhr_position', **data['enigma'])
+                                                                'rotor_positions ring_settings '
+                                                                'reflector_pairs', toint='uhr_position', **data['enigma'])
 
         self.global_cfg.focus_buffer('globals')
 

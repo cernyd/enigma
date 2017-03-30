@@ -232,7 +232,7 @@ class EnigmaFactory:
         self.cfg.clear_focus()
         return [enigma['model'] for enigma in self.cfg.iter_find('enigma')]
 
-    def produce_enigma(self, model, reflector=None, rotors=None, stator=None, master=None):
+    def produce_enigma(self, model, reflector=None, rotors=None, stator=None, master=None, reflector_pairs=None):
         """Produces an enigma machine given a specific model ( must be available
         in the specified cfg_path )"""
         ModelClass = self._get_model_class(model)
@@ -283,7 +283,7 @@ class EnigmaFactory:
 
     def produce_rotor(self, model, rotor_type, labels):
         """Creates and returns new object based on input"""
-        if labels == 'UKW-D':
+        if labels == ['UKW-D'] or labels == 'UKW-D':
             return UKW_D()
 
         self.cfg.focus_buffer(self._base_path.format(model=model))
@@ -304,13 +304,13 @@ class EnigmaFactory:
 
             err_msg = f"No configuration found for label \"{label}\"!"
             assert match, err_msg
+
             if rotor_type == 'rotor':
                 return_rotors.append(Rotor(**curr_cfg))
             elif rotor_type == 'reflector':
                 return_rotors.append(Reflector(**curr_cfg))
             elif rotor_type == 'stator':
                 return_rotors.append(Stator(**curr_cfg))
-
 
         if len(return_rotors) == 1:
             return return_rotors[0]
@@ -349,13 +349,14 @@ class Enigma:
     rotor_count = 3
     has_plugboard = False
 
-    def __init__(self, reflector, rotors, stator, factory_data=None):
+    def __init__(self, reflector, rotors, stator, factory_data=None, reflector_pairs=tuple()):
         self._stator = stator
         self._rotors = None
         self.rotors = rotors
         self._reflector = None
         self.reflector = reflector
         self.factory_data = factory_data  # All available components
+        self.reflector_pairs = reflector_pairs
 
     def step_primary(self, places):
         """Steps primary rotor, other rotors will step too if in appropriate
@@ -378,6 +379,17 @@ class Enigma:
                 step_next = False
 
             index += 1
+
+    @property
+    def reflector_pairs(self):
+        if self._reflector.label == 'UKW-D':
+            return self.reflector.wiring_pairs
+        return []
+
+    @reflector_pairs.setter
+    def reflector_pairs(self, wiring_pairs):
+        if self._reflector.label == 'UKW-D':
+            self.reflector.wiring_pairs = wiring_pairs
 
     @property
     def rotor_labels(self):
@@ -442,11 +454,16 @@ class Enigma:
 
     def dump_config(self):
         """Dumps the whole enigma data config"""
-        return dict(reflector=self.reflector.label,
+        data = dict(reflector=self.reflector.label,
                     rotors=' '.join(self.rotor_labels),
                     rotor_positions=' '.join(self.positions),
                     ring_settings=' '.join(self.ring_settings),
                     model=self.factory_data['model'])
+
+        if self.reflector.label == 'UKW-D':
+            data['reflector_pairs'] = ' '.join(self.reflector.wiring_pairs)
+
+        return data
 
 
 class Enigma1(Enigma):
@@ -680,7 +697,15 @@ class UKW_D:
     @property
     def wiring_pairs(self):
         """Wiring pairs of the reflector"""
-        return self._pairs.pairs
+        return_pairs = []
+        for pair in self._pairs.pairs:
+            # pair0 = self.index_ring[self.alphabet.index(pair[0])]
+            # pair1 = self.index_ring[self.alphabet.index(pair[1])]
+            # if pair0 + pair1 not in ('BO', 'OB'):
+            #     return_pairs.append(''.join((pair0, pair1)))
+            return_pairs.append(''.join(pair))
+
+        return return_pairs
 
     @wiring_pairs.setter
     def wiring_pairs(self, pairs):
