@@ -633,7 +633,9 @@ class RotorMenu(Toplevel, Base):
         self.reflector = ReflectorSlot(self, self.main_frame, self.data_handler.enigma.factory_data['reflectors'])
         self.reflector.pack(side='left', fill='y', padx=(10, 2), pady=5)
 
-        self.rotors = [RotorSlot(self, self.main_frame, index, self.data_handler)for index in range(self.data_handler.enigma.rotor_count)]
+        self.rotors = []
+        self.reload_rotor_slots()
+
         [rotor.pack(side='left', padx=2, pady=5, fill='y') for rotor in self.rotors]
 
         self.main_frame.pack(side='top', pady=(5, 0), padx=(0,10))
@@ -648,18 +650,27 @@ class RotorMenu(Toplevel, Base):
         for rotor in self.rotors:
             rotor.destroy()
 
-        self.rotors = [RotorSlot(self, self.main_frame, index, self.data_handler) for
-                       index in range(self.data_handler.enigma.rotor_count)]
+        rotor_count = self.data_handler.enigma.rotor_count
+        is_M4 = rotor_count == 4
+        if self.curr_reflector == 'UKW-D' and is_M4:
+            rotor_count = 3
+
+        self.rotors = []
+        for index in range(rotor_count):
+            self.rotors.append(
+                RotorSlot(self, self.main_frame, index, self.data_handler))
 
         [rotor.pack(side='left', padx=2, pady=5, fill='y') for rotor in
          self.rotors]
 
-        self.curr_rotors = [rotor.label for rotor in
-                            self.data_handler.enigma.rotors]
+        self.curr_rotors = self.data_handler.enigma.factory_data['rotors'][:rotor_count]
 
     def apply(self):
         """Applies all settings to the global enigma instance"""
         self.data_handler.enigma.reflector = self.curr_reflector
+        print('Selected reflector > ', self.curr_reflector)
+        print('Selected rotors > ', self.curr_rotors)
+        print('Rotor count > ', self.data_handler.enigma.rotor_count)
         self.data_handler.enigma.rotors = self.curr_rotors
         self.data_handler.enigma.ring_settings = [alphabet[setting] for setting in self.curr_ring_settings]
         self.destroy()

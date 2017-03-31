@@ -540,7 +540,7 @@ class EnigmaM4(EnigmaM3):
             self.rotor_count = 3
             self.removed_rotor = self.rotors.pop(0)
             self._reflector = reflector
-        else:
+        elif reflector.label != 'UKW-D':
             self.rotor_count = 4
             if len(self.rotors) == 3:
                 self.rotors = [self.removed_rotor] + self.rotors
