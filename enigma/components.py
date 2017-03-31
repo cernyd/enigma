@@ -247,7 +247,10 @@ class EnigmaFactory:
                     ModelClass.__init__(self, *data)
                     self.master = master
 
-                def _rotate_primary(self, places=1):
+                def button_press(self, letter):
+                    return ModelClass.button_press(self, letter)
+
+                def step_primary(self, places=1):
                     if not self.master.rotor_lock:
                         ModelClass.step_primary(self, places)
 

@@ -979,7 +979,7 @@ class IOBoard(Frame):
 
                 elif length_status == 'shorter' and self.master.autorotate:
                     for _ in range(abs(length_difference)):
-                        self.data_handler.enigma._rotate_primary(-1)
+                        self.data_handler.enigma.step_primary(-1)
 
             self.master.update_indicators()
 
