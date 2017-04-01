@@ -1,10 +1,9 @@
 from string import ascii_uppercase as alphabet
-from itertools import permutations, chain, combinations
+from itertools import permutations, chain
 from cfg_handler import Config
 from functools import wraps
 import unittest
 from tkinter import messagebox
-from random import shuffle
 
 
 # UNIT TEST
@@ -232,7 +231,7 @@ class EnigmaFactory:
         self.cfg.clear_focus()
         return [enigma['model'] for enigma in self.cfg.iter_find('enigma')]
 
-    def produce_enigma(self, model, reflector=None, rotors=None, stator=None, master=None, reflector_pairs=None):
+    def produce_enigma(self, model, reflector=None, rotors=None, stator=None, master=None, reflector_pairs=tuple()):
         """Produces an enigma machine given a specific model ( must be available
         in the specified cfg_path )"""
         ModelClass = self._get_model_class(model)
@@ -280,7 +279,7 @@ class EnigmaFactory:
                                                'Some of rotors are not \n'
                                                'valid, please try again...')
 
-            return TkEnigma(master, self, *data)
+            return TkEnigma(master, self, *data, reflector_pairs)
         else:
             return ModelClass(*data)
 
@@ -354,12 +353,13 @@ class Enigma:
 
     def __init__(self, reflector, rotors, stator, factory_data=None, reflector_pairs=tuple()):
         self._stator = stator
-        self._rotors = None
-        self.rotors = rotors
         self._reflector = None
+        self._rotors = None
         self.reflector = reflector
+        self.rotors = rotors
         self.factory_data = factory_data  # All available components
-        self.reflector_pairs = reflector_pairs
+        if reflector_pairs:
+            self.reflector_pairs = reflector_pairs
 
     def step_primary(self, places):
         """Steps primary rotor, other rotors will step too if in appropriate
@@ -521,6 +521,26 @@ class Enigma1(Enigma):
         return config
 
 
+class Norenigma(Enigma):
+    has_plugboard = False
+
+
+class EnigmaG(Enigma):
+    has_plugboard = False
+
+
+class EnigmaD(Enigma):
+    has_plugboard = False
+
+
+class SwissK(Enigma):
+    has_plugboard = False
+
+
+class Railway(Enigma):
+    has_plugboard = False
+
+
 class EnigmaM3(Enigma1):
     """Name for the group of Enigma M1, M2 and M3 machines. All of them are
     practically identical"""
@@ -538,12 +558,14 @@ class EnigmaM4(EnigmaM3):
 
         if reflector.label == 'UKW-D' and self.rotor_count == 4:
             self.rotor_count = 3
-            self.removed_rotor = self.rotors.pop(0)
+            if self.rotors:
+                self.removed_rotor = self._rotors.pop(0)
             self._reflector = reflector
         elif reflector.label != 'UKW-D':
             self.rotor_count = 4
-            if len(self.rotors) == 3:
-                self.rotors = [self.removed_rotor] + self.rotors
+            if self.rotors:
+                if len(self.rotors) == 3:
+                    self.rotors = [self.removed_rotor] + self.rotors
 
 
 # ROTOR COMPONENTS
@@ -692,8 +714,8 @@ class UKW_D:
     def __init__(self, pairs=['AB', 'CD', 'EF', 'GH', 'IK', 'LM', 'NO', 'PQ',
                               'RS', 'TU', 'VW', 'XZ']):
         self._pairs = WiredPairs(('BO', ))  # BO pair is static!
-        self.alphabet = "ACDEFGHIJKLMNPQRSTUVWXYZ"
-        self.index_ring = "AZXWVUTSRQPONMLKIHGFEDCB"
+        self.german_notation = 'AZXWVUTSRQPONMLKIHGFEDCB'
+        self.actual_letters =  'ACDEFGHIJKLMNPQRSTUVWXYZ'
         self.wiring_pairs = pairs
         self.label = 'UKW-D'
 
@@ -701,14 +723,22 @@ class UKW_D:
     def wiring_pairs(self):
         """Wiring pairs of the reflector"""
         return_pairs = []
+
         for pair in self._pairs.pairs:
-            # pair0 = self.index_ring[self.alphabet.index(pair[0])]
-            # pair1 = self.index_ring[self.alphabet.index(pair[1])]
-            # if pair0 + pair1 not in ('BO', 'OB'):
-            #     return_pairs.append(''.join((pair0, pair1)))
-            return_pairs.append(''.join(pair))
+            pair = ''.join(pair)
+            if pair != 'BO' and pair != 'OB':
+                curr_pair = ''
+                for letter in pair:
+                    curr_pair += self._to_german_notation(letter)
+                return_pairs.append(curr_pair)
 
         return return_pairs
+
+    def _to_actual_letter(self, letter):
+        return self.actual_letters[self.german_notation.index(letter)]
+
+    def _to_german_notation(self, letter):
+        return self.german_notation[self.actual_letters.index(letter)]
 
     @wiring_pairs.setter
     def wiring_pairs(self, pairs):
@@ -719,19 +749,17 @@ class UKW_D:
         all_letters = join_list(pairs)
         assert 'J' not in all_letters and 'Y' not in all_letters, \
             "The 'JY' pair is hardwired and can not be rewired"
-        pairs = self.convert_pairs(pairs)
-        pairs.append('BO')
-        self._pairs.pairs = pairs
 
-    def convert_pairs(self, pairs):
-        def to_real_alphabet(letter):
-            return self.alphabet[self.index_ring.index(letter)]
-
-        converted_pairs = []
+        new_pairs = ['BO']
         for pair in pairs:
-            converted_pairs.append(list(map(to_real_alphabet, pair)))
+            pair = ''.join(pair)
+            if pair != 'BO' and pair != 'OB':
+                curr_pair = ''
+                for letter in pair:
+                    curr_pair += self._to_actual_letter(letter)
+                new_pairs.append(curr_pair)
 
-        return converted_pairs
+        self._pairs.pairs = new_pairs
 
     def reflect(self, letter):
         return self._pairs.pairs_route(letter)
