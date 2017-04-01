@@ -101,7 +101,9 @@ class Root(Tk, Base):
     def reset_all(self, *event):
         """Sets all settings to default"""
         self.data_handler.switch_enigma(self.current_model.get())
-        self.data_handler.enigma.clear_plugboard()
+        if self.data_handler.enigma.has_plugboard:
+            self.data_handler.enigma.clear_plugboard()
+        self.reload_plugboard_buttons()
         self.io_board.text_input.delete('0.0', 'end')
         self.lightboard.light_up('')
         self.io_board.format_entries()
@@ -111,7 +113,6 @@ class Root(Tk, Base):
         self.indicator_board.reload_indicators()
         self.update_indicators()
         self.__reset_setting_vars()
-        self.reload_plugboard_buttons()
 
     def plugboard_menu(self):
         """Opens the plugboard GUI"""
@@ -134,17 +135,19 @@ class Root(Tk, Base):
 
 
     def refresh_uhr_button(self):
-        if self.data_handler.enigma.uhr_connected:
-            self.open_uhr.config(state='active')
-        else:
-            self.open_uhr.config(state='disabled')
+        if self.data_handler.enigma.has_plugboard:
+            if self.data_handler.enigma.uhr_connected:
+                self.open_uhr.config(state='active')
+            else:
+                self.open_uhr.config(state='disabled')
 
     def rotor_menu(self):
         """Opens the rotor gui and applies new values after closing"""
         self.wait_window(RotorMenu(self.data_handler))
         self.io_board.text_input.delete('0.0', 'end')
         self.io_board.format_entries()
-        self.indicator_board.reload_indicators()
+        if len(self.indicator_board.indicators) != len(self.data_handler.enigma.rotors):
+            self.indicator_board.reload_indicators()
         self.lightboard.light_up('')
 
     def uhr_menu(self):
@@ -668,9 +671,6 @@ class RotorMenu(Toplevel, Base):
     def apply(self):
         """Applies all settings to the global enigma instance"""
         self.data_handler.enigma.reflector = self.curr_reflector
-        print('Selected reflector > ', self.curr_reflector)
-        print('Selected rotors > ', self.curr_rotors)
-        print('Rotor count > ', self.data_handler.enigma.rotor_count)
         self.data_handler.enigma.rotors = self.curr_rotors
         self.data_handler.enigma.ring_settings = [alphabet[setting] for setting in self.curr_ring_settings]
         self.destroy()
@@ -705,7 +705,7 @@ class RotorMenu(Toplevel, Base):
 class UKWDMenu(Toplevel, Base):
     def __init__(self, master, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
-        Base.__init__(self, '', 'UKW-D Settings')
+        Base.__init__(self, 'rotor.ico', 'UKW-D Settings')
 
         button_frame = Frame(self)
         self.master = master
@@ -717,6 +717,7 @@ class UKWDMenu(Toplevel, Base):
 
         self.entry_var = StringVar()
         self.pair_entry = Entry(self, textvariable=self.entry_var, width=50)
+        self.pair_entry.insert('0', self.master.data_handler.enigma.reflector_pairs)
         self.pair_entry.pack(side='top', padx=10, pady=5)
         self.entry_var.trace('w', self.refresh_apply_button)
 
@@ -732,7 +733,14 @@ class UKWDMenu(Toplevel, Base):
             self.pair_entry.insert('0', validated_text)
 
         if not findall('(\s[^\s]\s)|[^\s]{3,}|JY', validated_text) and are_unique(validated_text.split()) and len(validated_text.split()) == 12:
-            self.apply_button.config(state='active')
+            valid = True
+            for pair in validated_text.split():
+                if len(pair) != 2:
+                    valid = False
+            if valid:
+                self.apply_button.config(state='active')
+            else:
+                self.apply_button.config(state='disabled')
         else:
             self.apply_button.config(state='disabled')
 
