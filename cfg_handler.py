@@ -24,25 +24,26 @@ class Config:
     def __check_context(func):
         """Swaps the target if the address is bookmarked"""
         @wraps(func)
-        def wrapper(self, path, *args, **kwargs):
-            if path in self.__contexts:
-                path = self.__contexts[path]
+        def wrapper(self, target_path, *args, **kwargs):
+            if target_path in self.__contexts:
+                target_path = self.__contexts[target_path]
 
-            return func(self, path, *args, **kwargs)
+            return func(self, target_path, *args, **kwargs)
 
         return wrapper
 
     def __compose_path(func):
         """Converts to valid path if path list is passed"""
         @wraps(func)
-        def wrapper(self, path, *args, **kwargs):
-            if type(path) == list:
-                path = ".//" + '/'.join(path)
-            return func(self, path, *args, **kwargs)
+        def wrapper(self, target_path, *args, **kwargs):
+            if type(target_path) == list:
+                target_path = ".//" + '/'.join(target_path)
+            return func(self, target_path, *args, **kwargs)
         return wrapper
 
     @property
     def buffer(self):
+        """Returns a buffer object"""
         if self.__curr_focus:
             return self.__buffer_data.find(self.__curr_focus)
         else:
@@ -73,10 +74,11 @@ class Config:
                         attribs[key] = value
             except ValueError as err:
                 value = findall("\'(.+)\'$", err.message)
-                err.message = f"Invalid type conversion request, " \
-                              f"value \"{value}\" can't be converted to int!\n" \
-                              f"Attribute dump > {attribs}\n" \
-                              f"All conversion requests > {toint}"
+                err.message = f"""Invalid type conversion request, value
+                              \"{value}\" can't be converted to int!\n
+                              Attribute dump > {attribs}\n
+                              All conversion requests > {toint}
+                              """
                 raise
 
         return attribs
@@ -87,7 +89,10 @@ class Config:
         if data_type == 'SUBTAGS':
             return [item.tag for item in element]
         elif data_type == 'SUBATTRS':
-            return [Config.__process_attribs(copy(item.attrib)) for item in element]
+            subattrs = []
+            for item in element:
+                subattrs.append(Config.__process_attribs(copy(item.attrib)))
+            return subattrs
         elif data_type == 'TEXT':
             return element.text
         elif data_type == 'ATTRS':
@@ -100,6 +105,7 @@ class Config:
             raise ValueError(f"Invalid data type \"{data_type}\"!")
 
     def clear_focus(self):
+        """Clears current buffer focus"""
         self.__curr_focus = ''
 
     @__compose_path
@@ -109,7 +115,8 @@ class Config:
 
     @__compose_path
     def new_context(self, context_path, name):
-        """Creates a new shortcut ( can be then accessed in the get_data method )"""
+        """Creates a new shortcut ( can be then accessed
+        in the get_data method )"""
         self.__contexts[name] = context_path
 
     @__compose_path
@@ -118,7 +125,7 @@ class Config:
         """Returns data based on data type and data path specified"""
         data = self.buffer.find(data_path)
         err_msg = f"No data found for path \"{data_path}\"!"
-        assert data != None, err_msg
+        assert data is not None, err_msg
 
         return Config.__process_data(data, data_type)
 
@@ -128,21 +135,22 @@ class Config:
         """Finds all data iteratively in the current buffer scope."""
         data = list(self.buffer.iter(data_path))
         err_msg = f"No data found for path \"{data_path}\"!"
-        assert data != None and data != [], err_msg
+        assert data is not None and data != [], err_msg
 
         return [Config.__process_data(item, data_type) for item in data]
 
-    def clear_children(self, path):
-        """"""
+    def clear_children(self, target_path):
+        """Clears all children of an object"""
         self.clear_focus()
-        obj = self.find(path, 'OBJ')
+        obj = self.find(target_path, 'OBJ')
         for child in obj:
             obj.remove(child)
 
     @__compose_path
     @__check_context
     def new_subelement(self, master_path, tag, **attrib):
-        """Creates a new subelement of and existing element in the parsed tree"""
+        """Creates a new subelement of and existing element in the
+        parsed tree"""
         self.clear_focus()
         master_obj = self.find(master_path, 'OBJ')
         ET.SubElement(master_obj, tag, attrib=attrib)
