@@ -1,11 +1,13 @@
+from _tkinter import TclError
+from itertools import chain
 from os import path
 from re import sub, findall
-from _tkinter import TclError
 from tkinter import *
 from tkinter import messagebox
 from webbrowser import open as open_browser
+
 from enigma.components import alphabet, are_unique
-from itertools import chain
+
 
 # MISC
 
@@ -41,7 +43,7 @@ class Root(Tk, Base):
         self._rotor_lock = IntVar(value=0)
         self._sync_scroll = IntVar(value=1)
         self._show_numbers = IntVar(value=0)
-        self.__reset_setting_vars()  #  Setting vars are not set correctly if not refreshed!
+        self.__reset_setting_vars()
 
         self._show_numbers.trace('w', lambda *args: self.indicator_board.update_indicators())
 
@@ -61,8 +63,9 @@ class Root(Tk, Base):
             self.open_uhr = Button(self.plugboard_frame, text='Uhr', command=self.uhr_menu)
 
             # Plugboard init
-            self.open_plugboard.pack(side='left', padx=3, pady=3, fill='x', expand=True)
-            self.open_uhr.pack(side='left', padx=3, pady=3, fill='x', expand=True)
+            config = dict(side='left', padx=3, pady=3, fill='x', expand=True)
+            self.open_plugboard.pack(**config)
+            self.open_uhr.pack(**config)
             self.plugboard_frame.pack(side='bottom', fill='both')
 
         # Lid init
@@ -83,6 +86,7 @@ class Root(Tk, Base):
         self.refresh_uhr_button()
 
     def __reset_setting_vars(self):
+        """Resets setting variables to defaults"""
         var_config = self.data_handler.settings_vars
         self._autorotate.set(var_config['autorotate'])
         self._sound_enabled.set(var_config['sound_enabled'])
@@ -92,18 +96,31 @@ class Root(Tk, Base):
 
     @property
     def rotor_lock(self):
+        """Returns current rotor lock status"""
         return self._rotor_lock.get()
 
     @property
     def sound_enabled(self):
+        """Returns current sound status"""
         return self._sound_enabled.get()
 
-    def reset_all(self, *event):
+    @property
+    def show_numbers(self):
+        """Returns if numbers should be shown on indicators"""
+        return self._show_numbers.get()
+
+    def hard_reset(self, *event):
         """Sets all settings to default"""
         self.data_handler.switch_enigma(self.current_model.get())
         if self.data_handler.enigma.has_plugboard:
             self.data_handler.enigma.clear_plugboard()
         self.reload_plugboard_buttons()
+        self.soft_reset()
+        self.update_indicators()
+        self.__reset_setting_vars()
+
+    def soft_reset(self):
+        """Softly resets and updates indicators"""
         self.io_board.text_input.delete('0.0', 'end')
         self.lightboard.light_up('')
         self.io_board.format_entries()
@@ -111,8 +128,6 @@ class Root(Tk, Base):
         self.wm_title(self.current_model.get())
         self.refresh_uhr_button()
         self.indicator_board.reload_indicators()
-        self.update_indicators()
-        self.__reset_setting_vars()
 
     def plugboard_menu(self):
         """Opens the plugboard GUI"""
@@ -120,21 +135,26 @@ class Root(Tk, Base):
         self.refresh_uhr_button()
 
     def reload_plugboard_buttons(self):
+        """Reloads plugboard buttons ( they will only be shown if the current
+        enigma has a plugboard )"""
         self.plugboard_frame.destroy()
         if self.data_handler.enigma.has_plugboard:
             self.plugboard_frame = Frame(self)
 
             self.open_plugboard = Button(self.plugboard_frame, text='Plugboard',
                                          command=self.plugboard_menu)
-            self.open_uhr = Button(self.plugboard_frame, text='Uhr', command=self.uhr_menu)
+            self.open_uhr = Button(self.plugboard_frame, text='Uhr',
+                                   command=self.uhr_menu)
 
             # Plugboard init
-            self.open_plugboard.pack(side='left', padx=3, pady=3, fill='x', expand=True)
-            self.open_uhr.pack(side='left', padx=3, pady=3, fill='x', expand=True)
+            config = dict(side='left', padx=3, pady=3, fill='x', expand=True)
+            self.open_plugboard.pack(**config)
+            self.open_uhr.pack(**config)
             self.plugboard_frame.pack(side='bottom', fill='both')
 
-
     def refresh_uhr_button(self):
+        """Refreshes uhr button ( only activated if uhr is currently
+        connected to the plugboard"""
         if self.data_handler.enigma.has_plugboard:
             if self.data_handler.enigma.uhr_connected:
                 self.open_uhr.config(state='active')
@@ -189,7 +209,6 @@ class Root(Tk, Base):
                                            variable=self._show_numbers)
         settings_menu.add_separator()
 
-
         # ENIGMA RESET AND MODEL SETTINGS
         enigma_model_menu = Menu(settings_menu, tearoff=0)
 
@@ -197,13 +216,14 @@ class Root(Tk, Base):
         self.current_model = StringVar(value=self.data_handler.enigma.factory_data['model'])
         for model in self.data_handler.enigma_factory.all_models():
             enigma_model_menu.add_radiobutton(label=model, variable=self.current_model)
-        self.current_model.trace('w', self.reset_all)
+        self.current_model.trace('w', self.hard_reset)
         settings_menu.add_cascade(label='Enigma model', menu=enigma_model_menu)
-        settings_menu.add_command(label='Reset all', command=self.reset_all)
+        settings_menu.add_command(label='Reset all', command=self.hard_reset)
 
         self.config(menu=root_menu)
 
     def update_indicators(self):
+        """Reloads rotor indicators"""
         self.indicator_board.update_indicators()
 
     @property
@@ -226,9 +246,15 @@ class Root(Tk, Base):
 
         if data:
             enigma_cfg = data['enigma']
-            plugboard_data = dict(normal_pairs=enigma_cfg.pop('normal_pairs'), uhr_pairs=enigma_cfg.pop('uhr_pairs'))
+
+            plugboard_data = dict(normal_pairs=enigma_cfg.pop('normal_pairs'),
+                                  uhr_pairs=enigma_cfg.pop('uhr_pairs'))
+
             reflector_pairs = enigma_cfg.get('reflector_pairs', [])
-            position_data = dict(rotor_positions=enigma_cfg.pop('rotor_positions'), ring_settings=enigma_cfg.pop('ring_settings'))
+
+            position_data = dict(rotor_positions=enigma_cfg.pop('rotor_positions'),
+                                 ring_settings=enigma_cfg.pop('ring_settings'))
+
             uhr_position = enigma_cfg.pop('uhr_position')
 
             self.current_model.set(enigma_cfg['model'])
@@ -245,15 +271,7 @@ class Root(Tk, Base):
             self.data_handler.enigma.reflector_pairs = reflector_pairs
             self.data_handler.enigma.uhr_position = uhr_position
 
-            # NOT DRY, REFACTOR ASAP
-            self.io_board.text_input.delete('0.0', 'end')
-            self.lightboard.light_up('')
-            self.io_board.format_entries()
-            self.io_board.last_len = 0
-            self.wm_title(self.current_model.get())
-            self.refresh_uhr_button()
-            self.indicator_board.reload_indicators()
-            # END OF REFACTORING PART
+            self.soft_reset()
 
 
 # PLUGBOARD MENU
@@ -275,7 +293,8 @@ class PlugboardMenu(Toplevel, Base):
         button_frame = Frame(self)
         self.apply_button = Button(button_frame, text='Apply', width=12,
                                    command=self.apply)
-        self.clear_button = Button(button_frame, text='Clear all pairs', width=15, command=self.clear_all)
+        self.clear_button = Button(button_frame, text='Clear all pairs',
+                                   width=15, command=self.clear_all)
 
         # PLUG PAIRS
         rows = []
@@ -288,7 +307,9 @@ class PlugboardMenu(Toplevel, Base):
         for row in layout:
             new_row = Frame(plug_socket_frame)
             for item in row:
-                self.plug_sockets.append(PlugSocket(self, new_row, self.data_handler.enigma, labels[item]))
+                self.plug_sockets.append(PlugSocket(self, new_row,
+                                                    self.data_handler.enigma,
+                                                    labels[item]))
             rows.append(new_row)
 
         # Packs rows vertically
@@ -305,11 +326,12 @@ class PlugboardMenu(Toplevel, Base):
         # This uhr mode will be used to distinguish between choosing uhr vs
         # normal pairs > different colors.
 
-        self.uhr_mode_button = Checkbutton(button_frame, text='Uhr pairs', variable=self._uhr_mode)
+        self.uhr_mode_button = Checkbutton(button_frame, text='Uhr pairs',
+                                           variable=self._uhr_mode)
         self.uhr_mode_button.pack(side='left')
 
         storno_button = Button(button_frame, text='Storno', width=12,
-                                    command=self.destroy)
+                               command=self.destroy)
 
         self.apply_button.pack(side='right', padx=5, pady=5)
         self.clear_button.pack(side='right', padx=5, pady=5)
@@ -327,14 +349,18 @@ class PlugboardMenu(Toplevel, Base):
     def uhr_mode(self):
         return self._uhr_mode.get()
 
+    @uhr_mode.setter
+    def uhr_mode(self, value):
+        self._uhr_mode.set(value)
+
     def apply(self):
         """Applies all new pairs to the plugboard"""
         try:
             self.data_handler.enigma.plugboard = self.pairs
             self.destroy()
         except AssertionError:
-            messagebox.showerror('Invalid number of Uhr pairs', 'Exactly 10 Uhr '
-                                                                'pairs (red pairs) must be set before applying!')
+            err_msg = 'Exactly 10 Uhr pairs (red pairs) must be set before applying!'
+            messagebox.showerror('Invalid number of Uhr pairs', err_msg)
 
     def delete_used(self, letter):
         """Removes letter from used letter list"""
@@ -409,14 +435,13 @@ class PlugSocket(Frame):
                     if self.label in pair:
                         self.pair_type = key
                         if key == 'uhr_pairs':
-                            self.master._uhr_mode.set(1)
-                            pass
+                            self.master.uhr_mode = 1
                         if pair[0] != self.label:
                             self.plug_socket.set(pair[0])
                         else:
                             self.plug_socket.set(pair[1])
 
-                        self.master._uhr_mode.set(0)
+                            self.master.uhr_mode = 0
                         break
 
     @property
@@ -527,7 +552,7 @@ class PlugEntry(Entry):
 
         if self.last_val and not new_val:
             this_action = 'DELETE'
-        elif (not self.last_val and new_val):
+        elif not self.last_val and new_val:
             this_action = 'WRITE'
         else:
             this_action = None
@@ -572,7 +597,7 @@ class UhrMenu(Toplevel, Base):
         self.geometry('225x85')
 
         self.left_button = Button(selector_frame, text='<', relief='raised', command=lambda: self.rotate(-1))
-        self.position_indicator = Label(selector_frame, relief='sunken', width=2, font=(25))
+        self.position_indicator = Label(selector_frame, relief='sunken', width=2, font=('', 25))
         self.right_button = Button(selector_frame, text='>', relief='raised', command=lambda: self.rotate(1))
 
         self.left_button.pack(side='left')
@@ -593,7 +618,8 @@ class UhrMenu(Toplevel, Base):
         self.refresh_indicator()
 
     def refresh_indicator(self):
-        self.position_indicator.config(text='{:0>2}'.format(self.data_handler.enigma.uhr_position))
+        text = '{:0>2}'.format(self.data_handler.enigma.uhr_position)
+        self.position_indicator.config(text=text)
 
 
 # ROTOR MENU
@@ -620,7 +646,8 @@ class RotorMenu(Toplevel, Base):
         button_frame = Frame(self, bg=bg)
 
         # Buttons
-        self.ukw_D_setup = Button(button_frame, text='UKW-D Pairs', command=self.ukw_D_menu)
+        self.ukw_D_setup = Button(button_frame, text='UKW-D Pairs',
+                                  command=self.ukwd_menu)
         self.ukw_D_setup.pack(side='left', padx=10, pady=5)
 
         Button(button_frame, text='Apply', width=12, command=self.apply).pack(
@@ -633,7 +660,8 @@ class RotorMenu(Toplevel, Base):
         button_frame.pack(side='bottom', fill='x')
 
         # Slots for settings
-        self.reflector = ReflectorSlot(self, self.main_frame, self.data_handler.enigma.factory_data['reflectors'])
+        self.reflector = ReflectorSlot(self, self.main_frame,
+                                       self.data_handler.enigma.factory_data['reflectors'])
         self.reflector.pack(side='left', fill='y', padx=(10, 2), pady=5)
 
         self.rotors = []
@@ -641,12 +669,12 @@ class RotorMenu(Toplevel, Base):
 
         [rotor.pack(side='left', padx=2, pady=5, fill='y') for rotor in self.rotors]
 
-        self.main_frame.pack(side='top', pady=(5, 0), padx=(0,10))
+        self.main_frame.pack(side='top', pady=(5, 0), padx=(0, 10))
 
         self.update_rotors()
         self.update_reflector()
 
-    def ukw_D_menu(self):
+    def ukwd_menu(self):
         self.wait_window(UKWDMenu(self))
 
     def reload_rotor_slots(self):
@@ -654,8 +682,7 @@ class RotorMenu(Toplevel, Base):
             rotor.destroy()
 
         rotor_count = self.data_handler.enigma.rotor_count
-        is_M4 = rotor_count == 4
-        if self.curr_reflector == 'UKW-D' and is_M4:
+        if self.curr_reflector == 'UKW-D' and rotor_count == 4:
             rotor_count = 3
 
         self.rotors = []
@@ -682,7 +709,7 @@ class RotorMenu(Toplevel, Base):
                 rotor.update_selected()
             for rotor in self.rotors:
                 rotor.update_available()
-        except AttributeError: # If the rotor group does not exist yet
+        except AttributeError:  # If the rotor group does not exist yet
             pass
 
     def update_reflector(self, *event):
@@ -711,8 +738,9 @@ class UKWDMenu(Toplevel, Base):
         self.master = master
 
         self.apply_button = Button(button_frame, text='Apply', command=self.apply)
-        self.apply_button.pack(side='right', padx=10, pady=5)
-        Button(button_frame, text='Storno', command=self.destroy).pack(side='right', padx=10, pady=5)
+        config = dict(side='right', padx=10, pady=5)
+        self.apply_button.pack(**config)
+        Button(button_frame, text='Storno', command=self.destroy).pack(**config)
         button_frame.pack(side='bottom')
 
         self.entry_var = StringVar()
@@ -732,7 +760,11 @@ class UKWDMenu(Toplevel, Base):
             self.pair_entry.delete('0', 'end')
             self.pair_entry.insert('0', validated_text)
 
-        if not findall('(\s[^\s]\s)|[^\s]{3,}|JY', validated_text) and are_unique(validated_text.split()) and len(validated_text.split()) == 12:
+        text_valid = not findall('(\s[^\s]\s)|[^\s]{3,}|JY', validated_text)
+        pairs_unique = are_unique(validated_text.split())
+        valid_length = len(validated_text.split()) == 12
+
+        if text_valid and pairs_unique and valid_length:
             valid = True
             for pair in validated_text.split():
                 if len(pair) != 2:
@@ -744,7 +776,7 @@ class UKWDMenu(Toplevel, Base):
         else:
             self.apply_button.config(state='disabled')
 
-        if not(validated_text):
+        if not validated_text:
             self.apply_button.config(state='active')
 
 
@@ -893,10 +925,10 @@ class RotorIndicator(Frame):
         self.data_handler.enigma.rotors[self.index].rotate(places)
         self.update_indicator()
 
-    def update_indicator(self, event=None):
+    def update_indicator(self, *event):
         """Updates what is displayed on the indicator"""
         text = self.data_handler.enigma.positions[self.index]
-        if self.data_handler.master._show_numbers.get():
+        if self.data_handler.master.show_numbers:
             text = '{:0>2}'.format(alphabet.index(text)+1)
         self.indicator.config(text=text)
 
@@ -910,24 +942,25 @@ class IOBoard(Frame):
         self.master = master
         self.master.bind('<Key>', self.press_event)
 
-
         # Scrollbars
-        self.input_scrollbar = Scrollbar(self, command=lambda *args: self.yview_sync(self.text_input, self.text_output, *args))
-        self.output_scrollbar = Scrollbar(self, command=lambda *args: self.yview_sync(self.text_output, self.text_input, *args))
+        command = lambda *args: self.yview_sync(self.text_input, self.text_output, *args)
+        self.input_scrollbar = Scrollbar(self, command=command)
+        command = lambda *args: self.yview_sync(self.text_output, self.text_input, *args)
+        self.output_scrollbar = Scrollbar(self, command=command)
 
         # IO init
         Label(self, text='Input').grid(row=0, column=0)
 
+        command = lambda *args: self.yscrollcommand_sync(self.input_scrollbar, self.output_scrollbar, *args)
         self.text_input = Text(self, width=25, height=5,
-                               yscrollcommand=lambda *args: self.yscrollcommand_sync(self.input_scrollbar, self.output_scrollbar, *args))
+                               yscrollcommand=command)
 
         self.text_input.is_input_widget = True
 
         Label(self, text='Output').grid(row=2, column=0)
 
-        self.text_output = Text(self, width=25, height=5,
-                                yscrollcommand=lambda *args: self.yscrollcommand_sync(self.output_scrollbar, self.input_scrollbar, *args),
-                                state='disabled')
+        command = lambda *args: self.yscrollcommand_sync(self.output_scrollbar, self.input_scrollbar, *args)
+        self.text_output = Text(self, width=25, height=5, yscrollcommand=command, state='disabled')
 
         self.input_scrollbar.grid(row=1, column=1, sticky='ns')
         self.output_scrollbar.grid(row=3, column=1, sticky='ns')
@@ -954,7 +987,8 @@ class IOBoard(Frame):
         else:
             return False, 0
 
-    def _split_text(self, string, group_length=4):
+    @staticmethod
+    def _split_text(string, group_length=4):
         def splitter():
             nonlocal string
             subgroup = ''
@@ -964,7 +998,8 @@ class IOBoard(Frame):
                     yield subgroup
                     subgroup = ''
 
-            if subgroup: yield subgroup
+            if subgroup:
+                yield subgroup
 
         return ' '.join(splitter())
 
@@ -974,18 +1009,22 @@ class IOBoard(Frame):
         self.input_box = sanitized_text
         self.output_box = self.output_box[:len(sanitized_text)]
 
-    def format_string(self, string): return sub(r"[^A-Za-z]", '', string)
+    @staticmethod
+    def format_string(string):
+        return sub(r"[^A-Za-z]", '', string)
 
     def press_event(self, event=None):
         """Activates if any key is pressed, performs analysis on what happened,
         if text was correctly edited, it adds encrypted letters from the enigma
         to output box."""
-        correct_widget = type(event.widget) == Text and hasattr(event.widget,
-                                                                'is_input_widget')
+        correct_widget_type = type(event.widget) == Text
+        is_input_widget = hasattr(event.widget, 'is_input_widget')
+        correct_widget = correct_widget_type and is_input_widget
 
         not_keystroke = event.state != 12 and 'Control' not in event.keysym
 
-        if correct_widget and (not_keystroke or event.keysym in 'vVxX'):  # Because I can't trace it...
+        # Because I can't trace it...
+        if correct_widget and (not_keystroke or event.keysym in 'vVxX'):
             self.format_entries()
             length_status, length_difference = self.status()
 
@@ -1014,7 +1053,8 @@ class IOBoard(Frame):
             receiver.yview(*event)
 
     def yscrollcommand_sync(self, sender, receiver, *args):
-        """Sets widget view position from the yscrollcommand parameter in Text"""
+        """Sets widget view position from the
+        yscrollcommand parameter in Text"""
         sender.set(*args)
         if self.master.sync_scroll:
             receiver.set(*args)
@@ -1050,7 +1090,7 @@ class Lightboard(Frame):
     def __init__(self, tk_master, data_handler, *args, **kwargs):
         self.data_handler = data_handler
         bg = self.data_handler.bg
-        Frame.__init__(self, tk_master, bd=1, relief='raised', bg=bg, *args, *kwargs)
+        Frame.__init__(self, tk_master, bd=1, relief='raised', bg=bg, *args, **kwargs)
 
         rows = []
         self.bulbs = []
@@ -1059,7 +1099,7 @@ class Lightboard(Frame):
             new_row = Frame(self)
             for item in row:
                 text = alphabet[item]
-                self.bulbs.append(Label(new_row, text=text, font=(14), bg=bg, padx=2))
+                self.bulbs.append(Label(new_row, text=text, font=('', 14), bg=bg, padx=2))
             rows.append(new_row)
 
         for row in rows:

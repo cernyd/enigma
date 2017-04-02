@@ -32,8 +32,9 @@ class TestEnigma(unittest.TestCase):
             output = ''
             for letter in buffer[test[0]]:
                 output += self.subject.button_press(letter)
-            self.assertEqual(output, buffer[test[1]], f'Failed to '
-                                                             f'{test[1][:-2]}!')
+
+            err_msg = f'Failed to {test[1][:-2]}!'
+            self.assertEqual(output, buffer[test[1]], err_msg)
         with self.assertRaises(AssertionError):
             self.subject.button_press(18)
 
@@ -41,7 +42,8 @@ class TestEnigma(unittest.TestCase):
         """Tests if rotors are assigned properly"""
         self.reset_subject()
         rotors = self.cfg.find('test_rotors')['rotors']
-        self.subject.rotors = self.enigma_factory.produce_rotor('EnigmaM3', 'rotor', rotors)
+        self.subject.rotors = self.enigma_factory.produce_rotor('EnigmaM3',
+                                                                'rotor', rotors)
         self.assertEqual(self.subject.rotor_labels, rotors,
                          'Invalid rotor order assigned!')
 
@@ -80,8 +82,10 @@ class TestEnigma(unittest.TestCase):
         self.reset_subject()
         plug_pairs = self.cfg.find('test_plugboard')['pairs']
         self.subject.plugboard = {'normal_pairs': plug_pairs}
-        self.assertEqual(self.subject.plugboard['normal_pairs'], plug_pairs, 'Invalid plugboard'
-                                                             ' pairs assigned!')
+
+        err_msg = 'Invalid plugboard pairs assigned!'
+        self.assertEqual(self.subject.plugboard['normal_pairs'], plug_pairs,
+                         err_msg)
         with self.assertRaises(AttributeError):
             self.subject.plugboard = 'garbage_input'
 
@@ -89,10 +93,12 @@ class TestEnigma(unittest.TestCase):
 # GENERIC COMPONENTS
 
 def join_list(lst):
+    """Chains a list ( list of lists )"""
     return list(chain.from_iterable(lst))
 
 
 def are_unique(pairs):
+    """Checks if values in letter pairs are unique"""
     value_list = join_list(pairs)
     return len(value_list) == len(set(value_list))
 
@@ -105,16 +111,19 @@ class WiredPairs:
 
     @property
     def pairs(self):
+        """Returns letter pairs"""
         return self._pairs
 
     @pairs.setter
     def pairs(self, pairs):
+        """Sets letter pairs"""
         assert (len(pairs) <= 13), "Invalid number of pairs!"
         assert are_unique(pairs), 'A letter can only be wired once!'
 
         self._pairs = pairs
 
     def pairs_route(self, letter):
+        """Routes a letter trough letter pairs"""
         neighbour = []
         for pair in self._pairs:
             if letter in pair:
@@ -136,6 +145,7 @@ class Plugboard:
             self.pairs = pairs
 
     def uhr_letter_color(self, letter):
+        """Returns plug style of the input letter"""
         for key, value in self._uhr.pairs.items():
             if letter == key:
                 color = value[0]
@@ -161,13 +171,16 @@ class Plugboard:
             uhr_pairs = pairs.get('uhr_pairs', tuple())
         except AttributeError:
             raise AttributeError("Invalid pairs datatype!")
-        assert are_unique(list(list(normal_pairs) + list(uhr_pairs))), "A letter can only be wired once!"
+
+        err_msg = "A letter can only be wired once!"
+        assert are_unique(list(list(normal_pairs) + list(uhr_pairs))), err_msg
 
         if uhr_pairs:
             self._uhr.pairs = uhr_pairs
         self._wired_pairs.pairs = normal_pairs
 
     def clear_pairs(self):
+        """Clears all plugboard pairs ( normal and uhr pairs )"""
         self._wired_pairs.pairs = tuple()
         self._uhr.pairs = tuple()
 
@@ -180,14 +193,17 @@ class Plugboard:
 
     @property
     def uhr_connected(self):
+        """Checks if the uhr is connected"""
         return len(self._uhr.simple_pairs) != 0
 
     @property
     def uhr_position(self):
+        """Returns current uhr position"""
         return self._uhr.position
 
     @uhr_position.setter
     def uhr_position(self, position):
+        """Sets uhr position"""
         self._uhr.position = position
 
 
@@ -206,7 +222,8 @@ class EnigmaFactory:
         try:
             return globals()[model]
         except KeyError:
-            print(f"No enigma model found for \"{model}\"! Attempting to return alternative object...")
+            print(f"No enigma model found for \"{model}\"! "
+                  f"Attempting to return alternative object...")
             return Enigma1
 
     def _get_model_data(self, model, rotor_count, reflector=None, rotors=None, stator=None):
@@ -214,7 +231,7 @@ class EnigmaFactory:
         data."""
         model_data = self.model_data(model)
 
-        # This block generates default data if specific preferences were not specified
+        # Generates default data if default parameters not overridden
         if not reflector:
             reflector = model_data['reflectors'][0]
         if not rotors:
@@ -222,20 +239,24 @@ class EnigmaFactory:
         if not stator:
             stator = model_data['stators'][0]
 
-        return self.produce_rotor(model, 'reflector', reflector), \
-               self.produce_rotor(model, 'rotor', rotors),\
-               self.produce_rotor(model, 'stator', stator), model_data
+        reflector = self.produce_rotor(model, 'reflector', reflector)
+        rotors = self.produce_rotor(model, 'rotor', rotors)
+        stator = self.produce_rotor(model, 'stator', stator)
+
+        return reflector, rotors, stator, model_data
 
     def all_models(self):
         """Returns all enigma models as a string list"""
         self.cfg.clear_focus()
         return [enigma['model'] for enigma in self.cfg.iter_find('enigma')]
 
-    def produce_enigma(self, model, reflector=None, rotors=None, stator=None, master=None, reflector_pairs=tuple()):
+    def produce_enigma(self, model, reflector=None, rotors=None, stator=None,
+                       master=None, reflector_pairs=tuple()):
         """Produces an enigma machine given a specific model ( must be available
         in the specified cfg_path )"""
         ModelClass = self._get_model_class(model)
-        data = self._get_model_data(model, ModelClass.rotor_count, reflector, rotors, stator)
+        data = self._get_model_data(model, ModelClass.rotor_count, reflector,
+                                    rotors, stator)
 
         if master:
             class TkEnigma(ModelClass):
@@ -257,10 +278,12 @@ class EnigmaFactory:
                 def reflector(self, reflector):
                     try:
                         if type(reflector) == str:
-                            ModelClass.reflector.fset(self, self._enigma_factory.produce_rotor(model, 'reflector', reflector))
+                            new_reflector = self._enigma_factory.produce_rotor(
+                                model, 'reflector', reflector)
+                            ModelClass.reflector.fset(self, new_reflector)
                         else:
                             ModelClass.reflector.fset(self, reflector)
-                    except AttributeError as err:
+                    except AttributeError:
                         messagebox.showwarning('Invalid reflector',
                                                'Invalid reflector,'
                                                ' please try '
@@ -268,13 +291,15 @@ class EnigmaFactory:
 
                 @ModelClass.rotors.setter
                 def rotors(self, rotors):
-                    """Adds a visual error feedback ( used only in the tk implementation"""
+                    """Adds a visual error feedback ( used only in the
+                    tk implementation )"""
                     try:
                         if type(rotors[0]) == str:
-                            ModelClass.rotors.fset(self, self._enigma_factory.produce_rotor(model, 'rotor', rotors))
+                            new_rotors = self._enigma_factory.produce_rotor(model, 'rotor', rotors)
+                            ModelClass.rotors.fset(self, new_rotors)
                         else:
                             ModelClass.rotors.fset(self, rotors)
-                    except AttributeError as err:
+                    except AttributeError:
                         messagebox.showwarning('Invalid rotor',
                                                'Some of rotors are not \n'
                                                'valid, please try again...')
@@ -286,7 +311,7 @@ class EnigmaFactory:
     def produce_rotor(self, model, rotor_type, labels):
         """Creates and returns new object based on input"""
         if labels == ['UKW-D'] or labels == 'UKW-D':
-            return UKW_D()
+            return UKWD()
 
         self.cfg.focus_buffer(self._base_path.format(model=model))
         cfg = self.cfg.iter_find(rotor_type)
@@ -351,7 +376,8 @@ class Enigma:
     rotor_count = 3
     has_plugboard = False
 
-    def __init__(self, reflector, rotors, stator, factory_data=None, reflector_pairs=tuple()):
+    def __init__(self, reflector, rotors, stator, factory_data=None,
+                 reflector_pairs=tuple()):
         self._stator = stator
         self._reflector = None
         self._rotors = None
@@ -385,12 +411,14 @@ class Enigma:
 
     @property
     def reflector_pairs(self):
+        """Returns reflector pairs if UKW-D is connected"""
         if self._reflector.label == 'UKW-D':
             return self.reflector.wiring_pairs
-        return []
+        return ()
 
     @reflector_pairs.setter
     def reflector_pairs(self, wiring_pairs):
+        """Sets reflector pairs if the UKW-D is currently being used"""
         if self._reflector.label == 'UKW-D':
             self.reflector.wiring_pairs = wiring_pairs
 
@@ -401,6 +429,7 @@ class Enigma:
 
     @property
     def rotors(self):
+        """Returns current rotors"""
         return self._rotors
 
     @rotors.setter
@@ -414,33 +443,40 @@ class Enigma:
 
     @property
     def positions(self):
+        """Returns current rotor positions"""
         return [rotor.position for rotor in self._rotors]
 
     @positions.setter
     def positions(self, positions):
+        """Sets rotor positions"""
         for position, rotor in zip(positions, self._rotors):
             rotor.position = position
 
     @property
     def reflector(self):
+        """Returns current reflector object"""
         return self._reflector
 
     @reflector.setter
     def reflector(self, reflector):
+        """Sets current reflector"""
         err_msg = f"Invalid rotor class of \"{type(reflector).__name__}\"!"
-        assert isinstance(reflector, (Reflector, UKW_D)), err_msg
+        assert isinstance(reflector, (Reflector, UKWD)), err_msg
         self._reflector = reflector
 
     @property
     def ring_settings(self):
+        """Returns ring settings"""
         return [rotor.ring_setting for rotor in self.rotors]
 
     @ring_settings.setter
     def ring_settings(self, offsets):
+        """Sets rotor ring settings"""
         for rotor, setting in zip(self.rotors, offsets):
             rotor.ring_setting = setting
 
     def button_press(self, letter):
+        """Simulates an enigma button press including rotor stepping"""
         self.step_primary(1)
 
         output = self._stator.forward(letter)
@@ -474,13 +510,15 @@ class Enigma1(Enigma):
     except M4 ( Four rotors )"""
     has_plugboard = True
 
-    def __init__(self, reflector, rotors, stator, factory_data, normal_pairs=tuple(), uhr_pairs=tuple()):
+    def __init__(self, reflector, rotors, stator, factory_data,
+                 normal_pairs=tuple(), uhr_pairs=tuple()):
         Enigma.__init__(self, reflector, rotors, stator, factory_data)
         self._plugboard = Plugboard({'normal_pairs': normal_pairs,
                                      'uhr_pairs': uhr_pairs})
 
     @property
     def uhr_position(self):
+        self.__doc__ = self._plugboard.uhr_position.__doc__
         return self._plugboard.uhr_position
 
     @uhr_position.setter
@@ -554,6 +592,8 @@ class EnigmaM4(EnigmaM3):
 
     @EnigmaM3.reflector.setter
     def reflector(self, reflector):
+        """Reflector setting is wrapped with automatic removal of extra rotor
+        in EnigmaM4"""
         EnigmaM3.reflector.fset(self, reflector)
 
         if reflector.label == 'UKW-D' and self.rotor_count == 4:
@@ -653,10 +693,14 @@ class Rotor(Stator, _Rotatable):
 
     @_compensate
     def forward(self, letter):
+        """Routes a letter ( an electrical signal ) from right to left ( or
+        front to back side )"""
         return Stator.forward(self, letter)
 
     @_compensate
     def backward(self, letter):
+        """Routes a letter ( an electrical signal ) from left to right ( or
+        back to front side )"""
         return Stator.backward(self, letter)
 
     def rotate(self, places=1):
@@ -667,55 +711,63 @@ class Rotor(Stator, _Rotatable):
 
     @property
     def turnover(self):
+        """Returns current turnover"""
         return self._turnover
 
     @property
     def position(self):
+        """Returns rotor position"""
         return self.position_ring[0]
 
     @position.setter
     def position(self, position):
         """Sets rotor to target position"""
-        self._generic_setter("Invalid position\"%s\"!", lambda: getattr(self, 'position'),
-                             position, self.rotate)
+        self._generic_setter("Invalid position\"%s\"!",
+                             lambda: getattr(self, 'position'), position, self.rotate)
 
-    def _generic_setter(self, message, uptodate_value, target_value, update_action):
+    @staticmethod
+    def _generic_setter(message, uptodate_value, target_value, update_action):
+        """Can be used to rotate any iterable"""
         assert str(target_value) in alphabet, message % str(target_value)
         while uptodate_value() != target_value:
             update_action()
 
     @property
     def ring_setting(self):
+        """Returns ring setting"""
         return self.position_ring[self.relative_board.index('A')]
 
     @ring_setting.setter
     def ring_setting(self, setting):
         """Sets rotor indicator offset relative to the internal wiring"""
-        self._generic_setter("Invalid ring setting \"%s\"!", lambda: getattr(self, 'ring_setting'),
-                             setting, lambda: self._change_board_offset('relative_board'))
+        self._generic_setter("Invalid ring setting \"%s\"!",
+                             lambda: getattr(self, 'ring_setting'), setting,
+                             lambda: self._change_board_offset('relative_board'))
 
 
 # HISTORICAL ENIGMA PECULIARITIES
 
 class Luckenfuller(Rotor):
-    """Rotor with adjustable turnover notches."""
+    """Rotor with adjustable turnover notches. This object is not included in
+    the official enigma gui because it was never used in reality"""
     def __init__(self, label, back_board, turnover):
         Rotor.__init__(self, label, back_board, turnover)
 
     @Rotor.turnover.setter
     def turnover(self, turnover):
+        """Turnover can be set in luckenfullers"""
         self._turnover = turnover
 
 
-class UKW_D:
+class UKWD:
     """Could be used in 3 rotor enigma versions, mostly used in EnigmaM4
     ( replacing the thin reflector and extra rotor! ). UKW-D is a field
     rewirable Enigma machine reflector."""
-    def __init__(self, pairs=['AB', 'CD', 'EF', 'GH', 'IK', 'LM', 'NO', 'PQ',
-                              'RS', 'TU', 'VW', 'XZ']):
+    def __init__(self, pairs=('AB', 'CD', 'EF', 'GH', 'IK', 'LM', 'NO', 'PQ',
+                              'RS', 'TU', 'VW', 'XZ')):
         self._pairs = WiredPairs(('BO', ))  # BO pair is static!
         self.german_notation = 'AZXWVUTSRQPONMLKIHGFEDCB'
-        self.actual_letters =  'ACDEFGHIJKLMNPQRSTUVWXYZ'
+        self.actual_letters = 'ACDEFGHIJKLMNPQRSTUVWXYZ'
         self.wiring_pairs = pairs
         self.label = 'UKW-D'
 
@@ -735,14 +787,17 @@ class UKW_D:
         return return_pairs
 
     def _to_actual_letter(self, letter):
+        """Transfers letter to actual wiring"""
         return self.actual_letters[self.german_notation.index(letter)]
 
     def _to_german_notation(self, letter):
+        """Transfers actual wiring to german notation ( on pair read )"""
         return self.german_notation[self.actual_letters.index(letter)]
 
     @wiring_pairs.setter
     def wiring_pairs(self, pairs):
-        """Sets up wiring pairs, BO is static! ( will appear as 'JY' while setting)"""
+        """Sets up wiring pairs, BO is static!
+        ( will appear as 'JY' while setting)"""
         assert len(pairs) == 12, "Invalid number of pairs, " \
                                  "only number of pairs possible is 12!"
 
@@ -762,6 +817,7 @@ class UKW_D:
         self._pairs.pairs = new_pairs
 
     def reflect(self, letter):
+        """Reflects letter like a standard reflector"""
         return self._pairs.pairs_route(letter)
 
 
@@ -775,8 +831,9 @@ class Uhr(_Rotatable):
         cables. Position 00 is reciprocal and allows communication with non-uhr
         users."""
         self.back_board = [26, 11, 24, 21, 2, 31, 0, 25, 30, 39, 28, 13, 22, 35,
-                          20, 37, 6, 23, 4, 33, 34, 19, 32, 9, 18, 7, 16, 17,
-                          10, 3, 8, 1, 38, 27, 36, 29, 14, 15, 12, 5]
+                           20, 37, 6, 23, 4, 33, 34, 19, 32, 9, 18, 7, 16, 17,
+                           10, 3, 8, 1, 38, 27, 36, 29, 14, 15, 12, 5]
+
         self.relative_board = tuple(range(40))
         # Relative and indicator boards are the same because Uhr did not have turnovers
 
@@ -827,10 +884,14 @@ class Uhr(_Rotatable):
         """
 
         if len(pairs) > 0:
-            assert (len(pairs) == 10), "All 10 pairs must be wired, otherwise " \
-                                       "electrical signal could be lost during " \
-                                       "non-reciprocal substitution."
-            assert are_unique(pairs), 'Letters in Uhr pairs can only be wired once!'
+            err_msg = """All 10 pairs must be wired, otherwise the electrical
+                     signal could be lost during non-reciprocal substitution."""
+
+            assert (len(pairs) == 10), err_msg
+
+            assert are_unique(pairs), 'Letters in Uhr pairs can ' \
+                                      'only be wired once!'
+
             # Connects letter pairs to a corresponding aX - bX pair
             for pair, index in zip(pairs, range(1, 11)):
                 for letter, socket_id in zip(pair, 'ab'):
@@ -845,10 +906,12 @@ class Uhr(_Rotatable):
 
     @property
     def position(self):
+        """Returns current uhr position"""
         return self.relative_board[0]
 
     @position.setter
     def position(self, position):
+        """Sets uhr position"""
         while self.position != position % 40:
             self._change_board_offset('relative_board', 1)
             self._change_board_offset('back_board', 1)
@@ -859,7 +922,8 @@ class Uhr(_Rotatable):
         def wrapper(self, absolute_input):
             relative_input = self.relative_board[absolute_input]  # Correct
             relative_output = func(self, relative_input)
-            absolute_output = range(40)[self.relative_board.index(relative_output)]
+            relative_index = self.relative_board.index(relative_output)
+            absolute_output = range(40)[relative_index]
             return absolute_output
         return wrapper
 
@@ -888,13 +952,15 @@ class Uhr(_Rotatable):
         output_pin_index = letter_data[1][0]
 
         if 'a' in letter_data[0]:
-            letter = self.find_letter('b', self._route_forward(output_pin_index))
+            board = 'a'
         else:
-            letter = self.find_letter('a', self._route_backward(output_pin_index))
+            board = 'b'
+
+        letter = self.find_letter(board, self._route_backward(output_pin_index))
 
         assert letter, "No letter found!"
         return letter
 
 
 __all__ = ['EnigmaFactory', 'RotorFactory', 'Enigma1', 'EnigmaM3', 'EnigmaM4',
-           'Reflector', 'Stator', 'Rotor', 'UKW_D', 'Uhr', 'Luckenfuller']
+           'Reflector', 'Stator', 'Rotor', 'UKWD', 'Uhr', 'Luckenfuller']

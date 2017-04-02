@@ -8,7 +8,6 @@ from tkinter import messagebox
 
 class Playback:
     """Module for playing sounds from the sounds folder"""
-
     def __init__(self, master_instance):
         self.sounds = list(
             map(lambda snd: snd[7:], glob(path.join('sounds', '*.wav'))))
@@ -34,33 +33,38 @@ class DataHandler:
         self.switch_enigma()
 
     def switch_enigma(self, model='Enigma1', **config):
+        """Switches current enigma model"""
         if self.master:
-            self.enigma = self.enigma_factory.produce_enigma(model, **config, master=self.master)
+            self.enigma = self.enigma_factory.produce_enigma(model, **config,
+                                                             master=self.master)
         else:
             self.enigma = self.enigma_factory.produce_enigma(model, **config)
 
     def set_master(self, master):
+        """Sets datahandler gui tkinter master"""
         self.master = master
         self.playback.master_instance = master
         self.switch_enigma()
 
     @property
     def font(self):
+        """Returns font from config"""
         font = self.global_cfg.find('font')
-        # Apparently the xml parser likes to mess with font attribute order
-        # Tkinter does not like that...
         return font['style'], font['size']
 
     @property
     def bg(self):
+        """Returns background color from config"""
         return self.global_cfg.find('bg')['color']
 
     @property
     def enigma_cfg(self):
+        """Returns default enigma settings"""
         return self.global_cfg.find('enigma_defaults')
 
     @property
     def settings_vars(self):
+        """Returns setting variables for gui"""
         return self.global_cfg.find('setting_vars')
 
     def save_config(self):
@@ -76,9 +80,11 @@ class DataHandler:
 
         self.global_cfg.new_subelement('saved', 'gui', toint='*', **data['gui'])
 
-        self.global_cfg.new_subelement('saved', 'enigma', split='rotors uhr_pairs normal_pairs '
-                                                                'rotor_positions ring_settings '
-                                                                'reflector_pairs', toint='uhr_position', **data['enigma'])
+        split = 'rotors uhr_pairs normal_pairs ' \
+                'rotor_positions ring_settings reflector_pairs'
+
+        self.global_cfg.new_subelement('saved', 'enigma', split=split,
+                                       toint='uhr_position', **data['enigma'])
 
         self.global_cfg.focus_buffer('globals')
 
@@ -93,7 +99,8 @@ class DataHandler:
             data = dict(enigma=self.global_cfg.find('enigma'),
                         gui=self.global_cfg.find('gui'))
         except AssertionError:
-            messagebox.showerror('Configuration loading error', 'No configuration available')
+            messagebox.showerror('Configuration loading error',
+                                 'No configuration available')
         finally:
             self.global_cfg.focus_buffer('globals')
             return data
