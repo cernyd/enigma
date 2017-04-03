@@ -228,20 +228,26 @@ class Root(Tk, Base):
 
     @property
     def sync_scroll(self):
+        """Input and output scrollbars replicate eachothers movements"""
         return self._sync_scroll.get()
 
     @property
     def show_numbers(self):
+        """If numbers should be shown on rotor indicators"""
         return self._show_numbers.get()
     
     @property
     def autorotate(self):
+        """This enables automatic rollback of rotor positions when deleting text
+        from input box"""
         return self._autorotate.get()
 
-    def save_config(self):  # Not flexible
+    def save_config(self):
+        """Saves all configurations to xml"""
         self.data_handler.save_config()
 
-    def load_config(self):  # Not flexible
+    def load_config(self):
+        """Loads all configurations from xml"""
         data = self.data_handler.load_config()
 
         if data:
@@ -340,6 +346,7 @@ class PlugboardMenu(Toplevel, Base):
         button_frame.pack(side='bottom', fill='x')
 
     def refresh_apply_button(self):
+        """Sets apply button to active if all conditions are met"""
         if len(self.pairs['uhr_pairs']) in (10, 0):
             self.apply_button.config(state='active')
         else:
@@ -347,10 +354,12 @@ class PlugboardMenu(Toplevel, Base):
 
     @property
     def uhr_mode(self):
+        """Determines if uhr pairs are currently being set or not"""
         return self._uhr_mode.get()
 
     @uhr_mode.setter
     def uhr_mode(self, value):
+        """Sets uhr mode"""
         self._uhr_mode.set(value)
 
     def apply(self):
@@ -514,9 +523,11 @@ class PlugSocket(Frame):
 
     @property
     def label(self):
+        """Returns label of the plugsocket ( as shown in gui )"""
         return self._label[0]
 
     def get_socket(self):
+        """Gets currently entered socket value"""
         return self.plug_socket.get()
 
     @property
@@ -613,11 +624,14 @@ class UhrMenu(Toplevel, Base):
         self.refresh_indicator()
 
     def rotate(self, places=0):
+        """Rotates uhr selector ( with the bakelite disk
+        in the real thing... )"""
         self.data_handler.playback.play('click')
         self.data_handler.enigma.uhr_position += places
         self.refresh_indicator()
 
     def refresh_indicator(self):
+        """Refreshes uhr indicator ( 00, 01, .... 39 )"""
         text = '{:0>2}'.format(self.data_handler.enigma.uhr_position)
         self.position_indicator.config(text=text)
 
@@ -675,9 +689,11 @@ class RotorMenu(Toplevel, Base):
         self.update_reflector()
 
     def ukwd_menu(self):
+        """Opens menu where UKW-D pairs are set"""
         self.wait_window(UKWDMenu(self))
 
     def reload_rotor_slots(self):
+        """Reloads rotor slots according to the current number of rotors"""
         for rotor in self.rotors:
             rotor.destroy()
 
@@ -713,6 +729,8 @@ class RotorMenu(Toplevel, Base):
             pass
 
     def update_reflector(self, *event):
+        """Updates current reflector choice, this triggers a rotor reload if
+        UKW-D is set or unset"""
         if hasattr(self, 'reflector'):
             reflector_val = self.reflector.choice_var.get()
             if reflector_val == 'UKW-D':
@@ -730,6 +748,7 @@ class RotorMenu(Toplevel, Base):
 
 
 class UKWDMenu(Toplevel, Base):
+    """Menu for selecting UKW-D pairs"""
     def __init__(self, master, *args, **kwargs):
         Toplevel.__init__(self, *args, **kwargs)
         Base.__init__(self, 'rotor.ico', 'UKW-D Settings')
@@ -750,10 +769,12 @@ class UKWDMenu(Toplevel, Base):
         self.entry_var.trace('w', self.refresh_apply_button)
 
     def apply(self):
-        self.master.ukw_D_pairs = ''
+        """Applies UKW-D pairs to UKW-D"""
+        self.master.ukw_D_pairs = list(self.pair_entry.get())
         self.destroy()
 
     def refresh_apply_button(self, *event):
+        """Enables apply button if all conditions are met"""
         validated_text = sub('[^a-zA-Z ]+', '', self.pair_entry.get()).upper()
 
         if validated_text != self.pair_entry.get():
@@ -781,6 +802,7 @@ class UKWDMenu(Toplevel, Base):
 
 
 class BaseSlot(Frame):
+    """Base for RotorSlot and ReflectorSlot that are used in the ReflectorMenu"""
     def __init__(self, master, tk_master, text, *args, **kwargs):
         Frame.__init__(self, tk_master, bd=1, relief='raised', *args, **kwargs)
 
@@ -793,15 +815,14 @@ class BaseSlot(Frame):
         self.radio_group = []
 
     def generate_contents(self, contents):
-        """
-        :param contents: Contents to generate as tk radios
-        """
+        """Generates RadioButtons"""
         for item in contents:
             radio = Radiobutton(self, text=item, variable=self.choice_var, value=item)
             radio.pack(side='top')
             self.radio_group.append(radio)
 
     def update_available(self, radio_value, event=None):
+        """Updates if radio buttons are enabled or disabled"""
         try:
             for radio in self.radio_group:
                 if radio['value'] in radio_value:
@@ -814,6 +835,7 @@ class BaseSlot(Frame):
 
 
 class RotorSlot(BaseSlot):
+    """Used to select rotors in the rotor menu"""
     def __init__(self, master, tk_master, index, data_handler, *args, **kwargs):
         ring_labels = data_handler.enigma.factory_data['labels']
         rotors = data_handler.enigma.factory_data['rotors']
@@ -846,15 +868,18 @@ class RotorSlot(BaseSlot):
         self.ring_var.trace('w', self.master.update_rotors)
 
     def update_selected(self, *event):
+        """Updates currently selected values in master ( RotorMenu )"""
         self.master.curr_rotors[self.index] = self.choice_var.get()
         ring_setting = self.labels.index(self.ring_var.get())
         self.master.curr_ring_settings[self.index] = ring_setting
 
     def update_available(self, *event):
+        """Updates what values are currently available"""
         BaseSlot.update_available(self, radio_value=self.master.curr_rotors)
 
 
 class ReflectorSlot(BaseSlot):
+    """Used for selecting reflectors in the RotorMenu"""
     def __init__(self, master, tk_master, reflectors, *args, **kwargs):
         BaseSlot.__init__(self, master, tk_master, 'REFLECTOR', *args, **kwargs)
         self.choice_var.trace('w', self.master.update_reflector)
@@ -866,6 +891,7 @@ class ReflectorSlot(BaseSlot):
         self.choice_var.trace('w', self.update_selected)
 
     def update_selected(self, *event):
+        """Updates what values are selected in the master ( RotorMenu )"""
         self.master.curr_reflector = self.choice_var.get()
 
 
@@ -882,6 +908,7 @@ class IndicatorBoard(Frame):
         self.reload_indicators()
 
     def reload_indicators(self):
+        """Reloads rotor indicators ( useful when switching rotor count )"""
         for indicator in self.indicators:
             indicator.destroy()
 
@@ -893,7 +920,7 @@ class IndicatorBoard(Frame):
             indicator.pack(side='left', fill='both', pady=10)
 
     def update_indicators(self):
-        """Update all indicators"""
+        """Update all values shown on the rotor indicators"""
         [indicator.update_indicator() for indicator in self.indicators]
 
 
@@ -936,6 +963,7 @@ class RotorIndicator(Frame):
 # IOBOARD
 
 class IOBoard(Frame):
+    """Boards where user input and output is handled"""
     def __init__(self, tk_master, master, data_handler, *args, **kwargs):
         Frame.__init__(self, tk_master, *args, *kwargs)
         self.data_handler = data_handler
@@ -987,22 +1015,6 @@ class IOBoard(Frame):
         else:
             return False, 0
 
-    @staticmethod
-    def _split_text(string, group_length=4):
-        def splitter():
-            nonlocal string
-            subgroup = ''
-            for letter in string:
-                subgroup += letter
-                if len(subgroup) == group_length:
-                    yield subgroup
-                    subgroup = ''
-
-            if subgroup:
-                yield subgroup
-
-        return ' '.join(splitter())
-
     def format_entries(self):
         """Ensures input/output fields have the same length"""
         sanitized_text = self.format_string(self.input_box)
@@ -1011,6 +1023,7 @@ class IOBoard(Frame):
 
     @staticmethod
     def format_string(string):
+        """Formats string to valid text ( letters only )"""
         return sub(r"[^A-Za-z]", '', string)
 
     def press_event(self, event=None):
@@ -1111,6 +1124,8 @@ class Lightboard(Frame):
         self.last_bulb = None
 
     def light_up(self, letter=''):
+        """Makes a label glow yellow ( this represents a lightbulb on the
+        actual light board )"""
         if self.last_bulb:
             self.last_bulb.config(fg='black')
         if letter:

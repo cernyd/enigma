@@ -8,10 +8,11 @@ root = Root(data_handler)
 
 
 # Main unittest before running, could warn about potential flaws
+# If this passes, enigma should be ready for accurate simulation
 if data_handler.global_cfg.find(['unit_tests'])['startup_test'] == "True":
     TestEnigma.model = data_handler.enigma_cfg['model']
     TestEnigma.cfg_path = ['config.xml']
-    unittest.main(exit=False, verbosity=2)
+    unittest.main(exit=False, verbosity=1)
 
 
 if __name__ == '__main__':

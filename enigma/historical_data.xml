@@ -97,7 +97,37 @@
         </reflectors>
     </enigma>
     <enigma model="EnigmaD">
-        <!--Enigma K is identical!-->
+        <stators>
+            <stator label="ETW" back_board="QWERTZUIOASDFGHJKPYXCVBNML"/>
+        </stators>
+        <rotors>
+            <rotor label="I" back_board="LPGSZMHAEOQKVXRFYBUTNICJDW" turnover="Y"/>
+            <rotor label="II" back_board="SLVGBTFXJQOHEWIRZYAMKPCNDU" turnover="E"/>
+            <rotor label="III" back_board="CJGDPSHKTURAWZXFMYNQOBVLIE" turnover="N"/>
+        </rotors>
+        <reflectors>
+            <reflector label="UKW" back_board="IMETCGFRAYSQBZXWLHKDVUPOJN"/>
+        </reflectors>
+    </enigma>
+    <enigma model="Tirpitz">
+        <stators>
+            <stator label="ETW" back_board="KZROUQHYAIGBLWVSTDXFPNMCJE"/>
+        </stators>
+        <rotors>
+            <rotor label="I" back_board="KPTYUELOCVGRFQDANJMBSWHZXI" turnover="WZEKQ"/>
+            <rotor label="II" back_board="UPHZLWEQMTDJXCAKSOIGVBYFNR" turnover="WZFLR"/>
+            <rotor label="III" back_board="QUDLYRFEKONVZAXWHMGPJBSICT" turnover="WZEKQ"/>
+            <rotor label="IV" back_board="CIWTBKXNRESPFLYDAGVHQUOJZM" turnover="WZFLR"/>
+            <rotor label="V" back_board="UAXGISNJBVERDYLFZWTPCKOHMQ" turnover="YCFKR"/>
+            <rotor label="VI" back_board="XFUZGALVHCNYSEWQTDMRBKPIOJ" turnover="XEIMQ"/>
+            <rotor label="VII" back_board="BJVFTXPLNAYOZIKWGDQERUCHSM" turnover="YCFKR"/>
+            <rotor label="VIII" back_board="YMTPNZHWKODAJXELUQVGCBISFR" turnover="XEIMQ"/>
+        </rotors>
+        <reflectors>
+            <reflector label="UKW" back_board="GEKPBTAUMOCNILJDXZYFHWVQSR"/>
+        </reflectors>
+    </enigma>
+    <enigma model="EnigmaK">
         <stators>
             <stator label="ETW" back_board="QWERTZUIOASDFGHJKPYXCVBNML"/>
         </stators>
