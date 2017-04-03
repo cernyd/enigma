@@ -518,15 +518,17 @@ class Enigma1(Enigma):
 
     @property
     def uhr_position(self):
-        self.__doc__ = self._plugboard.uhr_position.__doc__
+        """Returns current uhr position"""
         return self._plugboard.uhr_position
 
     @uhr_position.setter
     def uhr_position(self, position):
+        """Sets uhr position"""
         self._plugboard.uhr_position = position
 
     @property
     def uhr_connected(self):
+        """Returns True if uhr is connected"""
         return self._plugboard.uhr_connected
 
     def uhr_letter_color(self, letter):
@@ -539,9 +541,11 @@ class Enigma1(Enigma):
 
     @plugboard.setter
     def plugboard(self, pairs):
+        """Sets plugboard pairs"""
         self._plugboard.pairs = pairs
 
     def clear_plugboard(self):
+        """Clears all pairs on the plugboard"""
         self._plugboard.clear_pairs()
 
     def button_press(self, letter):
@@ -551,6 +555,7 @@ class Enigma1(Enigma):
         return self._plugboard.route(output)
 
     def dump_config(self):
+        """Returns enigma state ( rotors, positions, plug pairs, etc... )"""
         config = Enigma.dump_config(self)
         normal_pairs = ' '.join(self._plugboard.pairs['normal_pairs'])
         uhr_pairs = ' '.join(self._plugboard.pairs['uhr_pairs'])
@@ -560,23 +565,31 @@ class Enigma1(Enigma):
 
 
 class Norenigma(Enigma):
-    has_plugboard = False
+    """Enigma model used in Norway"""
 
 
 class EnigmaG(Enigma):
-    has_plugboard = False
+    """Zahlwerk Enigma with a cog mechanism."""
 
 
 class EnigmaD(Enigma):
-    has_plugboard = False
+    """First Enigma with removable rotors, successor of Enigma C"""
 
 
 class SwissK(Enigma):
-    has_plugboard = False
+    """Used in Switzerland"""
 
 
 class Railway(Enigma):
-    has_plugboard = False
+    """Used by german Reichsbahn"""
+
+
+class EnigmaK(EnigmaD):
+    """Functionally identical to Enigma D"""
+
+
+class Tirpitz(EnigmaK):
+    """Used by the Japanese"""
 
 
 class EnigmaM3(Enigma1):
@@ -851,15 +864,17 @@ class Uhr(_Rotatable):
                                       '10a': (36, 38), '10b': (32, 34)}
 
         self._pairs = {}
-        self._simple_pairs = []  # THIS IS JUST A VIEW, REFACTOR ASAP
+        self._simple_pairs = []
         self.pairs = pairs
 
     @property
     def simple_pairs(self):
+        """Returns simple representation of pairs ( only letters )"""
         return tuple(self._simple_pairs)
 
     @property
     def pairs(self):
+        """Returns full representation of pairs ( plug numbers, colors... )"""
         return self._pairs
 
     @pairs.setter
