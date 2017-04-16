@@ -74,11 +74,11 @@ class Config:
                         attribs[key] = value
             except ValueError as err:
                 value = findall("\'(.+)\'$", err.message)
-                err.message = f"""Invalid type conversion request, value
-                              \"{value}\" can't be converted to int!\n
-                              Attribute dump > {attribs}\n
-                              All conversion requests > {toint}
-                              """
+                err.message = """Invalid type conversion request, value
+                              \"{}\" can't be converted to int!\n
+                              Attribute dump > {}\n
+                              All conversion requests > {}
+                              """.format(value, attribs, toint)
                 raise
 
         return attribs
@@ -102,7 +102,7 @@ class Config:
         elif data_type == 'OBJ':
             return element
         else:
-            raise ValueError(f"Invalid data type \"{data_type}\"!")
+            raise ValueError("Invalid data type \"{}\"!".format(data_type))
 
     def clear_focus(self):
         """Clears current buffer focus"""
@@ -124,8 +124,7 @@ class Config:
     def find(self, data_path, data_type='ATTRS'):
         """Returns data based on data type and data path specified"""
         data = self.buffer.find(data_path)
-        err_msg = f"No data found for path \"{data_path}\"!"
-        assert data is not None, err_msg
+        assert data is not None, "No data found for path \"{}\"!".format(data_path)
 
         return Config.__process_data(data, data_type)
 
@@ -134,8 +133,7 @@ class Config:
     def iter_find(self, data_path, data_type='ATTRS'):
         """Finds all data iteratively in the current buffer scope."""
         data = list(self.buffer.iter(data_path))
-        err_msg = f"No data found for path \"{data_path}\"!"
-        assert data is not None and data != [], err_msg
+        assert data is not None and data != [], "No data found for path \"{}\"!".format(data_path)
 
         return [Config.__process_data(item, data_type) for item in data]
 

@@ -33,7 +33,7 @@ class TestEnigma(unittest.TestCase):
             for letter in buffer[test[0]]:
                 output += self.subject.button_press(letter)
 
-            err_msg = f'Failed to {test[1][:-2]}!'
+            err_msg = 'Failed to {}!'.format(test[1][:-2])
             self.assertEqual(output, buffer[test[1]], err_msg)
         with self.assertRaises(AssertionError):
             self.subject.button_press(18)
@@ -222,8 +222,8 @@ class EnigmaFactory:
         try:
             return globals()[model]
         except KeyError:
-            print(f"No enigma model found for \"{model}\"! "
-                  f"Attempting to return alternative object...")
+            print("No enigma model found for \"{}\"! "\
+                  "Attempting to return alternative object...".format(model))
             return Enigma1
 
     def _get_model_data(self, model, rotor_count, reflector=None, rotors=None, stator=None):
@@ -329,8 +329,7 @@ class EnigmaFactory:
                     match = True
                     break
 
-            err_msg = f"No configuration found for label \"{label}\"!"
-            assert match, err_msg
+            assert match, "No configuration found for label \"{}\"!".format(label)
 
             if rotor_type == 'rotor':
                 return_rotors.append(Rotor(**curr_cfg))
@@ -436,8 +435,7 @@ class Enigma:
     def rotors(self, rotors):
         """Sets rotors"""
         for rotor in rotors:
-            err_msg = f"Invalid rotor class of \"{type(rotor).__name__}\"!"
-            assert isinstance(rotor, (Rotor, Luckenfuller)), err_msg
+            assert isinstance(rotor, (Rotor, Luckenfuller)), "Invalid rotor class of \"{}\"!".format(type(rotor).__name__)
         assert len(rotors) == self.rotor_count, "Invalid number of rotors!"
         self._rotors = rotors
 
@@ -460,8 +458,7 @@ class Enigma:
     @reflector.setter
     def reflector(self, reflector):
         """Sets current reflector"""
-        err_msg = f"Invalid rotor class of \"{type(reflector).__name__}\"!"
-        assert isinstance(reflector, (Reflector, UKWD)), err_msg
+        assert isinstance(reflector, (Reflector, UKWD)), "Invalid rotor class of \"{}\"!".format(type(reflector).__name__)
         self._reflector = reflector
 
     @property
@@ -640,10 +637,10 @@ class _RotorBase:
 
             if letter not in alphabet:
                 raise AssertionError(
-                    f"Input \"{str(letter)}\" not single a letter!")
+                    "Input \"{}\" not single a letter!".format(str(letter)))
 
             elif len(letter) != 1:
-                raise AssertionError("Length of \"{str(letter)}\" is not 1!")
+                raise AssertionError("Length o \"{}\" is not 1!").format(str(letter))
 
             return func(self, letter)
 
