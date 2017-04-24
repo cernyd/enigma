@@ -1,16 +1,34 @@
 #!/usr/bin/env python3
 
 from enigma.components import EnigmaFactory
-from winsound import PlaySound, SND_ASYNC
+import platform
+platform = platform.system()
+if platform == "Windows":
+    from winsound import PlaySound, SND_ASYNC
 from cfg_handler import Config
 from glob import glob
 from os import path
 from tkinter import messagebox
 
 
+# MISC
+
+class Base:
+    """Base initiation class for Tk and TopLevel derivatives"""
+    def __init__(self, icon: str, wm_title: str):
+        self.attributes("-alpha", 0.0)
+        self.after(0, self.attributes, "-alpha", 1.0)
+        self.resizable(False, False)
+        if platform == "Windows":
+            self.iconbitmap("@"+path.join('icons', icon))
+        self.wm_title(wm_title)
+        self.grab_set()
+
+
 class Playback:
     """Module for playing sounds from the sounds folder"""
     def __init__(self, master_instance):
+        self.platform = platform
         self.sounds = list(
             map(lambda snd: snd[7:], glob(path.join('sounds', '*.wav'))))
         self.master_instance = master_instance
@@ -20,7 +38,8 @@ class Playback:
         sound_name += '.wav'
 
         if sound_name in self.sounds and self.master_instance.sound_enabled:
-            PlaySound(path.join('sounds', sound_name), SND_ASYNC)
+            if self.platform == "Windows":
+                PlaySound(path.join('sounds', sound_name), SND_ASYNC)
 
 
 class DataHandler:
