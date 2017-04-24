@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from _tkinter import TclError
 from itertools import chain
 from os import path

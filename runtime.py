@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from enigma.components import TestEnigma, unittest
 from data_handler import DataHandler
 from gui import Root
