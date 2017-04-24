@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from string import ascii_uppercase as alphabet
 from itertools import permutations, chain
 from cfg_handler import Config

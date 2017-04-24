@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from enigma.components import EnigmaFactory
 from winsound import PlaySound, SND_ASYNC
 from cfg_handler import Config
