@@ -1,27 +1,12 @@
 #!/usr/bin/env python3
 
-from _tkinter import TclError
 from itertools import chain
-from os import path
+from data_handler import Base
 from re import sub, findall
 from tkinter import *
 from tkinter import messagebox
 from webbrowser import open as open_browser
-
 from enigma.components import alphabet, are_unique
-
-
-# MISC
-
-class Base:
-    """Base initiation class for Tk and TopLevel derivatives"""
-    def __init__(self, icon: str, wm_title: str):
-        self.attributes("-alpha", 0.0)
-        self.after(0, self.attributes, "-alpha", 1.0)
-        self.resizable(False, False)
-        self.iconbitmap(path.join('icons', icon))
-        self.wm_title(wm_title)
-        self.grab_set()
 
 
 # ROOT
