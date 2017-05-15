@@ -116,6 +116,7 @@ class XMLTestEnigma(unittest.TestCase):
     cfg_path = []
 
     def __init__(self, *args, **kwargs):
+        raise DeprecationWarning("Use \TestEnigma\" class instead!")
         unittest.TestCase.__init__(self, *args, **kwargs)
         self.cfg = Config(TestEnigma.cfg_path)
         self.cfg.focus_buffer('test_cfg')
@@ -311,7 +312,7 @@ class Plugboard:
 
 # ENIGMA MODELS
 
-class EnigmaFactory:  # REMAKE THIS
+class EnigmaFactory:
     """Factory for producing enigma machines ( initialised more simply by
     choosing defaults from available config ), Can create rotor objects too"""
     def __init__(self, cfg_path):
@@ -463,7 +464,9 @@ class EnigmaFactory:  # REMAKE THIS
 
 class XMLEnigmaFactory:
     """Factory for producing enigma machines ( initialised more simply by
-    choosing defaults from available config ), Can create rotor objects too"""
+    choosing defaults from available config ), Can create rotor objects too
+    DEPRECATED!
+    """
     def __init__(self, cfg_path):
         self.cfg = Config(cfg_path, 'xml')
         self._base_path = "enigma[@model='{model}']"
