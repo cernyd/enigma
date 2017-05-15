@@ -1,5 +1,5 @@
 <cfg>
-    
+
     <globals>
         <enigma_defaults model="Enigma1" reflector="UKW-B" rotors="I II III" split="rotors" />
         <font size="10" style="Courier" toint="size" />

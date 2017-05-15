@@ -36,7 +36,88 @@ class TestEnigma(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
-        self.cfg = Config(TestEnigma.cfg_path, 'xml')
+        self.cfg = Config(TestEnigma.cfg_path).data['test_cfg']
+        self.subject = None
+        self.enigma_factory = EnigmaFactory(['enigma', 'historical_data.yaml'])
+        self.reset_subject()
+
+    def reset_subject(self):
+        self.subject = self.enigma_factory.produce_enigma('EnigmaM3')
+
+    def test_encrypt_decrypt(self):
+        """Tests if encryption and decryption are working properly"""
+        buffer = self.cfg['test_encrypt_decrypt']
+        for test in permutations(['encrypted', 'decrypted']):
+            self.reset_subject()
+            output = ''
+            for letter in buffer[test[0]]:
+                output += self.subject.button_press(letter)
+
+            err_msg = 'Failed to {}!'.format(test[1][:-2])
+            self.assertEqual(output, buffer[test[1]], err_msg)
+        with self.assertRaises(AssertionError):
+            self.subject.button_press(18)
+
+    def test_rotors(self):
+        """Tests if rotors are assigned properly"""
+        self.reset_subject()
+        rotors = self.cfg['test_rotors']['rotors']
+        self.subject.rotors = self.enigma_factory.produce_rotor('EnigmaM3',
+                                                                'rotor', rotors)
+        self.assertEqual(self.subject.rotor_labels, rotors,
+                         'Invalid rotor order assigned!')
+
+    def test_positions(self):
+        """Tests if rotor positions are set properly"""
+        self.reset_subject()
+        positions = self.cfg['test_positions']['positions']
+        self.subject.positions = positions
+        self.assertEqual(self.subject.positions, positions,
+                         'Positions assigned in wrong order!')
+        with self.assertRaises(AssertionError):
+            self.subject.positions = 14651, 'garbage', -15
+
+    def test_reflector(self):
+        """Tests if the reflector is set properly"""
+        self.reset_subject()
+        reflector = self.cfg['test_reflector']['reflector']
+        self.subject.reflector = self.enigma_factory.produce_rotor('EnigmaM3', 'reflector', reflector)
+        self.assertEqual(self.subject.reflector.label, reflector,
+                         'Invalid rotor assigned!')
+        with self.assertRaises(AssertionError):
+            self.subject.reflector = 'garbage_input'
+
+    def test_ring_settings(self):
+        """Tests if ring settings are set properly"""
+        self.reset_subject()
+        ring_settings = self.cfg['test_ring_settings']['ring_settings']
+        self.subject.ring_settings = ring_settings
+        self.assertEqual(self.subject.ring_settings, ring_settings,
+                         'Invalid ring settings assigned!')
+        with self.assertRaises(AssertionError):
+            self.subject.ring_settings = [12, 'garbage_input', 798715]
+
+    def test_plugboard(self):
+        """Checks if plugboard pairs are set propertly"""
+        self.reset_subject()
+        plug_pairs = self.cfg['test_plugboard']['pairs']
+        self.subject.plugboard = {'normal_pairs': plug_pairs}
+
+        err_msg = 'Invalid plugboard pairs assigned!'
+        self.assertEqual(self.subject.plugboard['normal_pairs'], plug_pairs,
+                         err_msg)
+        with self.assertRaises(AttributeError):
+            self.subject.plugboard = 'garbage_input'
+
+
+class XMLTestEnigma(unittest.TestCase):
+    """Used to test if enigma class behaves like the real life counterpart"""
+    model = ''
+    cfg_path = []
+
+    def __init__(self, *args, **kwargs):
+        unittest.TestCase.__init__(self, *args, **kwargs)
+        self.cfg = Config(TestEnigma.cfg_path)
         self.cfg.focus_buffer('test_cfg')
         self.subject = None
         self.enigma_factory = EnigmaFactory(['enigma', 'historical_data.xml'], 'xml')
@@ -230,21 +311,11 @@ class Plugboard:
 
 # ENIGMA MODELS
 
-
-class EnigmaFactory:
-    def __new__(cls, master=None, config_type='yaml'):
-        if config_type == 'yaml':
-            return YAMLEnigmaFactory(master)
-        elif config_type == 'xml':
-            return XMLEnigmaFactory(master)
-
-
-class YAMLEnigmaFactory:  # REMAKE THIS
+class EnigmaFactory:  # REMAKE THIS
     """Factory for producing enigma machines ( initialised more simply by
     choosing defaults from available config ), Can create rotor objects too"""
     def __init__(self, cfg_path):
-        print(cfg_path)
-        self.cfg = Config(cfg_path, 'yaml')
+        self.cfg = Config(cfg_path)
 
     @staticmethod
     def _get_model_class(model):
@@ -277,8 +348,12 @@ class YAMLEnigmaFactory:  # REMAKE THIS
 
     def all_models(self):
         """Returns all enigma models as a string list"""
-        self.cfg.clear_focus()
-        return [enigma['model'] for enigma in self.cfg.iter_find('enigma')]
+        returns = []
+        for key in self.cfg.data.keys():
+            if key not in ['labels', 'layout']:
+                returns.append(key)
+
+        return returns
 
     def produce_enigma(self, model, reflector=None, rotors=None, stator=None,
                        master=None, reflector_pairs=tuple()):
@@ -343,8 +418,8 @@ class YAMLEnigmaFactory:  # REMAKE THIS
         if labels == ['UKW-D'] or labels == 'UKW-D':
             return UKWD()
 
-        self.cfg.focus_buffer(self._base_path.format(model=model))
-        cfg = self.cfg.iter_find(rotor_type)
+
+        cfg = self.cfg.data[model][rotor_type+'s']
         return_rotors = []
 
         if type(labels) != list and type(labels) != tuple:
@@ -353,9 +428,10 @@ class YAMLEnigmaFactory:  # REMAKE THIS
         for label in labels:
             curr_cfg = None
             match = False
-            for item in cfg:
-                if item['label'] == label:
-                    curr_cfg = item
+            for item, config in cfg.items():
+                if item == label:
+                    curr_cfg = config
+                    curr_cfg['label'] = item
                     match = True
                     break
 
@@ -374,27 +450,13 @@ class YAMLEnigmaFactory:  # REMAKE THIS
 
     def model_data(self, model):
         """Returns all available rotor labels for the selected enigma model"""
-        model_data = {'model': model}
+        model_data = {'model': model,
+                      'labels': self.cfg.data['labels'],
+                      'layout': self.cfg.data['layout']
+                      }
 
-        for item in 'layout', 'labels':
-            for row in self.cfg.data[item]:
-                print(row)
-                if not model_data.get(item, None):
-                    if item == 'layout':
-                        model_data[item] = [row['values']]
-                    else:
-                        model_data['labels'] = row['values']
-                else:
-                    if item == 'layout':
-                        model_data[item].append(row['values'])
-                    else:
-                        model_data['labels'].extend(row['values'])
-
-        self.cfg.focus_buffer(self._base_path.format(model=model))
-
-        for item in ['rotors', 'reflectors', 'stators']:
-            model_data[item] = [rotor['label'] for rotor in
-                                self.cfg.find(item, 'SUBATTRS')]
+        for item in 'reflectors', 'rotors', 'stators':
+            model_data[item] = list(self.cfg.data[model][item].keys())
 
         return model_data
 
@@ -555,7 +617,7 @@ class XMLEnigmaFactory:
         for item in ['rotors', 'reflectors', 'stators']:
             model_data[item] = [rotor['label'] for rotor in
                                 self.cfg.find(item, 'SUBATTRS')]
-
+        print(model_data)
         return model_data
 
 
@@ -681,9 +743,9 @@ class Enigma:
     def dump_config(self):
         """Dumps the whole enigma data config"""
         data = dict(reflector=self.reflector.label,
-                    rotors=' '.join(self.rotor_labels),
-                    rotor_positions=' '.join(self.positions),
-                    ring_settings=' '.join(self.ring_settings),
+                    rotors=self.rotor_labels,
+                    rotor_positions=self.positions,
+                    ring_settings=self.ring_settings,
                     model=self.factory_data['model'])
 
         if self.reflector.label == 'UKW-D':
@@ -744,8 +806,8 @@ class Enigma1(Enigma):
     def dump_config(self):
         """Returns enigma state ( rotors, positions, plug pairs, etc... )"""
         config = Enigma.dump_config(self)
-        normal_pairs = ' '.join(self._plugboard.pairs['normal_pairs'])
-        uhr_pairs = ' '.join(self._plugboard.pairs['uhr_pairs'])
+        normal_pairs = self._plugboard.pairs['normal_pairs']
+        uhr_pairs = self._plugboard.pairs['uhr_pairs']
         config.update(normal_pairs=normal_pairs, uhr_pairs=uhr_pairs,
                       uhr_position=str(self._plugboard.uhr_position))
         return config
