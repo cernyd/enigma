@@ -143,6 +143,7 @@ class DataHandler:  # REMAKE THIS
 class XMLDataHandler:
     """Holds all up to date data and distributes it accross the whole program"""
     def __init__(self, master=None):
+        raise DeprecationWarning("Use \DataHandler\" class instead!")
         self.global_cfg = Config('config.xml')
         self.global_cfg.focus_buffer('globals')
         self.master = master

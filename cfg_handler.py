@@ -20,11 +20,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import xml.etree.ElementTree as ET
-import yaml
+from collections import OrderedDict
 from functools import wraps
 from re import findall
 from os import path
 from copy import copy
+import yaml
+
+
+def ordered_load(stream, Loader=yaml.SafeLoader, object_pairs_hook=OrderedDict):
+    """Loads data while keeping data order"""
+    class OrderedLoader(Loader):
+        pass
+    def construct_mapping(loader, node):
+        loader.flatten_mapping(node)
+        return object_pairs_hook(loader.construct_pairs(node))
+    OrderedLoader.add_constructor(
+        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, construct_mapping)
+    return yaml.load(stream, OrderedLoader)
 
 
 class Config:
@@ -35,7 +48,7 @@ class Config:
         else:
             self.buffer_path = path.join(*buffer_path)
         with open(self.buffer_path, 'r') as file:
-            self.data = yaml.safe_load(file)
+            self.data = ordered_load(file)
 
     def write(self):
         """Writes changes to the config file."""
@@ -44,8 +57,9 @@ class Config:
 
 
 class XMLConfig:
-    """Universal XML configuration parser and manager"""
+    """Universal XML configuration parser and manager, DEPRECATED!"""
     def __init__(self, buffer_path):
+        raise DeprecationWarning("Use \"Config\" class instead!")
         self.__contexts = {}
         self.__curr_focus = ''
         try:
