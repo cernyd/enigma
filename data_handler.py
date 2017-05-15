@@ -60,18 +60,10 @@ class Playback:
                 PlaySound(path.join('sounds', sound_name), SND_ASYNC)
 
 
-class DataHandler:
-    def __new__(cls, master=None, config_type='yaml'):
-        if config_type == 'yaml':
-            return YAMLDataHandler(master)
-        elif config_type == 'xml':
-            return XMLDataHandler(master)
-
-
-class YAMLDataHandler:  # REMAKE THIS
+class DataHandler:  # REMAKE THIS
     """Holds all up to date data and distributes it accross the whole program"""
     def __init__(self, master=None):
-        self.global_cfg = Config('config.xml')
+        self.global_cfg = Config('config.yaml')
         self.master = master
         self.enigma_factory = EnigmaFactory(['enigma', 'historical_data.yaml'])
         self.enigma = None
@@ -95,23 +87,23 @@ class YAMLDataHandler:  # REMAKE THIS
     @property
     def font(self):
         """Returns font from config"""
-        font = self.global_cfg.find('font')
+        font = self.global_cfg.data['globals']['font']
         return font['style'], font['size']
 
     @property
     def bg(self):
         """Returns background color from config"""
-        return self.global_cfg.find('bg')['color']
+        return self.global_cfg.data['globals']['bg']['color']
 
     @property
     def enigma_cfg(self):
         """Returns default enigma settings"""
-        return self.global_cfg.find('enigma_defaults')
+        return self.global_cfg.data['globals']['enigma_defaults']
 
     @property
     def settings_vars(self):
         """Returns setting variables for gui"""
-        return self.global_cfg.find('setting_vars')
+        return self.global_cfg.data['globals']['setting_vars']
 
     def save_config(self):
         """Saves all important configuration to the global_cfg file"""
@@ -122,47 +114,36 @@ class YAMLDataHandler:  # REMAKE THIS
                     show_numbers=str(self.master.show_numbers)),
                     enigma=dict(self.enigma.dump_config()))
 
-        self.global_cfg.clear_children('saved')
+        print(data['enigma'])
 
-        self.global_cfg.new_subelement('saved', 'gui', toint='*', **data['gui'])
-
-        split = 'rotors uhr_pairs normal_pairs ' \
-                'rotor_positions ring_settings reflector_pairs'
-
-        self.global_cfg.new_subelement('saved', 'enigma', split=split,
-                                       toint='uhr_position', **data['enigma'])
-
-        self.global_cfg.focus_buffer('globals')
+        self.global_cfg.data['saved'].clear()
+        self.global_cfg.data['saved']['gui'] = dict(**data['gui'])
+        self.global_cfg.data['saved']['enigma'] = dict(**data['enigma'])
 
         self.global_cfg.write()
 
     def load_config(self):
         """Returns data for configuration loading"""
-        self.global_cfg.clear_focus()
         data = None
         try:
-            self.global_cfg.focus_buffer('saved')
-            data = dict(enigma=self.global_cfg.find('enigma'),
-                        gui=self.global_cfg.find('gui'))
+            data = dict(enigma=self.global_cfg.data['saved']['enigma'],
+                        gui=self.global_cfg.data['saved']['gui'])
         except AssertionError:
             messagebox.showerror('Configuration loading error',
                                  'No configuration available')
         finally:
-            self.global_cfg.focus_buffer('globals')
             return data
 
     def remove_config(self):
         """Clears configuration data"""
-        self.global_cfg.clear_focus()
-        self.global_cfg.clear_children('saved')
-        self.global_cfg.focus_buffer('globals')
+        self.global_cfg.data['saved'] = {}
         self.global_cfg.write()
 
 
 class XMLDataHandler:
     """Holds all up to date data and distributes it accross the whole program"""
     def __init__(self, master=None):
-        self.global_cfg = Config('config.xml', 'xml')
+        self.global_cfg = Config('config.xml')
         self.global_cfg.focus_buffer('globals')
         self.master = master
         self.enigma_factory = EnigmaFactory(['enigma', 'historical_data.xml'], 'xml')

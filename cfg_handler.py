@@ -28,27 +28,19 @@ from copy import copy
 
 
 class Config:
-    def __new__(cls, buffer_path, config_type='yaml'):
-        if config_type == 'yaml':
-            return YAMLConfig(buffer_path)
-        elif config_type == 'xml':
-            return XMLConfig(buffer_path)
-
-
-class YAMLConfig:
     """YAML configuration parser and manager"""
     def __init__(self, buffer_path):
         if type(buffer_path) == str:
             self.buffer_path = buffer_path
         else:
             self.buffer_path = path.join(*buffer_path)
-
-    @property
-    def data(self):
-        """Returns all configuration data from the target buffer path"""
         with open(self.buffer_path, 'r') as file:
-            data = yaml.safe_load(file)
-        return data
+            self.data = yaml.safe_load(file)
+
+    def write(self):
+        """Writes changes to the config file."""
+        with open(self.buffer_path, 'w') as file:
+            yaml.safe_dump(self.data, file)
 
 
 class XMLConfig:
