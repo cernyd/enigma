@@ -1,6 +1,26 @@
 #!/usr/bin/env python3
+"""
+Copyright (C) 2016, 2017  David Cerny
+
+This file is part of gnunigma
+
+Gnunigma is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 
 import xml.etree.ElementTree as ET
+import yaml
 from functools import wraps
 from re import findall
 from os import path
@@ -8,7 +28,31 @@ from copy import copy
 
 
 class Config:
-    """Universal configuration parser and manager"""
+    def __new__(cls, buffer_path, config_type='yaml'):
+        if config_type == 'yaml':
+            return YAMLConfig(buffer_path)
+        elif config_type == 'xml':
+            return XMLConfig(buffer_path)
+
+
+class YAMLConfig:
+    """YAML configuration parser and manager"""
+    def __init__(self, buffer_path):
+        if type(buffer_path) == str:
+            self.buffer_path = buffer_path
+        else:
+            self.buffer_path = path.join(*buffer_path)
+
+    @property
+    def data(self):
+        """Returns all configuration data from the target buffer path"""
+        with open(self.buffer_path, 'r') as file:
+            data = yaml.safe_load(file)
+        return data
+
+
+class XMLConfig:
+    """Universal XML configuration parser and manager"""
     def __init__(self, buffer_path):
         self.__contexts = {}
         self.__curr_focus = ''
@@ -93,12 +137,12 @@ class Config:
         elif data_type == 'SUBATTRS':
             subattrs = []
             for item in element:
-                subattrs.append(Config.__process_attribs(copy(item.attrib)))
+                subattrs.append(XMLConfig.__process_attribs(copy(item.attrib)))
             return subattrs
         elif data_type == 'TEXT':
             return element.text
         elif data_type == 'ATTRS':
-            return Config.__process_attribs(copy(element.attrib))
+            return XMLConfig.__process_attribs(copy(element.attrib))
         elif data_type == 'TAG':
             return element.tag
         elif data_type == 'OBJ':
@@ -128,7 +172,7 @@ class Config:
         data = self.buffer.find(data_path)
         assert data is not None, "No data found for path \"{}\"!".format(data_path)
 
-        return Config.__process_data(data, data_type)
+        return XMLConfig.__process_data(data, data_type)
 
     @__compose_path
     @__check_context
@@ -137,7 +181,7 @@ class Config:
         data = list(self.buffer.iter(data_path))
         assert data is not None and data != [], "No data found for path \"{}\"!".format(data_path)
 
-        return [Config.__process_data(item, data_type) for item in data]
+        return [XMLConfig.__process_data(item, data_type) for item in data]
 
     def clear_children(self, target_path):
         """Clears all children of an object"""
