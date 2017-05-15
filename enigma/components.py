@@ -1,4 +1,22 @@
 #!/usr/bin/env python3
+"""
+Copyright (C) 2016, 2017  David Cerny
+
+This file is part of gnunigma
+
+Gnunigma is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 
 from string import ascii_uppercase as alphabet
 from itertools import permutations, chain
@@ -6,6 +24,7 @@ from cfg_handler import Config
 from functools import wraps
 import unittest
 from tkinter import messagebox
+from os import path
 
 
 # UNIT TEST
@@ -17,10 +36,10 @@ class TestEnigma(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
-        self.cfg = Config(TestEnigma.cfg_path)
+        self.cfg = Config(TestEnigma.cfg_path, 'xml')
         self.cfg.focus_buffer('test_cfg')
         self.subject = None
-        self.enigma_factory = EnigmaFactory(['enigma', 'historical_data.xml'])
+        self.enigma_factory = EnigmaFactory(['enigma', 'historical_data.xml'], 'xml')
         self.reset_subject()
 
     def reset_subject(self):
@@ -211,11 +230,180 @@ class Plugboard:
 
 # ENIGMA MODELS
 
+
 class EnigmaFactory:
+    def __new__(cls, master=None, config_type='yaml'):
+        if config_type == 'yaml':
+            return YAMLEnigmaFactory(master)
+        elif config_type == 'xml':
+            return XMLEnigmaFactory(master)
+
+
+class YAMLEnigmaFactory:  # REMAKE THIS
     """Factory for producing enigma machines ( initialised more simply by
     choosing defaults from available config ), Can create rotor objects too"""
     def __init__(self, cfg_path):
-        self.cfg = Config(cfg_path)
+        print(cfg_path)
+        self.cfg = Config(cfg_path, 'yaml')
+
+    @staticmethod
+    def _get_model_class(model):
+        """Attempts to get object based on input name"""
+        try:
+            return globals()[model]
+        except KeyError:
+            print("No enigma model found for \"{}\"! "\
+                  "Attempting to return alternative object...".format(model))
+            return Enigma1
+
+    def _get_model_data(self, model, rotor_count, reflector=None, rotors=None, stator=None):
+        """Gets default configuration data, custom preferences can override default
+        data."""
+        model_data = self.model_data(model)
+
+        # Generates default data if default parameters not overridden
+        if not reflector:
+            reflector = model_data['reflectors'][0]
+        if not rotors:
+            rotors = model_data['rotors'][:rotor_count]
+        if not stator:
+            stator = model_data['stators'][0]
+
+        reflector = self.produce_rotor(model, 'reflector', reflector)
+        rotors = self.produce_rotor(model, 'rotor', rotors)
+        stator = self.produce_rotor(model, 'stator', stator)
+
+        return reflector, rotors, stator, model_data
+
+    def all_models(self):
+        """Returns all enigma models as a string list"""
+        self.cfg.clear_focus()
+        return [enigma['model'] for enigma in self.cfg.iter_find('enigma')]
+
+    def produce_enigma(self, model, reflector=None, rotors=None, stator=None,
+                       master=None, reflector_pairs=tuple()):
+        """Produces an enigma machine given a specific model ( must be available
+        in the specified cfg_path )"""
+        ModelClass = self._get_model_class(model)
+        data = self._get_model_data(model, ModelClass.rotor_count, reflector,
+                                    rotors, stator)
+
+        if master:
+            class TkEnigma(ModelClass):
+                """Enigma adjusted for Tk rotor lock,
+                    ignore the property signatures please..."""
+                def __init__(self, master, enigma_factory, *data):
+                    self._enigma_factory = enigma_factory
+                    ModelClass.__init__(self, *data)
+                    self.master = master
+
+                def button_press(self, letter):
+                    return ModelClass.button_press(self, letter)
+
+                def step_primary(self, places=1):
+                    if not self.master.rotor_lock:
+                        ModelClass.step_primary(self, places)
+
+                @ModelClass.reflector.setter
+                def reflector(self, reflector):
+                    try:
+                        if type(reflector) == str:
+                            new_reflector = self._enigma_factory.produce_rotor(
+                                model, 'reflector', reflector)
+                            ModelClass.reflector.fset(self, new_reflector)
+                        else:
+                            ModelClass.reflector.fset(self, reflector)
+                    except AttributeError:
+                        messagebox.showwarning('Invalid reflector',
+                                               'Invalid reflector,'
+                                               ' please try '
+                                               'again...')
+
+                @ModelClass.rotors.setter
+                def rotors(self, rotors):
+                    """Adds a visual error feedback ( used only in the
+                    tk implementation )"""
+                    try:
+                        if type(rotors[0]) == str:
+                            new_rotors = self._enigma_factory.produce_rotor(model, 'rotor', rotors)
+                            ModelClass.rotors.fset(self, new_rotors)
+                        else:
+                            ModelClass.rotors.fset(self, rotors)
+                    except AttributeError:
+                        messagebox.showwarning('Invalid rotor',
+                                               'Some of rotors are not \n'
+                                               'valid, please try again...')
+
+            return TkEnigma(master, self, *data, reflector_pairs)
+        else:
+            return ModelClass(*data)
+
+    def produce_rotor(self, model, rotor_type, labels):
+        """Creates and returns new object based on input"""
+        if labels == ['UKW-D'] or labels == 'UKW-D':
+            return UKWD()
+
+        self.cfg.focus_buffer(self._base_path.format(model=model))
+        cfg = self.cfg.iter_find(rotor_type)
+        return_rotors = []
+
+        if type(labels) != list and type(labels) != tuple:
+            labels = [labels]
+
+        for label in labels:
+            curr_cfg = None
+            match = False
+            for item in cfg:
+                if item['label'] == label:
+                    curr_cfg = item
+                    match = True
+                    break
+
+            assert match, "No configuration found for label \"{}\"!".format(label)
+
+            if rotor_type == 'rotor':
+                return_rotors.append(Rotor(**curr_cfg))
+            elif rotor_type == 'reflector':
+                return_rotors.append(Reflector(**curr_cfg))
+            elif rotor_type == 'stator':
+                return_rotors.append(Stator(**curr_cfg))
+
+        if len(return_rotors) == 1:
+            return return_rotors[0]
+        return return_rotors
+
+    def model_data(self, model):
+        """Returns all available rotor labels for the selected enigma model"""
+        model_data = {'model': model}
+
+        for item in 'layout', 'labels':
+            for row in self.cfg.data[item]:
+                print(row)
+                if not model_data.get(item, None):
+                    if item == 'layout':
+                        model_data[item] = [row['values']]
+                    else:
+                        model_data['labels'] = row['values']
+                else:
+                    if item == 'layout':
+                        model_data[item].append(row['values'])
+                    else:
+                        model_data['labels'].extend(row['values'])
+
+        self.cfg.focus_buffer(self._base_path.format(model=model))
+
+        for item in ['rotors', 'reflectors', 'stators']:
+            model_data[item] = [rotor['label'] for rotor in
+                                self.cfg.find(item, 'SUBATTRS')]
+
+        return model_data
+
+
+class XMLEnigmaFactory:
+    """Factory for producing enigma machines ( initialised more simply by
+    choosing defaults from available config ), Can create rotor objects too"""
+    def __init__(self, cfg_path):
+        self.cfg = Config(cfg_path, 'xml')
         self._base_path = "enigma[@model='{model}']"
 
     @staticmethod
