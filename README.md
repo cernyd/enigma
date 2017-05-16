@@ -54,7 +54,7 @@ sudo apt-get install python3-tk
   * [LICENSE.txt](#license)
   * **README.md** - This file
   * [cfg_handler.py](#cfg_handler)
-  config.yaml](#config.yaml)
+  * [config.yaml](#config)
   * [data_handler.py](#data_handler)
   * [enigma_deciphered.txt](#accomplishments-of-gnunigma)
   * [gui.py](#gui)
