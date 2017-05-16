@@ -28,7 +28,7 @@ sudo apt-get install python3-tk
 3. Run the ```runtime.py``` file with python 3
 
 ### Requirements
-1. Python version 3.5 and newer (older python 3 versions might work aswell but were not tested by me!)
+1. Python version 3.5 and newer (older python 3 versions might work as well but were not tested by me!)
    * *tkinter* library is included on Windows by default but must be installed on Ubuntu
 
 ### Features missing in the Ubuntu version
