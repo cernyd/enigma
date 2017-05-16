@@ -38,7 +38,7 @@ sudo apt-get install python3-tk
 * Files that require further explanations are links to sections describing them in more detail.
 
 * **gnunigma/**
-  * enigma/
+  * **enigma/**
     * [components.py](#components)
     * **historical_data.yaml** - Historical enigma data
   * **icons/** - Icons used by the Windows version
