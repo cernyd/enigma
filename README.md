@@ -1,5 +1,5 @@
 # gnunigma
-![Enigma logo](https://images.duckduckgo.com/iu/?u=https%3A%2F%2Fs-media-cache-ak0.pinimg.com%2F236x%2F59%2Ff7%2F4e%2F59f74e1fbac1f6adcf039f13feb4e67e.jpg&f=1)
+![Enigma logo](https://images.duckduckgo.com/iu/?u=https%3A%2F%2Fs-media-cache-ak0.pinimg.com%2F236x%2F59%2Ff7%2F4e%2F59f74e1fbac1f6adcf039f13feb4e67e.jpg&f=1) 
 
 [Basic information](#basic-information) | [Compatibility](#compatibility) | [Installation](#installation) | [Requirements](#requirements) | [Platform differences](#features-missing-in-the-ubuntu-version) | [FAQ](#faq) | [License](#license)
 
@@ -8,6 +8,13 @@
 * **Language of choice** - python
 * **Graphical library** - tkinter/Tkinter
 
+## How it looks
+### On Windows
+* Warning! This screenshot is old and some new GUI features were added in newer versions! (as you can see on the Ubuntu screenshot)
+
+![Gnunigma on Windows](http://i.imgur.com/DczgfHE.png)
+### On Ubuntu
+![Gnunigma on Ubuntu](http://i.imgur.com/2DmzAvX.png)
 ----
 ## Compatibility
 * Gnunigma was tested on Windows 10 and Ubuntu (16.04, 16.10, 17.04) and should be compatible
@@ -129,3 +136,4 @@ sudo apt-get install python3-tk
 ---
 # License
 * The project is licensed with [GNU GPLv3](https://en.wikipedia.org/wiki/GNU_General_Public_License)
+![GNU GPL logo](https://cloud.githubusercontent.com/assets/18537381/26077378/236c0eec-39bc-11e7-8013-29bfbe1ab2f0.png)
