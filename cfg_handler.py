@@ -17,12 +17,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-import xml.etree.ElementTree as ET
 from collections import OrderedDict
-from functools import wraps
-from re import findall
 from os import path
-from copy import copy
 import yaml
 
 
@@ -40,13 +36,16 @@ def ordered_load(stream, Loader=yaml.SafeLoader, object_pairs_hook=OrderedDict):
 
 class Config:
     """YAML configuration parser and manager"""
-    def __init__(self, buffer_path):
+    def __init__(self, buffer_path, load_type='ordered'):
         if type(buffer_path) == str:
             self.buffer_path = buffer_path
         else:
             self.buffer_path = path.join(*buffer_path)
         with open(self.buffer_path, 'r') as file:
-            self.data = ordered_load(file)
+            if load_type == 'ordered':
+                self.data = ordered_load(file)
+            elif load_type == 'unordered':
+                self.data = yaml.safe_load(file)
 
     def write(self):
         """Writes changes to the config file."""

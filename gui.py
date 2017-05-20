@@ -27,15 +27,51 @@ from webbrowser import open as open_browser
 from enigma.components import alphabet, are_unique
 
 
+class CopyrightNotice(Toplevel):
+    """GNU GPLv3 copyright notice window"""
+    def __init__(self, *args, **kwargs):
+        Toplevel.__init__(self, *args, **kwargs)
+        Base.__init__(self, '', 'GNU GPLv3 Copyright Notice')
+
+
+        main_frame = Frame(self)
+        self.scrollbar = Scrollbar(main_frame)
+        self.copyright_view = Text(main_frame, width=78, height=40, yscrollcommand=self.scrollbar.set)
+        self.scrollbar.config(command=self.copyright_view.yview)
+        Label(main_frame, text="GNU GPLv3 - Know your rights!", font=("Arial", 12, "bold")).pack(side='top', fill='x')
+
+        with open('LICENSE.txt', 'r') as file:
+            self.copyright_view.insert(0.0, file.read())
+
+        self.copyright_view.config(state='disabled')
+        self.copyright_view.pack(side='left')
+        self.scrollbar.pack(side='right', fill='both')
+
+        main_frame.pack(side='top')
+
+        button_frame = Frame(self)
+        self.accept_button = Button(button_frame, text="I Agree", command=self.rights_accepted)
+        self.accept_button.pack(side='right')
+
+        button_frame.pack(side='bottom')
+
+    def rights_accepted(self):
+
+        self.destroy()
+
+
 # ROOT
 
 class Root(Tk, Base):
     """Root GUI class with enigma entry field, plugboard button, rotor button"""
     def __init__(self, data_handler, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
-
         self.data_handler = data_handler
         self.data_handler.set_master(self)  # Sets up master for TkEnigma
+
+        if not self.data_handler.rights_accepted:
+            self.wait_window(CopyrightNotice())
+            self.data_handler.accept_rights()
 
         Base.__init__(self, 'enigma.ico', self.data_handler.enigma_cfg['model'])
         self.root_menu = None

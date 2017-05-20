@@ -60,10 +60,10 @@ class Playback:
                 PlaySound(path.join('sounds', sound_name), SND_ASYNC)
 
 
-class DataHandler:  # REMAKE THIS
+class DataHandler:
     """Holds all up to date data and distributes it accross the whole program"""
     def __init__(self, master=None):
-        self.global_cfg = Config('config.yaml')
+        self.global_cfg = Config('config.yaml', 'unordered')
         self.master = master
         self.enigma_factory = EnigmaFactory(['enigma', 'historical_data.yaml'])
         self.enigma = None
@@ -105,6 +105,14 @@ class DataHandler:  # REMAKE THIS
         """Returns setting variables for gui"""
         return self.global_cfg.data['globals']['setting_vars']
 
+    @property
+    def rights_accepted(self):
+        return self.global_cfg.data['globals']['rights_accepted']
+
+    def accept_rights(self):
+        self.global_cfg.data['globals']['rights_accepted'] = True
+        self.global_cfg.write()
+
     def save_config(self):
         """Saves all important configuration to the global_cfg file"""
         data = dict(gui=dict(sound_enabled=str(self.master.sound_enabled),
@@ -113,8 +121,6 @@ class DataHandler:  # REMAKE THIS
                     synchronised_scrolling=str(self.master.sync_scroll),
                     show_numbers=str(self.master.show_numbers)),
                     enigma=dict(self.enigma.dump_config()))
-
-        print(data['enigma'])
 
         self.global_cfg.data['saved'].clear()
         self.global_cfg.data['saved']['gui'] = dict(**data['gui'])
