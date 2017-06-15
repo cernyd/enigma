@@ -11,17 +11,7 @@ globals:
   setting_vars: {autorotate: 1, rotor_lock: 0, show_numbers: 0, sound_enabled: 1,
     sync_scroll: 1}
   unit_tests: {startup_test: true}
-saved:
-  enigma:
-    model: Enigma1
-    normal_pairs: [QA]
-    reflector: UKW-A
-    ring_settings: [A, A, A]
-    rotor_positions: [A, A, A]
-    rotors: [I, V, IV]
-    uhr_pairs: []
-    uhr_position: '0'
-  gui: {autorotate: '1', rotor_lock: '0', show_numbers: '0', sound_enabled: '1', synchronised_scrolling: '1'}
+saved: {}
 test_cfg:
   default_cfg:
     reflector: UKW-B

@@ -934,6 +934,7 @@ class Uhr(_Rotatable):
     @position.setter
     def position(self, position):
         """Sets uhr position"""
+        position = int(position)
         while self.position != position % 40:
             self._change_board_offset('relative_board', 1)
             self._change_board_offset('back_board', 1)

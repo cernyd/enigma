@@ -38,7 +38,7 @@ class Base:
         self.after(0, self.attributes, "-alpha", 1.0)
         self.resizable(False, False)
         if platform == "Windows":
-            self.iconbitmap("@"+path.join('icons', icon))
+            self.iconbitmap(path.join('icons', icon))
         self.wm_title(wm_title)
         self.grab_set()
 
@@ -143,4 +143,5 @@ class DataHandler:
     def remove_config(self):
         """Clears configuration data"""
         self.global_cfg.data['saved'] = {}
+        self.global_cfg.data['globals']['rights_accepted'] = False
         self.global_cfg.write()

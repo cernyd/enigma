@@ -222,7 +222,6 @@ class Root(Tk, Base):
         root_menu.add_cascade(label='Settings', menu=settings_menu)
         root_menu.add_command(label='About', command=lambda: open_browser(
             'https://github.com/cernyd/enigma'))
-        root_menu.add_command(label='Help')
 
         # CONFIGURATION MENU
         config_menu = Menu(settings_menu, tearoff=0)
