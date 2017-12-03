@@ -27,11 +27,11 @@ data_handler = DataHandler()
 root = Root(data_handler)
 
 if platform == "Linux":
-    print("Linux platform detected! Some features ( like sound and icons ) will be omitted due to compatibility issues...")
+    print("Linux platform detected! Some features (like sound and icons) will be omitted due to compatibility issues...")
     try:
         import tkinter
     except Exception:
-        print("Unable to import tkinter graphical library, please install using \"sudo apt-get install python3-tk\"")
+        print("Unable to import tkinter graphical library, please install using \"./install.bash\"")
 
 # Main unittest before running, could warn about potential flaws
 # If this passes, enigma should be ready for accurate simulation
