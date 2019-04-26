@@ -21,20 +21,20 @@
 
 ### Installation
 1. Download the source
-2. If you are on Ubuntu and don't have Tkinter installed on python 3, run this command
+2. If you are on Ubuntu and don't have Tkinter installed on Python 3, run this command
 ```bash
 sudo apt-get install python3-tk
 ```
 3. Run the ```runtime.py``` file with python 3
 
 ### Requirements
-1. Python version 3.5 and newer (older python 3 versions might work as well but were not tested by me!)
+1. Python version 3.5 and newer (older Python 3 versions might work as well but weren't tested by me!)
    * *tkinter* library is included on Windows by default but must be installed on Ubuntu
 
 ### Features missing in the Ubuntu version
-1. **Sound** - gnunigma on Windows is using the *winsound* library, which is not available on linux
-2. **Icons** - there were some issues with iconbitmaps on
-3. **Styling** - The gui does not looks as good as on Windows (scaling, weird colors)
+1. **Sound** - gnunigma on Windows is using the *winsound* library, which is not available on Linux
+2. **Icons** - there were some issues with iconbitmaps on Linux
+3. **Styling** - The GUI doesn't look as good as on Windows (scaling, weird colors)
 
 ---
 # How it works
